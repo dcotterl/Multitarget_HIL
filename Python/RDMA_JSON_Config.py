@@ -311,42 +311,42 @@ Channel_Specification_Template = {
 													}],
                                 }
 
-def get_rdma_json():
+def __get_rdma_json():
 	"""Return a deep-copied template so callers can safely modify it."""
 	logger.debug("Returning a deep copy of the RDMA JSON template.")
 	return deepcopy(RDMA_JSON_Template)
 
-def get_base_file():
+def __get_base_file():
     """Return a deep-copied template so callers can safely modify it."""
     logger.debug("Returning a deep copy of the base file specification template.")
     return deepcopy(Base_File_Specification_Template)
 
-def get_plugin():
+def __get_plugin():
     """Return a deep-copied template so callers can safely modify it."""
     logger.debug("Returning a deep copy of the plugin specification template.")
     return deepcopy(Pluging_Specification_Template)
 
-def get_thread():
+def __get_thread():
     """Return a deep-copied template so callers can safely modify it."""
     logger.debug("Returning a deep copy of the thread specification template.")
     return deepcopy(Thread_Specification_Template)
 
-def get_transfergroup():
+def __get_transfergroup():
     """Return a deep-copied template so callers can safely modify it."""
     logger.debug("Returning a deep copy of the transfer group specification template.")
     return deepcopy(Transfer_Group_Specification_Template)
 
-def get_tx_transfer():
+def __get_tx_transfer():
     """Return a deep-copied template so callers can safely modify it."""
     logger.debug("Returning a deep copy of the TX transfer specification template.")
     return deepcopy(Tx_Transfer_Specification_Template)
 
-def get_rx_transfer():
+def __get_rx_transfer():
     """Return a deep-copied template so callers can safely modify it."""
     logging.debug("Returning a deep copy of the RX transfer specification template.")
     return deepcopy(Rx_Transfer_Specification_Template)
 
-def get_channel():
+def __get_channel():
     """Return a deep-copied template so callers can safely modify it."""
     logging.debug("Returning a deep copy of the channel specification template.")
     return deepcopy(Channel_Specification_Template)
@@ -371,14 +371,14 @@ def makeChannels(nCh):
 	# Building n channels
 	channels = []
 	for i in range(nCh):
-		channel = get_channel()
+		channel = __get_channel()
 		channel["core"]["name"] = f"Channel{i+1}"
 		channel["core"]["units"] = ""
 		channels.append(channel)
 		logger.debug(f"Created channel specification: {channel['core']['name']} with units:{channel['core']['units']}")
 	return channels
 
-def makeTransfers(direction:Direction, localIP, localPort, channels, destIP=None, destPort=None):
+def makeTransfers(direction:Direction, localIP, localPort, channels, destIP=None, destPort=None, name_prefix="Transfer"):
 	"""Create a transfer specification with the given parameters.
 	
 	Args:
@@ -393,20 +393,20 @@ def makeTransfers(direction:Direction, localIP, localPort, channels, destIP=None
 		dict: A transfer specification dictionary configured for the given direction.
 	"""
 	if direction == Direction.TX:
-		transfer = get_tx_transfer()
-		transfer["core"]["name"] = "TransferTx"
+		transfer = __get_tx_transfer()
+		transfer["core"]["name"] = f"{name_prefix}Tx"
 		transfer["channels"] = channels
 		transfer["component settings"][0]["values"][0]["value"] = localIP
-		transfer["component settings"][0]["values"][1]["value"] = localPort
+		transfer["component settings"][0]["values"][1]["value"] = str(localPort)
 		transfer["component settings"][0]["values"][2]["value"] = destIP
-		transfer["component settings"][0]["values"][3]["value"] = destPort
+		transfer["component settings"][0]["values"][3]["value"] = str(destPort)
 		logger.debug(f"Created TX transfer specification: {transfer['core']['name']} with localIP:{localIP}, localPort:{localPort}, destIP:{destIP}, destPort:{destPort}")
 	elif direction == Direction.RX:
-		transfer = get_rx_transfer()
-		transfer["core"]["name"] = "TransferRx"
+		transfer = __get_rx_transfer()
+		transfer["core"]["name"] = f"{name_prefix}Rx"
 		transfer["channels"] = channels
 		transfer["component settings"][0]["values"][0]["value"] = localIP
-		transfer["component settings"][0]["values"][1]["value"] = localPort
+		transfer["component settings"][0]["values"][1]["value"] = str(localPort)
 		logger.debug(f"Created RX transfer specification: {transfer['core']['name']} with localIP:{localIP}, localPort:{localPort}")
 	return transfer
 
@@ -422,7 +422,7 @@ def makeTransferGroups(direction:Direction, transfers, groupName="Group"):
 	Returns:
 		dict: A transfer group specification dictionary configured for the given direction.
 	"""
-	group = get_transfergroup()
+	group = __get_transfergroup()
 	if direction == Direction.TX:
 		group["core"]["name"] = groupName + "Tx"
 	elif direction == Direction.RX:
@@ -443,7 +443,7 @@ def makeThreads(groups):
 	Returns:
 		dict: A thread specification dictionary configured with the provided transfer groups.
 	"""
-	thread = get_thread()
+	thread = __get_thread()
 	thread["transfer groups"] = groups
 	logger.debug(f"Created thread specification with {len(groups)} transfer groups.")
 	return thread
@@ -459,7 +459,7 @@ def makePlugins(threads, name="Plugin"):
 	Returns:
 		dict: A plugin specification dictionary configured with the provided threads and name.
 	"""
-	plugin = get_plugin()
+	plugin = __get_plugin()
 	plugin["core"]["name"] = name
 	plugin["threads"] = threads
 	logger.debug(f"Created plugin specification: {plugin['core']['name']} with {len(threads)} threads.")
@@ -475,7 +475,7 @@ def makeConfigFile(plugins):
 	Returns:
 		dict: A configuration file dictionary with the provided plugins.
 	"""
-	configFile = get_base_file()
+	configFile = __get_base_file()
 	configFile["configuration"]["plugins"] = plugins
 	logger.debug(f"Created configuration file with {len(plugins)} plugins.")
 	return configFile

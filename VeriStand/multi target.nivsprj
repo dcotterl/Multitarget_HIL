@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<SourceFile Checksum="8774FD8A37FBCFB840BCA9CDA55A5A55C7559436E86E4DF84F11EBE32FD0914E900D4BC5A01016C33D7434E100D5601D283BD1696FE90505EABDDEAF05110A1C" xmlns="http://www.ni.com/PlatformFramework">
+<SourceFile Checksum="CD5C53C36FD981652EE3C07E559DA979A6043FEDCE55CBB0FA8B05DEB74E8EFFD931FF48B44B2FE1386A9EF72CC78221866AE1B8659D46E4D50EDBDE254442CE" xmlns="http://www.ni.com/PlatformFramework">
 	<SourceModelFeatureSet>
 		<ParsableNamespace AssemblyFileVersion="9.17.0.49687" FeatureSetName="Editor" Name="http://www.ni.com/PlatformFramework" OldestCompatibleVersion="8.1.0.49152" Version="8.1.0.49152" />
 		<ParsableNamespace AssemblyFileVersion="9.17.0.49687" FeatureSetName="VeriStand Core Components" Name="http://www.ni.com/VeriStand" OldestCompatibleVersion="9.0.0.49152" Version="9.0.0.49152" />
@@ -21,7 +21,7 @@
 			<FileReference Bindings=".nivsproj" Id="787baa20f8d64414b285a74773548004" ModelDefinitionType="{http://www.ni.com/PlatformFramework}ExternalFile" Name="multi target.nivsproj" StoragePath="multi target.nivsproj" />
 			<SourceFileReference Bindings="EnvoyManager" Id="68fddd7364464d64814eaa4d09163897" ModelDefinitionType="{http://www.ni.com/VeriStand}SystemDefinition" Name="multi target.nivssdf" StoragePath="multi target.nivssdf" />
 			<EmbeddedDefinitionReference Id="9f98bf53bc554e7e93e1fb3ec03f6ad9" ModelDefinitionType="SdfFilePath" Name="SdfPath" Reparentable="False">
-				<SdfFilePath SdfPath="simple.nivssdf" xmlns="http://www.ni.com/VeriStand" />
+				<SdfFilePath SdfPath="multi target.nivssdf" xmlns="http://www.ni.com/VeriStand" />
 			</EmbeddedDefinitionReference>
 			<SourceFileReference Bindings="EnvoyManager" Id="2935c7a38be243ca96755bdb694a8988" ModelDefinitionType="{http://www.ni.com/VeriStand}SystemDefinition" Name="simple.nivssdf" StoragePath="simple.nivssdf" />
 			<SourceFileReference Id="4939d5d97c8140aba12a0a8bcbc10188" ModelDefinitionType="{http://www.ni.com/VeriStand}Screen" Name="Simple.nivsscr" StoragePath="Simple.nivsscr" />

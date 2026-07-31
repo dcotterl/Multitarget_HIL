@@ -15,7 +15,7 @@
         "plugins": [
             {
                 "core": {
-                    "name": "Plugin",
+                    "name": "BidirectionalPlugin",
                     "components": [
                         "RDMA"
                     ],
@@ -46,7 +46,7 @@
                         "transfer groups": [
                             {
                                 "core": {
-                                    "name": "GroupTx",
+                                    "name": "TransferGroup_Cotterle_to_Callea_Tx",
                                     "direction": 0,
                                     "cycle timing": {
                                         "priority": 100,
@@ -65,7 +65,7 @@
                                 "transfers": [
                                     {
                                         "core": {
-                                            "name": "TransferTx"
+                                            "name": "Transfer_Cotterle_to_Callea_Tx"
                                         },
                                         "component settings": [
                                             {
@@ -77,7 +77,7 @@
                                                     },
                                                     {
                                                         "key": "local port",
-                                                        "value": "5000"
+                                                        "value": "5010"
                                                     },
                                                     {
                                                         "key": "destination address",
@@ -85,7 +85,7 @@
                                                     },
                                                     {
                                                         "key": "destination port",
-                                                        "value": "5001"
+                                                        "value": "5010"
                                                     }
                                                 ]
                                             }
@@ -105,10 +105,53 @@
                                                         "values": []
                                                     }
                                                 ]
-                                            },
+                                            }
+                                        ]
+                                    }
+                                ]
+                            },
+                            {
+                                "core": {
+                                    "name": "TransferGroup_Callea_to_Cotterle_Rx",
+                                    "direction": 1,
+                                    "cycle timing": {
+                                        "priority": 100,
+                                        "decimation": 1,
+                                        "offset": 0
+                                    },
+                                    "timeout behavior": 0,
+                                    "enable conversion": false
+                                },
+                                "component settings": [
+                                    {
+                                        "component": "RDMA",
+                                        "values": []
+                                    }
+                                ],
+                                "transfers": [
+                                    {
+                                        "core": {
+                                            "name": "Transfer_Callea_to_Cotterle_Rx"
+                                        },
+                                        "component settings": [
+                                            {
+                                                "component": "RDMA",
+                                                "values": [
+                                                    {
+                                                        "key": "local address",
+                                                        "value": "169.254.49.44"
+                                                    },
+                                                    {
+                                                        "key": "local port",
+                                                        "value": "5011"
+                                                    }
+                                                ]
+                                            }
+                                        ],
+                                        "channels": [
                                             {
                                                 "core": {
-                                                    "name": "Channel2",
+                                                    "name": "Channel1",
                                                     "units": "",
                                                     "engine data type": 2,
                                                     "string data type": 2,
