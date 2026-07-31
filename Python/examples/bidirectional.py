@@ -101,7 +101,7 @@ if __name__ == "__main__":
     c1_name, c1_rdma_ip, c1_tx_port, c1_rx_port = "Cotterle","169.254.49.44", 5010, 5011
     c2_name, c2_rdma_ip, c2_tx_port, c2_rx_port = "Callea","169.254.23.111", 5011, 5010
 
-    number_of_channels = 1
+    number_of_channels = 10
 
     logger.info(f"Generating configuration for bidirectional communication from {c1_name} to {c2_name} with {number_of_channels} channels.")
     make_multidirection_n_channels(

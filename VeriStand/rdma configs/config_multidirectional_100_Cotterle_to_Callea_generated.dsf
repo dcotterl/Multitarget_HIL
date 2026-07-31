@@ -1,0 +1,3147 @@
+{
+    "dsfversion": {
+        "major": 1,
+        "minor": 4,
+        "fix": 0,
+        "build": ""
+    },
+    "version": {
+        "major": 1,
+        "minor": 0,
+        "fix": 0,
+        "build": ""
+    },
+    "configuration": {
+        "plugins": [
+            {
+                "core": {
+                    "name": "BidirectionalPlugin",
+                    "components": [
+                        "RDMA"
+                    ],
+                    "cycle timing": {
+                        "priority": 10000,
+                        "decimation": 1,
+                        "offset": 0
+                    }
+                },
+                "component settings": [
+                    {
+                        "component": "RDMA",
+                        "values": []
+                    }
+                ],
+                "threads": [
+                    {
+                        "core": {
+                            "processor": -2,
+                            "priority offset": 0
+                        },
+                        "component settings": [
+                            {
+                                "component": "RDMA",
+                                "values": []
+                            }
+                        ],
+                        "transfer groups": [
+                            {
+                                "core": {
+                                    "name": "TransferGroup_Cotterle_to_Callea_Tx",
+                                    "direction": 0,
+                                    "cycle timing": {
+                                        "priority": 100,
+                                        "decimation": 1,
+                                        "offset": 0
+                                    },
+                                    "timeout behavior": 0,
+                                    "enable conversion": false
+                                },
+                                "component settings": [
+                                    {
+                                        "component": "RDMA",
+                                        "values": []
+                                    }
+                                ],
+                                "transfers": [
+                                    {
+                                        "core": {
+                                            "name": "Transfer_Cotterle_to_Callea_Tx"
+                                        },
+                                        "component settings": [
+                                            {
+                                                "component": "RDMA",
+                                                "values": [
+                                                    {
+                                                        "key": "local address",
+                                                        "value": "169.254.49.44"
+                                                    },
+                                                    {
+                                                        "key": "local port",
+                                                        "value": "5010"
+                                                    },
+                                                    {
+                                                        "key": "destination address",
+                                                        "value": "169.254.23.111"
+                                                    },
+                                                    {
+                                                        "key": "destination port",
+                                                        "value": "5010"
+                                                    }
+                                                ]
+                                            }
+                                        ],
+                                        "channels": [
+                                            {
+                                                "core": {
+                                                    "name": "Channel1",
+                                                    "units": "",
+                                                    "engine data type": 2,
+                                                    "string data type": 2,
+                                                    "string offset": 0
+                                                },
+                                                "component settings": [
+                                                    {
+                                                        "component": "RDMA",
+                                                        "values": []
+                                                    }
+                                                ]
+                                            },
+                                            {
+                                                "core": {
+                                                    "name": "Channel2",
+                                                    "units": "",
+                                                    "engine data type": 2,
+                                                    "string data type": 2,
+                                                    "string offset": 0
+                                                },
+                                                "component settings": [
+                                                    {
+                                                        "component": "RDMA",
+                                                        "values": []
+                                                    }
+                                                ]
+                                            },
+                                            {
+                                                "core": {
+                                                    "name": "Channel3",
+                                                    "units": "",
+                                                    "engine data type": 2,
+                                                    "string data type": 2,
+                                                    "string offset": 0
+                                                },
+                                                "component settings": [
+                                                    {
+                                                        "component": "RDMA",
+                                                        "values": []
+                                                    }
+                                                ]
+                                            },
+                                            {
+                                                "core": {
+                                                    "name": "Channel4",
+                                                    "units": "",
+                                                    "engine data type": 2,
+                                                    "string data type": 2,
+                                                    "string offset": 0
+                                                },
+                                                "component settings": [
+                                                    {
+                                                        "component": "RDMA",
+                                                        "values": []
+                                                    }
+                                                ]
+                                            },
+                                            {
+                                                "core": {
+                                                    "name": "Channel5",
+                                                    "units": "",
+                                                    "engine data type": 2,
+                                                    "string data type": 2,
+                                                    "string offset": 0
+                                                },
+                                                "component settings": [
+                                                    {
+                                                        "component": "RDMA",
+                                                        "values": []
+                                                    }
+                                                ]
+                                            },
+                                            {
+                                                "core": {
+                                                    "name": "Channel6",
+                                                    "units": "",
+                                                    "engine data type": 2,
+                                                    "string data type": 2,
+                                                    "string offset": 0
+                                                },
+                                                "component settings": [
+                                                    {
+                                                        "component": "RDMA",
+                                                        "values": []
+                                                    }
+                                                ]
+                                            },
+                                            {
+                                                "core": {
+                                                    "name": "Channel7",
+                                                    "units": "",
+                                                    "engine data type": 2,
+                                                    "string data type": 2,
+                                                    "string offset": 0
+                                                },
+                                                "component settings": [
+                                                    {
+                                                        "component": "RDMA",
+                                                        "values": []
+                                                    }
+                                                ]
+                                            },
+                                            {
+                                                "core": {
+                                                    "name": "Channel8",
+                                                    "units": "",
+                                                    "engine data type": 2,
+                                                    "string data type": 2,
+                                                    "string offset": 0
+                                                },
+                                                "component settings": [
+                                                    {
+                                                        "component": "RDMA",
+                                                        "values": []
+                                                    }
+                                                ]
+                                            },
+                                            {
+                                                "core": {
+                                                    "name": "Channel9",
+                                                    "units": "",
+                                                    "engine data type": 2,
+                                                    "string data type": 2,
+                                                    "string offset": 0
+                                                },
+                                                "component settings": [
+                                                    {
+                                                        "component": "RDMA",
+                                                        "values": []
+                                                    }
+                                                ]
+                                            },
+                                            {
+                                                "core": {
+                                                    "name": "Channel10",
+                                                    "units": "",
+                                                    "engine data type": 2,
+                                                    "string data type": 2,
+                                                    "string offset": 0
+                                                },
+                                                "component settings": [
+                                                    {
+                                                        "component": "RDMA",
+                                                        "values": []
+                                                    }
+                                                ]
+                                            },
+                                            {
+                                                "core": {
+                                                    "name": "Channel11",
+                                                    "units": "",
+                                                    "engine data type": 2,
+                                                    "string data type": 2,
+                                                    "string offset": 0
+                                                },
+                                                "component settings": [
+                                                    {
+                                                        "component": "RDMA",
+                                                        "values": []
+                                                    }
+                                                ]
+                                            },
+                                            {
+                                                "core": {
+                                                    "name": "Channel12",
+                                                    "units": "",
+                                                    "engine data type": 2,
+                                                    "string data type": 2,
+                                                    "string offset": 0
+                                                },
+                                                "component settings": [
+                                                    {
+                                                        "component": "RDMA",
+                                                        "values": []
+                                                    }
+                                                ]
+                                            },
+                                            {
+                                                "core": {
+                                                    "name": "Channel13",
+                                                    "units": "",
+                                                    "engine data type": 2,
+                                                    "string data type": 2,
+                                                    "string offset": 0
+                                                },
+                                                "component settings": [
+                                                    {
+                                                        "component": "RDMA",
+                                                        "values": []
+                                                    }
+                                                ]
+                                            },
+                                            {
+                                                "core": {
+                                                    "name": "Channel14",
+                                                    "units": "",
+                                                    "engine data type": 2,
+                                                    "string data type": 2,
+                                                    "string offset": 0
+                                                },
+                                                "component settings": [
+                                                    {
+                                                        "component": "RDMA",
+                                                        "values": []
+                                                    }
+                                                ]
+                                            },
+                                            {
+                                                "core": {
+                                                    "name": "Channel15",
+                                                    "units": "",
+                                                    "engine data type": 2,
+                                                    "string data type": 2,
+                                                    "string offset": 0
+                                                },
+                                                "component settings": [
+                                                    {
+                                                        "component": "RDMA",
+                                                        "values": []
+                                                    }
+                                                ]
+                                            },
+                                            {
+                                                "core": {
+                                                    "name": "Channel16",
+                                                    "units": "",
+                                                    "engine data type": 2,
+                                                    "string data type": 2,
+                                                    "string offset": 0
+                                                },
+                                                "component settings": [
+                                                    {
+                                                        "component": "RDMA",
+                                                        "values": []
+                                                    }
+                                                ]
+                                            },
+                                            {
+                                                "core": {
+                                                    "name": "Channel17",
+                                                    "units": "",
+                                                    "engine data type": 2,
+                                                    "string data type": 2,
+                                                    "string offset": 0
+                                                },
+                                                "component settings": [
+                                                    {
+                                                        "component": "RDMA",
+                                                        "values": []
+                                                    }
+                                                ]
+                                            },
+                                            {
+                                                "core": {
+                                                    "name": "Channel18",
+                                                    "units": "",
+                                                    "engine data type": 2,
+                                                    "string data type": 2,
+                                                    "string offset": 0
+                                                },
+                                                "component settings": [
+                                                    {
+                                                        "component": "RDMA",
+                                                        "values": []
+                                                    }
+                                                ]
+                                            },
+                                            {
+                                                "core": {
+                                                    "name": "Channel19",
+                                                    "units": "",
+                                                    "engine data type": 2,
+                                                    "string data type": 2,
+                                                    "string offset": 0
+                                                },
+                                                "component settings": [
+                                                    {
+                                                        "component": "RDMA",
+                                                        "values": []
+                                                    }
+                                                ]
+                                            },
+                                            {
+                                                "core": {
+                                                    "name": "Channel20",
+                                                    "units": "",
+                                                    "engine data type": 2,
+                                                    "string data type": 2,
+                                                    "string offset": 0
+                                                },
+                                                "component settings": [
+                                                    {
+                                                        "component": "RDMA",
+                                                        "values": []
+                                                    }
+                                                ]
+                                            },
+                                            {
+                                                "core": {
+                                                    "name": "Channel21",
+                                                    "units": "",
+                                                    "engine data type": 2,
+                                                    "string data type": 2,
+                                                    "string offset": 0
+                                                },
+                                                "component settings": [
+                                                    {
+                                                        "component": "RDMA",
+                                                        "values": []
+                                                    }
+                                                ]
+                                            },
+                                            {
+                                                "core": {
+                                                    "name": "Channel22",
+                                                    "units": "",
+                                                    "engine data type": 2,
+                                                    "string data type": 2,
+                                                    "string offset": 0
+                                                },
+                                                "component settings": [
+                                                    {
+                                                        "component": "RDMA",
+                                                        "values": []
+                                                    }
+                                                ]
+                                            },
+                                            {
+                                                "core": {
+                                                    "name": "Channel23",
+                                                    "units": "",
+                                                    "engine data type": 2,
+                                                    "string data type": 2,
+                                                    "string offset": 0
+                                                },
+                                                "component settings": [
+                                                    {
+                                                        "component": "RDMA",
+                                                        "values": []
+                                                    }
+                                                ]
+                                            },
+                                            {
+                                                "core": {
+                                                    "name": "Channel24",
+                                                    "units": "",
+                                                    "engine data type": 2,
+                                                    "string data type": 2,
+                                                    "string offset": 0
+                                                },
+                                                "component settings": [
+                                                    {
+                                                        "component": "RDMA",
+                                                        "values": []
+                                                    }
+                                                ]
+                                            },
+                                            {
+                                                "core": {
+                                                    "name": "Channel25",
+                                                    "units": "",
+                                                    "engine data type": 2,
+                                                    "string data type": 2,
+                                                    "string offset": 0
+                                                },
+                                                "component settings": [
+                                                    {
+                                                        "component": "RDMA",
+                                                        "values": []
+                                                    }
+                                                ]
+                                            },
+                                            {
+                                                "core": {
+                                                    "name": "Channel26",
+                                                    "units": "",
+                                                    "engine data type": 2,
+                                                    "string data type": 2,
+                                                    "string offset": 0
+                                                },
+                                                "component settings": [
+                                                    {
+                                                        "component": "RDMA",
+                                                        "values": []
+                                                    }
+                                                ]
+                                            },
+                                            {
+                                                "core": {
+                                                    "name": "Channel27",
+                                                    "units": "",
+                                                    "engine data type": 2,
+                                                    "string data type": 2,
+                                                    "string offset": 0
+                                                },
+                                                "component settings": [
+                                                    {
+                                                        "component": "RDMA",
+                                                        "values": []
+                                                    }
+                                                ]
+                                            },
+                                            {
+                                                "core": {
+                                                    "name": "Channel28",
+                                                    "units": "",
+                                                    "engine data type": 2,
+                                                    "string data type": 2,
+                                                    "string offset": 0
+                                                },
+                                                "component settings": [
+                                                    {
+                                                        "component": "RDMA",
+                                                        "values": []
+                                                    }
+                                                ]
+                                            },
+                                            {
+                                                "core": {
+                                                    "name": "Channel29",
+                                                    "units": "",
+                                                    "engine data type": 2,
+                                                    "string data type": 2,
+                                                    "string offset": 0
+                                                },
+                                                "component settings": [
+                                                    {
+                                                        "component": "RDMA",
+                                                        "values": []
+                                                    }
+                                                ]
+                                            },
+                                            {
+                                                "core": {
+                                                    "name": "Channel30",
+                                                    "units": "",
+                                                    "engine data type": 2,
+                                                    "string data type": 2,
+                                                    "string offset": 0
+                                                },
+                                                "component settings": [
+                                                    {
+                                                        "component": "RDMA",
+                                                        "values": []
+                                                    }
+                                                ]
+                                            },
+                                            {
+                                                "core": {
+                                                    "name": "Channel31",
+                                                    "units": "",
+                                                    "engine data type": 2,
+                                                    "string data type": 2,
+                                                    "string offset": 0
+                                                },
+                                                "component settings": [
+                                                    {
+                                                        "component": "RDMA",
+                                                        "values": []
+                                                    }
+                                                ]
+                                            },
+                                            {
+                                                "core": {
+                                                    "name": "Channel32",
+                                                    "units": "",
+                                                    "engine data type": 2,
+                                                    "string data type": 2,
+                                                    "string offset": 0
+                                                },
+                                                "component settings": [
+                                                    {
+                                                        "component": "RDMA",
+                                                        "values": []
+                                                    }
+                                                ]
+                                            },
+                                            {
+                                                "core": {
+                                                    "name": "Channel33",
+                                                    "units": "",
+                                                    "engine data type": 2,
+                                                    "string data type": 2,
+                                                    "string offset": 0
+                                                },
+                                                "component settings": [
+                                                    {
+                                                        "component": "RDMA",
+                                                        "values": []
+                                                    }
+                                                ]
+                                            },
+                                            {
+                                                "core": {
+                                                    "name": "Channel34",
+                                                    "units": "",
+                                                    "engine data type": 2,
+                                                    "string data type": 2,
+                                                    "string offset": 0
+                                                },
+                                                "component settings": [
+                                                    {
+                                                        "component": "RDMA",
+                                                        "values": []
+                                                    }
+                                                ]
+                                            },
+                                            {
+                                                "core": {
+                                                    "name": "Channel35",
+                                                    "units": "",
+                                                    "engine data type": 2,
+                                                    "string data type": 2,
+                                                    "string offset": 0
+                                                },
+                                                "component settings": [
+                                                    {
+                                                        "component": "RDMA",
+                                                        "values": []
+                                                    }
+                                                ]
+                                            },
+                                            {
+                                                "core": {
+                                                    "name": "Channel36",
+                                                    "units": "",
+                                                    "engine data type": 2,
+                                                    "string data type": 2,
+                                                    "string offset": 0
+                                                },
+                                                "component settings": [
+                                                    {
+                                                        "component": "RDMA",
+                                                        "values": []
+                                                    }
+                                                ]
+                                            },
+                                            {
+                                                "core": {
+                                                    "name": "Channel37",
+                                                    "units": "",
+                                                    "engine data type": 2,
+                                                    "string data type": 2,
+                                                    "string offset": 0
+                                                },
+                                                "component settings": [
+                                                    {
+                                                        "component": "RDMA",
+                                                        "values": []
+                                                    }
+                                                ]
+                                            },
+                                            {
+                                                "core": {
+                                                    "name": "Channel38",
+                                                    "units": "",
+                                                    "engine data type": 2,
+                                                    "string data type": 2,
+                                                    "string offset": 0
+                                                },
+                                                "component settings": [
+                                                    {
+                                                        "component": "RDMA",
+                                                        "values": []
+                                                    }
+                                                ]
+                                            },
+                                            {
+                                                "core": {
+                                                    "name": "Channel39",
+                                                    "units": "",
+                                                    "engine data type": 2,
+                                                    "string data type": 2,
+                                                    "string offset": 0
+                                                },
+                                                "component settings": [
+                                                    {
+                                                        "component": "RDMA",
+                                                        "values": []
+                                                    }
+                                                ]
+                                            },
+                                            {
+                                                "core": {
+                                                    "name": "Channel40",
+                                                    "units": "",
+                                                    "engine data type": 2,
+                                                    "string data type": 2,
+                                                    "string offset": 0
+                                                },
+                                                "component settings": [
+                                                    {
+                                                        "component": "RDMA",
+                                                        "values": []
+                                                    }
+                                                ]
+                                            },
+                                            {
+                                                "core": {
+                                                    "name": "Channel41",
+                                                    "units": "",
+                                                    "engine data type": 2,
+                                                    "string data type": 2,
+                                                    "string offset": 0
+                                                },
+                                                "component settings": [
+                                                    {
+                                                        "component": "RDMA",
+                                                        "values": []
+                                                    }
+                                                ]
+                                            },
+                                            {
+                                                "core": {
+                                                    "name": "Channel42",
+                                                    "units": "",
+                                                    "engine data type": 2,
+                                                    "string data type": 2,
+                                                    "string offset": 0
+                                                },
+                                                "component settings": [
+                                                    {
+                                                        "component": "RDMA",
+                                                        "values": []
+                                                    }
+                                                ]
+                                            },
+                                            {
+                                                "core": {
+                                                    "name": "Channel43",
+                                                    "units": "",
+                                                    "engine data type": 2,
+                                                    "string data type": 2,
+                                                    "string offset": 0
+                                                },
+                                                "component settings": [
+                                                    {
+                                                        "component": "RDMA",
+                                                        "values": []
+                                                    }
+                                                ]
+                                            },
+                                            {
+                                                "core": {
+                                                    "name": "Channel44",
+                                                    "units": "",
+                                                    "engine data type": 2,
+                                                    "string data type": 2,
+                                                    "string offset": 0
+                                                },
+                                                "component settings": [
+                                                    {
+                                                        "component": "RDMA",
+                                                        "values": []
+                                                    }
+                                                ]
+                                            },
+                                            {
+                                                "core": {
+                                                    "name": "Channel45",
+                                                    "units": "",
+                                                    "engine data type": 2,
+                                                    "string data type": 2,
+                                                    "string offset": 0
+                                                },
+                                                "component settings": [
+                                                    {
+                                                        "component": "RDMA",
+                                                        "values": []
+                                                    }
+                                                ]
+                                            },
+                                            {
+                                                "core": {
+                                                    "name": "Channel46",
+                                                    "units": "",
+                                                    "engine data type": 2,
+                                                    "string data type": 2,
+                                                    "string offset": 0
+                                                },
+                                                "component settings": [
+                                                    {
+                                                        "component": "RDMA",
+                                                        "values": []
+                                                    }
+                                                ]
+                                            },
+                                            {
+                                                "core": {
+                                                    "name": "Channel47",
+                                                    "units": "",
+                                                    "engine data type": 2,
+                                                    "string data type": 2,
+                                                    "string offset": 0
+                                                },
+                                                "component settings": [
+                                                    {
+                                                        "component": "RDMA",
+                                                        "values": []
+                                                    }
+                                                ]
+                                            },
+                                            {
+                                                "core": {
+                                                    "name": "Channel48",
+                                                    "units": "",
+                                                    "engine data type": 2,
+                                                    "string data type": 2,
+                                                    "string offset": 0
+                                                },
+                                                "component settings": [
+                                                    {
+                                                        "component": "RDMA",
+                                                        "values": []
+                                                    }
+                                                ]
+                                            },
+                                            {
+                                                "core": {
+                                                    "name": "Channel49",
+                                                    "units": "",
+                                                    "engine data type": 2,
+                                                    "string data type": 2,
+                                                    "string offset": 0
+                                                },
+                                                "component settings": [
+                                                    {
+                                                        "component": "RDMA",
+                                                        "values": []
+                                                    }
+                                                ]
+                                            },
+                                            {
+                                                "core": {
+                                                    "name": "Channel50",
+                                                    "units": "",
+                                                    "engine data type": 2,
+                                                    "string data type": 2,
+                                                    "string offset": 0
+                                                },
+                                                "component settings": [
+                                                    {
+                                                        "component": "RDMA",
+                                                        "values": []
+                                                    }
+                                                ]
+                                            },
+                                            {
+                                                "core": {
+                                                    "name": "Channel51",
+                                                    "units": "",
+                                                    "engine data type": 2,
+                                                    "string data type": 2,
+                                                    "string offset": 0
+                                                },
+                                                "component settings": [
+                                                    {
+                                                        "component": "RDMA",
+                                                        "values": []
+                                                    }
+                                                ]
+                                            },
+                                            {
+                                                "core": {
+                                                    "name": "Channel52",
+                                                    "units": "",
+                                                    "engine data type": 2,
+                                                    "string data type": 2,
+                                                    "string offset": 0
+                                                },
+                                                "component settings": [
+                                                    {
+                                                        "component": "RDMA",
+                                                        "values": []
+                                                    }
+                                                ]
+                                            },
+                                            {
+                                                "core": {
+                                                    "name": "Channel53",
+                                                    "units": "",
+                                                    "engine data type": 2,
+                                                    "string data type": 2,
+                                                    "string offset": 0
+                                                },
+                                                "component settings": [
+                                                    {
+                                                        "component": "RDMA",
+                                                        "values": []
+                                                    }
+                                                ]
+                                            },
+                                            {
+                                                "core": {
+                                                    "name": "Channel54",
+                                                    "units": "",
+                                                    "engine data type": 2,
+                                                    "string data type": 2,
+                                                    "string offset": 0
+                                                },
+                                                "component settings": [
+                                                    {
+                                                        "component": "RDMA",
+                                                        "values": []
+                                                    }
+                                                ]
+                                            },
+                                            {
+                                                "core": {
+                                                    "name": "Channel55",
+                                                    "units": "",
+                                                    "engine data type": 2,
+                                                    "string data type": 2,
+                                                    "string offset": 0
+                                                },
+                                                "component settings": [
+                                                    {
+                                                        "component": "RDMA",
+                                                        "values": []
+                                                    }
+                                                ]
+                                            },
+                                            {
+                                                "core": {
+                                                    "name": "Channel56",
+                                                    "units": "",
+                                                    "engine data type": 2,
+                                                    "string data type": 2,
+                                                    "string offset": 0
+                                                },
+                                                "component settings": [
+                                                    {
+                                                        "component": "RDMA",
+                                                        "values": []
+                                                    }
+                                                ]
+                                            },
+                                            {
+                                                "core": {
+                                                    "name": "Channel57",
+                                                    "units": "",
+                                                    "engine data type": 2,
+                                                    "string data type": 2,
+                                                    "string offset": 0
+                                                },
+                                                "component settings": [
+                                                    {
+                                                        "component": "RDMA",
+                                                        "values": []
+                                                    }
+                                                ]
+                                            },
+                                            {
+                                                "core": {
+                                                    "name": "Channel58",
+                                                    "units": "",
+                                                    "engine data type": 2,
+                                                    "string data type": 2,
+                                                    "string offset": 0
+                                                },
+                                                "component settings": [
+                                                    {
+                                                        "component": "RDMA",
+                                                        "values": []
+                                                    }
+                                                ]
+                                            },
+                                            {
+                                                "core": {
+                                                    "name": "Channel59",
+                                                    "units": "",
+                                                    "engine data type": 2,
+                                                    "string data type": 2,
+                                                    "string offset": 0
+                                                },
+                                                "component settings": [
+                                                    {
+                                                        "component": "RDMA",
+                                                        "values": []
+                                                    }
+                                                ]
+                                            },
+                                            {
+                                                "core": {
+                                                    "name": "Channel60",
+                                                    "units": "",
+                                                    "engine data type": 2,
+                                                    "string data type": 2,
+                                                    "string offset": 0
+                                                },
+                                                "component settings": [
+                                                    {
+                                                        "component": "RDMA",
+                                                        "values": []
+                                                    }
+                                                ]
+                                            },
+                                            {
+                                                "core": {
+                                                    "name": "Channel61",
+                                                    "units": "",
+                                                    "engine data type": 2,
+                                                    "string data type": 2,
+                                                    "string offset": 0
+                                                },
+                                                "component settings": [
+                                                    {
+                                                        "component": "RDMA",
+                                                        "values": []
+                                                    }
+                                                ]
+                                            },
+                                            {
+                                                "core": {
+                                                    "name": "Channel62",
+                                                    "units": "",
+                                                    "engine data type": 2,
+                                                    "string data type": 2,
+                                                    "string offset": 0
+                                                },
+                                                "component settings": [
+                                                    {
+                                                        "component": "RDMA",
+                                                        "values": []
+                                                    }
+                                                ]
+                                            },
+                                            {
+                                                "core": {
+                                                    "name": "Channel63",
+                                                    "units": "",
+                                                    "engine data type": 2,
+                                                    "string data type": 2,
+                                                    "string offset": 0
+                                                },
+                                                "component settings": [
+                                                    {
+                                                        "component": "RDMA",
+                                                        "values": []
+                                                    }
+                                                ]
+                                            },
+                                            {
+                                                "core": {
+                                                    "name": "Channel64",
+                                                    "units": "",
+                                                    "engine data type": 2,
+                                                    "string data type": 2,
+                                                    "string offset": 0
+                                                },
+                                                "component settings": [
+                                                    {
+                                                        "component": "RDMA",
+                                                        "values": []
+                                                    }
+                                                ]
+                                            },
+                                            {
+                                                "core": {
+                                                    "name": "Channel65",
+                                                    "units": "",
+                                                    "engine data type": 2,
+                                                    "string data type": 2,
+                                                    "string offset": 0
+                                                },
+                                                "component settings": [
+                                                    {
+                                                        "component": "RDMA",
+                                                        "values": []
+                                                    }
+                                                ]
+                                            },
+                                            {
+                                                "core": {
+                                                    "name": "Channel66",
+                                                    "units": "",
+                                                    "engine data type": 2,
+                                                    "string data type": 2,
+                                                    "string offset": 0
+                                                },
+                                                "component settings": [
+                                                    {
+                                                        "component": "RDMA",
+                                                        "values": []
+                                                    }
+                                                ]
+                                            },
+                                            {
+                                                "core": {
+                                                    "name": "Channel67",
+                                                    "units": "",
+                                                    "engine data type": 2,
+                                                    "string data type": 2,
+                                                    "string offset": 0
+                                                },
+                                                "component settings": [
+                                                    {
+                                                        "component": "RDMA",
+                                                        "values": []
+                                                    }
+                                                ]
+                                            },
+                                            {
+                                                "core": {
+                                                    "name": "Channel68",
+                                                    "units": "",
+                                                    "engine data type": 2,
+                                                    "string data type": 2,
+                                                    "string offset": 0
+                                                },
+                                                "component settings": [
+                                                    {
+                                                        "component": "RDMA",
+                                                        "values": []
+                                                    }
+                                                ]
+                                            },
+                                            {
+                                                "core": {
+                                                    "name": "Channel69",
+                                                    "units": "",
+                                                    "engine data type": 2,
+                                                    "string data type": 2,
+                                                    "string offset": 0
+                                                },
+                                                "component settings": [
+                                                    {
+                                                        "component": "RDMA",
+                                                        "values": []
+                                                    }
+                                                ]
+                                            },
+                                            {
+                                                "core": {
+                                                    "name": "Channel70",
+                                                    "units": "",
+                                                    "engine data type": 2,
+                                                    "string data type": 2,
+                                                    "string offset": 0
+                                                },
+                                                "component settings": [
+                                                    {
+                                                        "component": "RDMA",
+                                                        "values": []
+                                                    }
+                                                ]
+                                            },
+                                            {
+                                                "core": {
+                                                    "name": "Channel71",
+                                                    "units": "",
+                                                    "engine data type": 2,
+                                                    "string data type": 2,
+                                                    "string offset": 0
+                                                },
+                                                "component settings": [
+                                                    {
+                                                        "component": "RDMA",
+                                                        "values": []
+                                                    }
+                                                ]
+                                            },
+                                            {
+                                                "core": {
+                                                    "name": "Channel72",
+                                                    "units": "",
+                                                    "engine data type": 2,
+                                                    "string data type": 2,
+                                                    "string offset": 0
+                                                },
+                                                "component settings": [
+                                                    {
+                                                        "component": "RDMA",
+                                                        "values": []
+                                                    }
+                                                ]
+                                            },
+                                            {
+                                                "core": {
+                                                    "name": "Channel73",
+                                                    "units": "",
+                                                    "engine data type": 2,
+                                                    "string data type": 2,
+                                                    "string offset": 0
+                                                },
+                                                "component settings": [
+                                                    {
+                                                        "component": "RDMA",
+                                                        "values": []
+                                                    }
+                                                ]
+                                            },
+                                            {
+                                                "core": {
+                                                    "name": "Channel74",
+                                                    "units": "",
+                                                    "engine data type": 2,
+                                                    "string data type": 2,
+                                                    "string offset": 0
+                                                },
+                                                "component settings": [
+                                                    {
+                                                        "component": "RDMA",
+                                                        "values": []
+                                                    }
+                                                ]
+                                            },
+                                            {
+                                                "core": {
+                                                    "name": "Channel75",
+                                                    "units": "",
+                                                    "engine data type": 2,
+                                                    "string data type": 2,
+                                                    "string offset": 0
+                                                },
+                                                "component settings": [
+                                                    {
+                                                        "component": "RDMA",
+                                                        "values": []
+                                                    }
+                                                ]
+                                            },
+                                            {
+                                                "core": {
+                                                    "name": "Channel76",
+                                                    "units": "",
+                                                    "engine data type": 2,
+                                                    "string data type": 2,
+                                                    "string offset": 0
+                                                },
+                                                "component settings": [
+                                                    {
+                                                        "component": "RDMA",
+                                                        "values": []
+                                                    }
+                                                ]
+                                            },
+                                            {
+                                                "core": {
+                                                    "name": "Channel77",
+                                                    "units": "",
+                                                    "engine data type": 2,
+                                                    "string data type": 2,
+                                                    "string offset": 0
+                                                },
+                                                "component settings": [
+                                                    {
+                                                        "component": "RDMA",
+                                                        "values": []
+                                                    }
+                                                ]
+                                            },
+                                            {
+                                                "core": {
+                                                    "name": "Channel78",
+                                                    "units": "",
+                                                    "engine data type": 2,
+                                                    "string data type": 2,
+                                                    "string offset": 0
+                                                },
+                                                "component settings": [
+                                                    {
+                                                        "component": "RDMA",
+                                                        "values": []
+                                                    }
+                                                ]
+                                            },
+                                            {
+                                                "core": {
+                                                    "name": "Channel79",
+                                                    "units": "",
+                                                    "engine data type": 2,
+                                                    "string data type": 2,
+                                                    "string offset": 0
+                                                },
+                                                "component settings": [
+                                                    {
+                                                        "component": "RDMA",
+                                                        "values": []
+                                                    }
+                                                ]
+                                            },
+                                            {
+                                                "core": {
+                                                    "name": "Channel80",
+                                                    "units": "",
+                                                    "engine data type": 2,
+                                                    "string data type": 2,
+                                                    "string offset": 0
+                                                },
+                                                "component settings": [
+                                                    {
+                                                        "component": "RDMA",
+                                                        "values": []
+                                                    }
+                                                ]
+                                            },
+                                            {
+                                                "core": {
+                                                    "name": "Channel81",
+                                                    "units": "",
+                                                    "engine data type": 2,
+                                                    "string data type": 2,
+                                                    "string offset": 0
+                                                },
+                                                "component settings": [
+                                                    {
+                                                        "component": "RDMA",
+                                                        "values": []
+                                                    }
+                                                ]
+                                            },
+                                            {
+                                                "core": {
+                                                    "name": "Channel82",
+                                                    "units": "",
+                                                    "engine data type": 2,
+                                                    "string data type": 2,
+                                                    "string offset": 0
+                                                },
+                                                "component settings": [
+                                                    {
+                                                        "component": "RDMA",
+                                                        "values": []
+                                                    }
+                                                ]
+                                            },
+                                            {
+                                                "core": {
+                                                    "name": "Channel83",
+                                                    "units": "",
+                                                    "engine data type": 2,
+                                                    "string data type": 2,
+                                                    "string offset": 0
+                                                },
+                                                "component settings": [
+                                                    {
+                                                        "component": "RDMA",
+                                                        "values": []
+                                                    }
+                                                ]
+                                            },
+                                            {
+                                                "core": {
+                                                    "name": "Channel84",
+                                                    "units": "",
+                                                    "engine data type": 2,
+                                                    "string data type": 2,
+                                                    "string offset": 0
+                                                },
+                                                "component settings": [
+                                                    {
+                                                        "component": "RDMA",
+                                                        "values": []
+                                                    }
+                                                ]
+                                            },
+                                            {
+                                                "core": {
+                                                    "name": "Channel85",
+                                                    "units": "",
+                                                    "engine data type": 2,
+                                                    "string data type": 2,
+                                                    "string offset": 0
+                                                },
+                                                "component settings": [
+                                                    {
+                                                        "component": "RDMA",
+                                                        "values": []
+                                                    }
+                                                ]
+                                            },
+                                            {
+                                                "core": {
+                                                    "name": "Channel86",
+                                                    "units": "",
+                                                    "engine data type": 2,
+                                                    "string data type": 2,
+                                                    "string offset": 0
+                                                },
+                                                "component settings": [
+                                                    {
+                                                        "component": "RDMA",
+                                                        "values": []
+                                                    }
+                                                ]
+                                            },
+                                            {
+                                                "core": {
+                                                    "name": "Channel87",
+                                                    "units": "",
+                                                    "engine data type": 2,
+                                                    "string data type": 2,
+                                                    "string offset": 0
+                                                },
+                                                "component settings": [
+                                                    {
+                                                        "component": "RDMA",
+                                                        "values": []
+                                                    }
+                                                ]
+                                            },
+                                            {
+                                                "core": {
+                                                    "name": "Channel88",
+                                                    "units": "",
+                                                    "engine data type": 2,
+                                                    "string data type": 2,
+                                                    "string offset": 0
+                                                },
+                                                "component settings": [
+                                                    {
+                                                        "component": "RDMA",
+                                                        "values": []
+                                                    }
+                                                ]
+                                            },
+                                            {
+                                                "core": {
+                                                    "name": "Channel89",
+                                                    "units": "",
+                                                    "engine data type": 2,
+                                                    "string data type": 2,
+                                                    "string offset": 0
+                                                },
+                                                "component settings": [
+                                                    {
+                                                        "component": "RDMA",
+                                                        "values": []
+                                                    }
+                                                ]
+                                            },
+                                            {
+                                                "core": {
+                                                    "name": "Channel90",
+                                                    "units": "",
+                                                    "engine data type": 2,
+                                                    "string data type": 2,
+                                                    "string offset": 0
+                                                },
+                                                "component settings": [
+                                                    {
+                                                        "component": "RDMA",
+                                                        "values": []
+                                                    }
+                                                ]
+                                            },
+                                            {
+                                                "core": {
+                                                    "name": "Channel91",
+                                                    "units": "",
+                                                    "engine data type": 2,
+                                                    "string data type": 2,
+                                                    "string offset": 0
+                                                },
+                                                "component settings": [
+                                                    {
+                                                        "component": "RDMA",
+                                                        "values": []
+                                                    }
+                                                ]
+                                            },
+                                            {
+                                                "core": {
+                                                    "name": "Channel92",
+                                                    "units": "",
+                                                    "engine data type": 2,
+                                                    "string data type": 2,
+                                                    "string offset": 0
+                                                },
+                                                "component settings": [
+                                                    {
+                                                        "component": "RDMA",
+                                                        "values": []
+                                                    }
+                                                ]
+                                            },
+                                            {
+                                                "core": {
+                                                    "name": "Channel93",
+                                                    "units": "",
+                                                    "engine data type": 2,
+                                                    "string data type": 2,
+                                                    "string offset": 0
+                                                },
+                                                "component settings": [
+                                                    {
+                                                        "component": "RDMA",
+                                                        "values": []
+                                                    }
+                                                ]
+                                            },
+                                            {
+                                                "core": {
+                                                    "name": "Channel94",
+                                                    "units": "",
+                                                    "engine data type": 2,
+                                                    "string data type": 2,
+                                                    "string offset": 0
+                                                },
+                                                "component settings": [
+                                                    {
+                                                        "component": "RDMA",
+                                                        "values": []
+                                                    }
+                                                ]
+                                            },
+                                            {
+                                                "core": {
+                                                    "name": "Channel95",
+                                                    "units": "",
+                                                    "engine data type": 2,
+                                                    "string data type": 2,
+                                                    "string offset": 0
+                                                },
+                                                "component settings": [
+                                                    {
+                                                        "component": "RDMA",
+                                                        "values": []
+                                                    }
+                                                ]
+                                            },
+                                            {
+                                                "core": {
+                                                    "name": "Channel96",
+                                                    "units": "",
+                                                    "engine data type": 2,
+                                                    "string data type": 2,
+                                                    "string offset": 0
+                                                },
+                                                "component settings": [
+                                                    {
+                                                        "component": "RDMA",
+                                                        "values": []
+                                                    }
+                                                ]
+                                            },
+                                            {
+                                                "core": {
+                                                    "name": "Channel97",
+                                                    "units": "",
+                                                    "engine data type": 2,
+                                                    "string data type": 2,
+                                                    "string offset": 0
+                                                },
+                                                "component settings": [
+                                                    {
+                                                        "component": "RDMA",
+                                                        "values": []
+                                                    }
+                                                ]
+                                            },
+                                            {
+                                                "core": {
+                                                    "name": "Channel98",
+                                                    "units": "",
+                                                    "engine data type": 2,
+                                                    "string data type": 2,
+                                                    "string offset": 0
+                                                },
+                                                "component settings": [
+                                                    {
+                                                        "component": "RDMA",
+                                                        "values": []
+                                                    }
+                                                ]
+                                            },
+                                            {
+                                                "core": {
+                                                    "name": "Channel99",
+                                                    "units": "",
+                                                    "engine data type": 2,
+                                                    "string data type": 2,
+                                                    "string offset": 0
+                                                },
+                                                "component settings": [
+                                                    {
+                                                        "component": "RDMA",
+                                                        "values": []
+                                                    }
+                                                ]
+                                            },
+                                            {
+                                                "core": {
+                                                    "name": "Channel100",
+                                                    "units": "",
+                                                    "engine data type": 2,
+                                                    "string data type": 2,
+                                                    "string offset": 0
+                                                },
+                                                "component settings": [
+                                                    {
+                                                        "component": "RDMA",
+                                                        "values": []
+                                                    }
+                                                ]
+                                            }
+                                        ]
+                                    }
+                                ]
+                            },
+                            {
+                                "core": {
+                                    "name": "TransferGroup_Callea_to_Cotterle_Rx",
+                                    "direction": 1,
+                                    "cycle timing": {
+                                        "priority": 100,
+                                        "decimation": 1,
+                                        "offset": 0
+                                    },
+                                    "timeout behavior": 0,
+                                    "enable conversion": false
+                                },
+                                "component settings": [
+                                    {
+                                        "component": "RDMA",
+                                        "values": []
+                                    }
+                                ],
+                                "transfers": [
+                                    {
+                                        "core": {
+                                            "name": "Transfer_Callea_to_Cotterle_Rx"
+                                        },
+                                        "component settings": [
+                                            {
+                                                "component": "RDMA",
+                                                "values": [
+                                                    {
+                                                        "key": "local address",
+                                                        "value": "169.254.49.44"
+                                                    },
+                                                    {
+                                                        "key": "local port",
+                                                        "value": "5011"
+                                                    }
+                                                ]
+                                            }
+                                        ],
+                                        "channels": [
+                                            {
+                                                "core": {
+                                                    "name": "Channel1",
+                                                    "units": "",
+                                                    "engine data type": 2,
+                                                    "string data type": 2,
+                                                    "string offset": 0
+                                                },
+                                                "component settings": [
+                                                    {
+                                                        "component": "RDMA",
+                                                        "values": []
+                                                    }
+                                                ]
+                                            },
+                                            {
+                                                "core": {
+                                                    "name": "Channel2",
+                                                    "units": "",
+                                                    "engine data type": 2,
+                                                    "string data type": 2,
+                                                    "string offset": 0
+                                                },
+                                                "component settings": [
+                                                    {
+                                                        "component": "RDMA",
+                                                        "values": []
+                                                    }
+                                                ]
+                                            },
+                                            {
+                                                "core": {
+                                                    "name": "Channel3",
+                                                    "units": "",
+                                                    "engine data type": 2,
+                                                    "string data type": 2,
+                                                    "string offset": 0
+                                                },
+                                                "component settings": [
+                                                    {
+                                                        "component": "RDMA",
+                                                        "values": []
+                                                    }
+                                                ]
+                                            },
+                                            {
+                                                "core": {
+                                                    "name": "Channel4",
+                                                    "units": "",
+                                                    "engine data type": 2,
+                                                    "string data type": 2,
+                                                    "string offset": 0
+                                                },
+                                                "component settings": [
+                                                    {
+                                                        "component": "RDMA",
+                                                        "values": []
+                                                    }
+                                                ]
+                                            },
+                                            {
+                                                "core": {
+                                                    "name": "Channel5",
+                                                    "units": "",
+                                                    "engine data type": 2,
+                                                    "string data type": 2,
+                                                    "string offset": 0
+                                                },
+                                                "component settings": [
+                                                    {
+                                                        "component": "RDMA",
+                                                        "values": []
+                                                    }
+                                                ]
+                                            },
+                                            {
+                                                "core": {
+                                                    "name": "Channel6",
+                                                    "units": "",
+                                                    "engine data type": 2,
+                                                    "string data type": 2,
+                                                    "string offset": 0
+                                                },
+                                                "component settings": [
+                                                    {
+                                                        "component": "RDMA",
+                                                        "values": []
+                                                    }
+                                                ]
+                                            },
+                                            {
+                                                "core": {
+                                                    "name": "Channel7",
+                                                    "units": "",
+                                                    "engine data type": 2,
+                                                    "string data type": 2,
+                                                    "string offset": 0
+                                                },
+                                                "component settings": [
+                                                    {
+                                                        "component": "RDMA",
+                                                        "values": []
+                                                    }
+                                                ]
+                                            },
+                                            {
+                                                "core": {
+                                                    "name": "Channel8",
+                                                    "units": "",
+                                                    "engine data type": 2,
+                                                    "string data type": 2,
+                                                    "string offset": 0
+                                                },
+                                                "component settings": [
+                                                    {
+                                                        "component": "RDMA",
+                                                        "values": []
+                                                    }
+                                                ]
+                                            },
+                                            {
+                                                "core": {
+                                                    "name": "Channel9",
+                                                    "units": "",
+                                                    "engine data type": 2,
+                                                    "string data type": 2,
+                                                    "string offset": 0
+                                                },
+                                                "component settings": [
+                                                    {
+                                                        "component": "RDMA",
+                                                        "values": []
+                                                    }
+                                                ]
+                                            },
+                                            {
+                                                "core": {
+                                                    "name": "Channel10",
+                                                    "units": "",
+                                                    "engine data type": 2,
+                                                    "string data type": 2,
+                                                    "string offset": 0
+                                                },
+                                                "component settings": [
+                                                    {
+                                                        "component": "RDMA",
+                                                        "values": []
+                                                    }
+                                                ]
+                                            },
+                                            {
+                                                "core": {
+                                                    "name": "Channel11",
+                                                    "units": "",
+                                                    "engine data type": 2,
+                                                    "string data type": 2,
+                                                    "string offset": 0
+                                                },
+                                                "component settings": [
+                                                    {
+                                                        "component": "RDMA",
+                                                        "values": []
+                                                    }
+                                                ]
+                                            },
+                                            {
+                                                "core": {
+                                                    "name": "Channel12",
+                                                    "units": "",
+                                                    "engine data type": 2,
+                                                    "string data type": 2,
+                                                    "string offset": 0
+                                                },
+                                                "component settings": [
+                                                    {
+                                                        "component": "RDMA",
+                                                        "values": []
+                                                    }
+                                                ]
+                                            },
+                                            {
+                                                "core": {
+                                                    "name": "Channel13",
+                                                    "units": "",
+                                                    "engine data type": 2,
+                                                    "string data type": 2,
+                                                    "string offset": 0
+                                                },
+                                                "component settings": [
+                                                    {
+                                                        "component": "RDMA",
+                                                        "values": []
+                                                    }
+                                                ]
+                                            },
+                                            {
+                                                "core": {
+                                                    "name": "Channel14",
+                                                    "units": "",
+                                                    "engine data type": 2,
+                                                    "string data type": 2,
+                                                    "string offset": 0
+                                                },
+                                                "component settings": [
+                                                    {
+                                                        "component": "RDMA",
+                                                        "values": []
+                                                    }
+                                                ]
+                                            },
+                                            {
+                                                "core": {
+                                                    "name": "Channel15",
+                                                    "units": "",
+                                                    "engine data type": 2,
+                                                    "string data type": 2,
+                                                    "string offset": 0
+                                                },
+                                                "component settings": [
+                                                    {
+                                                        "component": "RDMA",
+                                                        "values": []
+                                                    }
+                                                ]
+                                            },
+                                            {
+                                                "core": {
+                                                    "name": "Channel16",
+                                                    "units": "",
+                                                    "engine data type": 2,
+                                                    "string data type": 2,
+                                                    "string offset": 0
+                                                },
+                                                "component settings": [
+                                                    {
+                                                        "component": "RDMA",
+                                                        "values": []
+                                                    }
+                                                ]
+                                            },
+                                            {
+                                                "core": {
+                                                    "name": "Channel17",
+                                                    "units": "",
+                                                    "engine data type": 2,
+                                                    "string data type": 2,
+                                                    "string offset": 0
+                                                },
+                                                "component settings": [
+                                                    {
+                                                        "component": "RDMA",
+                                                        "values": []
+                                                    }
+                                                ]
+                                            },
+                                            {
+                                                "core": {
+                                                    "name": "Channel18",
+                                                    "units": "",
+                                                    "engine data type": 2,
+                                                    "string data type": 2,
+                                                    "string offset": 0
+                                                },
+                                                "component settings": [
+                                                    {
+                                                        "component": "RDMA",
+                                                        "values": []
+                                                    }
+                                                ]
+                                            },
+                                            {
+                                                "core": {
+                                                    "name": "Channel19",
+                                                    "units": "",
+                                                    "engine data type": 2,
+                                                    "string data type": 2,
+                                                    "string offset": 0
+                                                },
+                                                "component settings": [
+                                                    {
+                                                        "component": "RDMA",
+                                                        "values": []
+                                                    }
+                                                ]
+                                            },
+                                            {
+                                                "core": {
+                                                    "name": "Channel20",
+                                                    "units": "",
+                                                    "engine data type": 2,
+                                                    "string data type": 2,
+                                                    "string offset": 0
+                                                },
+                                                "component settings": [
+                                                    {
+                                                        "component": "RDMA",
+                                                        "values": []
+                                                    }
+                                                ]
+                                            },
+                                            {
+                                                "core": {
+                                                    "name": "Channel21",
+                                                    "units": "",
+                                                    "engine data type": 2,
+                                                    "string data type": 2,
+                                                    "string offset": 0
+                                                },
+                                                "component settings": [
+                                                    {
+                                                        "component": "RDMA",
+                                                        "values": []
+                                                    }
+                                                ]
+                                            },
+                                            {
+                                                "core": {
+                                                    "name": "Channel22",
+                                                    "units": "",
+                                                    "engine data type": 2,
+                                                    "string data type": 2,
+                                                    "string offset": 0
+                                                },
+                                                "component settings": [
+                                                    {
+                                                        "component": "RDMA",
+                                                        "values": []
+                                                    }
+                                                ]
+                                            },
+                                            {
+                                                "core": {
+                                                    "name": "Channel23",
+                                                    "units": "",
+                                                    "engine data type": 2,
+                                                    "string data type": 2,
+                                                    "string offset": 0
+                                                },
+                                                "component settings": [
+                                                    {
+                                                        "component": "RDMA",
+                                                        "values": []
+                                                    }
+                                                ]
+                                            },
+                                            {
+                                                "core": {
+                                                    "name": "Channel24",
+                                                    "units": "",
+                                                    "engine data type": 2,
+                                                    "string data type": 2,
+                                                    "string offset": 0
+                                                },
+                                                "component settings": [
+                                                    {
+                                                        "component": "RDMA",
+                                                        "values": []
+                                                    }
+                                                ]
+                                            },
+                                            {
+                                                "core": {
+                                                    "name": "Channel25",
+                                                    "units": "",
+                                                    "engine data type": 2,
+                                                    "string data type": 2,
+                                                    "string offset": 0
+                                                },
+                                                "component settings": [
+                                                    {
+                                                        "component": "RDMA",
+                                                        "values": []
+                                                    }
+                                                ]
+                                            },
+                                            {
+                                                "core": {
+                                                    "name": "Channel26",
+                                                    "units": "",
+                                                    "engine data type": 2,
+                                                    "string data type": 2,
+                                                    "string offset": 0
+                                                },
+                                                "component settings": [
+                                                    {
+                                                        "component": "RDMA",
+                                                        "values": []
+                                                    }
+                                                ]
+                                            },
+                                            {
+                                                "core": {
+                                                    "name": "Channel27",
+                                                    "units": "",
+                                                    "engine data type": 2,
+                                                    "string data type": 2,
+                                                    "string offset": 0
+                                                },
+                                                "component settings": [
+                                                    {
+                                                        "component": "RDMA",
+                                                        "values": []
+                                                    }
+                                                ]
+                                            },
+                                            {
+                                                "core": {
+                                                    "name": "Channel28",
+                                                    "units": "",
+                                                    "engine data type": 2,
+                                                    "string data type": 2,
+                                                    "string offset": 0
+                                                },
+                                                "component settings": [
+                                                    {
+                                                        "component": "RDMA",
+                                                        "values": []
+                                                    }
+                                                ]
+                                            },
+                                            {
+                                                "core": {
+                                                    "name": "Channel29",
+                                                    "units": "",
+                                                    "engine data type": 2,
+                                                    "string data type": 2,
+                                                    "string offset": 0
+                                                },
+                                                "component settings": [
+                                                    {
+                                                        "component": "RDMA",
+                                                        "values": []
+                                                    }
+                                                ]
+                                            },
+                                            {
+                                                "core": {
+                                                    "name": "Channel30",
+                                                    "units": "",
+                                                    "engine data type": 2,
+                                                    "string data type": 2,
+                                                    "string offset": 0
+                                                },
+                                                "component settings": [
+                                                    {
+                                                        "component": "RDMA",
+                                                        "values": []
+                                                    }
+                                                ]
+                                            },
+                                            {
+                                                "core": {
+                                                    "name": "Channel31",
+                                                    "units": "",
+                                                    "engine data type": 2,
+                                                    "string data type": 2,
+                                                    "string offset": 0
+                                                },
+                                                "component settings": [
+                                                    {
+                                                        "component": "RDMA",
+                                                        "values": []
+                                                    }
+                                                ]
+                                            },
+                                            {
+                                                "core": {
+                                                    "name": "Channel32",
+                                                    "units": "",
+                                                    "engine data type": 2,
+                                                    "string data type": 2,
+                                                    "string offset": 0
+                                                },
+                                                "component settings": [
+                                                    {
+                                                        "component": "RDMA",
+                                                        "values": []
+                                                    }
+                                                ]
+                                            },
+                                            {
+                                                "core": {
+                                                    "name": "Channel33",
+                                                    "units": "",
+                                                    "engine data type": 2,
+                                                    "string data type": 2,
+                                                    "string offset": 0
+                                                },
+                                                "component settings": [
+                                                    {
+                                                        "component": "RDMA",
+                                                        "values": []
+                                                    }
+                                                ]
+                                            },
+                                            {
+                                                "core": {
+                                                    "name": "Channel34",
+                                                    "units": "",
+                                                    "engine data type": 2,
+                                                    "string data type": 2,
+                                                    "string offset": 0
+                                                },
+                                                "component settings": [
+                                                    {
+                                                        "component": "RDMA",
+                                                        "values": []
+                                                    }
+                                                ]
+                                            },
+                                            {
+                                                "core": {
+                                                    "name": "Channel35",
+                                                    "units": "",
+                                                    "engine data type": 2,
+                                                    "string data type": 2,
+                                                    "string offset": 0
+                                                },
+                                                "component settings": [
+                                                    {
+                                                        "component": "RDMA",
+                                                        "values": []
+                                                    }
+                                                ]
+                                            },
+                                            {
+                                                "core": {
+                                                    "name": "Channel36",
+                                                    "units": "",
+                                                    "engine data type": 2,
+                                                    "string data type": 2,
+                                                    "string offset": 0
+                                                },
+                                                "component settings": [
+                                                    {
+                                                        "component": "RDMA",
+                                                        "values": []
+                                                    }
+                                                ]
+                                            },
+                                            {
+                                                "core": {
+                                                    "name": "Channel37",
+                                                    "units": "",
+                                                    "engine data type": 2,
+                                                    "string data type": 2,
+                                                    "string offset": 0
+                                                },
+                                                "component settings": [
+                                                    {
+                                                        "component": "RDMA",
+                                                        "values": []
+                                                    }
+                                                ]
+                                            },
+                                            {
+                                                "core": {
+                                                    "name": "Channel38",
+                                                    "units": "",
+                                                    "engine data type": 2,
+                                                    "string data type": 2,
+                                                    "string offset": 0
+                                                },
+                                                "component settings": [
+                                                    {
+                                                        "component": "RDMA",
+                                                        "values": []
+                                                    }
+                                                ]
+                                            },
+                                            {
+                                                "core": {
+                                                    "name": "Channel39",
+                                                    "units": "",
+                                                    "engine data type": 2,
+                                                    "string data type": 2,
+                                                    "string offset": 0
+                                                },
+                                                "component settings": [
+                                                    {
+                                                        "component": "RDMA",
+                                                        "values": []
+                                                    }
+                                                ]
+                                            },
+                                            {
+                                                "core": {
+                                                    "name": "Channel40",
+                                                    "units": "",
+                                                    "engine data type": 2,
+                                                    "string data type": 2,
+                                                    "string offset": 0
+                                                },
+                                                "component settings": [
+                                                    {
+                                                        "component": "RDMA",
+                                                        "values": []
+                                                    }
+                                                ]
+                                            },
+                                            {
+                                                "core": {
+                                                    "name": "Channel41",
+                                                    "units": "",
+                                                    "engine data type": 2,
+                                                    "string data type": 2,
+                                                    "string offset": 0
+                                                },
+                                                "component settings": [
+                                                    {
+                                                        "component": "RDMA",
+                                                        "values": []
+                                                    }
+                                                ]
+                                            },
+                                            {
+                                                "core": {
+                                                    "name": "Channel42",
+                                                    "units": "",
+                                                    "engine data type": 2,
+                                                    "string data type": 2,
+                                                    "string offset": 0
+                                                },
+                                                "component settings": [
+                                                    {
+                                                        "component": "RDMA",
+                                                        "values": []
+                                                    }
+                                                ]
+                                            },
+                                            {
+                                                "core": {
+                                                    "name": "Channel43",
+                                                    "units": "",
+                                                    "engine data type": 2,
+                                                    "string data type": 2,
+                                                    "string offset": 0
+                                                },
+                                                "component settings": [
+                                                    {
+                                                        "component": "RDMA",
+                                                        "values": []
+                                                    }
+                                                ]
+                                            },
+                                            {
+                                                "core": {
+                                                    "name": "Channel44",
+                                                    "units": "",
+                                                    "engine data type": 2,
+                                                    "string data type": 2,
+                                                    "string offset": 0
+                                                },
+                                                "component settings": [
+                                                    {
+                                                        "component": "RDMA",
+                                                        "values": []
+                                                    }
+                                                ]
+                                            },
+                                            {
+                                                "core": {
+                                                    "name": "Channel45",
+                                                    "units": "",
+                                                    "engine data type": 2,
+                                                    "string data type": 2,
+                                                    "string offset": 0
+                                                },
+                                                "component settings": [
+                                                    {
+                                                        "component": "RDMA",
+                                                        "values": []
+                                                    }
+                                                ]
+                                            },
+                                            {
+                                                "core": {
+                                                    "name": "Channel46",
+                                                    "units": "",
+                                                    "engine data type": 2,
+                                                    "string data type": 2,
+                                                    "string offset": 0
+                                                },
+                                                "component settings": [
+                                                    {
+                                                        "component": "RDMA",
+                                                        "values": []
+                                                    }
+                                                ]
+                                            },
+                                            {
+                                                "core": {
+                                                    "name": "Channel47",
+                                                    "units": "",
+                                                    "engine data type": 2,
+                                                    "string data type": 2,
+                                                    "string offset": 0
+                                                },
+                                                "component settings": [
+                                                    {
+                                                        "component": "RDMA",
+                                                        "values": []
+                                                    }
+                                                ]
+                                            },
+                                            {
+                                                "core": {
+                                                    "name": "Channel48",
+                                                    "units": "",
+                                                    "engine data type": 2,
+                                                    "string data type": 2,
+                                                    "string offset": 0
+                                                },
+                                                "component settings": [
+                                                    {
+                                                        "component": "RDMA",
+                                                        "values": []
+                                                    }
+                                                ]
+                                            },
+                                            {
+                                                "core": {
+                                                    "name": "Channel49",
+                                                    "units": "",
+                                                    "engine data type": 2,
+                                                    "string data type": 2,
+                                                    "string offset": 0
+                                                },
+                                                "component settings": [
+                                                    {
+                                                        "component": "RDMA",
+                                                        "values": []
+                                                    }
+                                                ]
+                                            },
+                                            {
+                                                "core": {
+                                                    "name": "Channel50",
+                                                    "units": "",
+                                                    "engine data type": 2,
+                                                    "string data type": 2,
+                                                    "string offset": 0
+                                                },
+                                                "component settings": [
+                                                    {
+                                                        "component": "RDMA",
+                                                        "values": []
+                                                    }
+                                                ]
+                                            },
+                                            {
+                                                "core": {
+                                                    "name": "Channel51",
+                                                    "units": "",
+                                                    "engine data type": 2,
+                                                    "string data type": 2,
+                                                    "string offset": 0
+                                                },
+                                                "component settings": [
+                                                    {
+                                                        "component": "RDMA",
+                                                        "values": []
+                                                    }
+                                                ]
+                                            },
+                                            {
+                                                "core": {
+                                                    "name": "Channel52",
+                                                    "units": "",
+                                                    "engine data type": 2,
+                                                    "string data type": 2,
+                                                    "string offset": 0
+                                                },
+                                                "component settings": [
+                                                    {
+                                                        "component": "RDMA",
+                                                        "values": []
+                                                    }
+                                                ]
+                                            },
+                                            {
+                                                "core": {
+                                                    "name": "Channel53",
+                                                    "units": "",
+                                                    "engine data type": 2,
+                                                    "string data type": 2,
+                                                    "string offset": 0
+                                                },
+                                                "component settings": [
+                                                    {
+                                                        "component": "RDMA",
+                                                        "values": []
+                                                    }
+                                                ]
+                                            },
+                                            {
+                                                "core": {
+                                                    "name": "Channel54",
+                                                    "units": "",
+                                                    "engine data type": 2,
+                                                    "string data type": 2,
+                                                    "string offset": 0
+                                                },
+                                                "component settings": [
+                                                    {
+                                                        "component": "RDMA",
+                                                        "values": []
+                                                    }
+                                                ]
+                                            },
+                                            {
+                                                "core": {
+                                                    "name": "Channel55",
+                                                    "units": "",
+                                                    "engine data type": 2,
+                                                    "string data type": 2,
+                                                    "string offset": 0
+                                                },
+                                                "component settings": [
+                                                    {
+                                                        "component": "RDMA",
+                                                        "values": []
+                                                    }
+                                                ]
+                                            },
+                                            {
+                                                "core": {
+                                                    "name": "Channel56",
+                                                    "units": "",
+                                                    "engine data type": 2,
+                                                    "string data type": 2,
+                                                    "string offset": 0
+                                                },
+                                                "component settings": [
+                                                    {
+                                                        "component": "RDMA",
+                                                        "values": []
+                                                    }
+                                                ]
+                                            },
+                                            {
+                                                "core": {
+                                                    "name": "Channel57",
+                                                    "units": "",
+                                                    "engine data type": 2,
+                                                    "string data type": 2,
+                                                    "string offset": 0
+                                                },
+                                                "component settings": [
+                                                    {
+                                                        "component": "RDMA",
+                                                        "values": []
+                                                    }
+                                                ]
+                                            },
+                                            {
+                                                "core": {
+                                                    "name": "Channel58",
+                                                    "units": "",
+                                                    "engine data type": 2,
+                                                    "string data type": 2,
+                                                    "string offset": 0
+                                                },
+                                                "component settings": [
+                                                    {
+                                                        "component": "RDMA",
+                                                        "values": []
+                                                    }
+                                                ]
+                                            },
+                                            {
+                                                "core": {
+                                                    "name": "Channel59",
+                                                    "units": "",
+                                                    "engine data type": 2,
+                                                    "string data type": 2,
+                                                    "string offset": 0
+                                                },
+                                                "component settings": [
+                                                    {
+                                                        "component": "RDMA",
+                                                        "values": []
+                                                    }
+                                                ]
+                                            },
+                                            {
+                                                "core": {
+                                                    "name": "Channel60",
+                                                    "units": "",
+                                                    "engine data type": 2,
+                                                    "string data type": 2,
+                                                    "string offset": 0
+                                                },
+                                                "component settings": [
+                                                    {
+                                                        "component": "RDMA",
+                                                        "values": []
+                                                    }
+                                                ]
+                                            },
+                                            {
+                                                "core": {
+                                                    "name": "Channel61",
+                                                    "units": "",
+                                                    "engine data type": 2,
+                                                    "string data type": 2,
+                                                    "string offset": 0
+                                                },
+                                                "component settings": [
+                                                    {
+                                                        "component": "RDMA",
+                                                        "values": []
+                                                    }
+                                                ]
+                                            },
+                                            {
+                                                "core": {
+                                                    "name": "Channel62",
+                                                    "units": "",
+                                                    "engine data type": 2,
+                                                    "string data type": 2,
+                                                    "string offset": 0
+                                                },
+                                                "component settings": [
+                                                    {
+                                                        "component": "RDMA",
+                                                        "values": []
+                                                    }
+                                                ]
+                                            },
+                                            {
+                                                "core": {
+                                                    "name": "Channel63",
+                                                    "units": "",
+                                                    "engine data type": 2,
+                                                    "string data type": 2,
+                                                    "string offset": 0
+                                                },
+                                                "component settings": [
+                                                    {
+                                                        "component": "RDMA",
+                                                        "values": []
+                                                    }
+                                                ]
+                                            },
+                                            {
+                                                "core": {
+                                                    "name": "Channel64",
+                                                    "units": "",
+                                                    "engine data type": 2,
+                                                    "string data type": 2,
+                                                    "string offset": 0
+                                                },
+                                                "component settings": [
+                                                    {
+                                                        "component": "RDMA",
+                                                        "values": []
+                                                    }
+                                                ]
+                                            },
+                                            {
+                                                "core": {
+                                                    "name": "Channel65",
+                                                    "units": "",
+                                                    "engine data type": 2,
+                                                    "string data type": 2,
+                                                    "string offset": 0
+                                                },
+                                                "component settings": [
+                                                    {
+                                                        "component": "RDMA",
+                                                        "values": []
+                                                    }
+                                                ]
+                                            },
+                                            {
+                                                "core": {
+                                                    "name": "Channel66",
+                                                    "units": "",
+                                                    "engine data type": 2,
+                                                    "string data type": 2,
+                                                    "string offset": 0
+                                                },
+                                                "component settings": [
+                                                    {
+                                                        "component": "RDMA",
+                                                        "values": []
+                                                    }
+                                                ]
+                                            },
+                                            {
+                                                "core": {
+                                                    "name": "Channel67",
+                                                    "units": "",
+                                                    "engine data type": 2,
+                                                    "string data type": 2,
+                                                    "string offset": 0
+                                                },
+                                                "component settings": [
+                                                    {
+                                                        "component": "RDMA",
+                                                        "values": []
+                                                    }
+                                                ]
+                                            },
+                                            {
+                                                "core": {
+                                                    "name": "Channel68",
+                                                    "units": "",
+                                                    "engine data type": 2,
+                                                    "string data type": 2,
+                                                    "string offset": 0
+                                                },
+                                                "component settings": [
+                                                    {
+                                                        "component": "RDMA",
+                                                        "values": []
+                                                    }
+                                                ]
+                                            },
+                                            {
+                                                "core": {
+                                                    "name": "Channel69",
+                                                    "units": "",
+                                                    "engine data type": 2,
+                                                    "string data type": 2,
+                                                    "string offset": 0
+                                                },
+                                                "component settings": [
+                                                    {
+                                                        "component": "RDMA",
+                                                        "values": []
+                                                    }
+                                                ]
+                                            },
+                                            {
+                                                "core": {
+                                                    "name": "Channel70",
+                                                    "units": "",
+                                                    "engine data type": 2,
+                                                    "string data type": 2,
+                                                    "string offset": 0
+                                                },
+                                                "component settings": [
+                                                    {
+                                                        "component": "RDMA",
+                                                        "values": []
+                                                    }
+                                                ]
+                                            },
+                                            {
+                                                "core": {
+                                                    "name": "Channel71",
+                                                    "units": "",
+                                                    "engine data type": 2,
+                                                    "string data type": 2,
+                                                    "string offset": 0
+                                                },
+                                                "component settings": [
+                                                    {
+                                                        "component": "RDMA",
+                                                        "values": []
+                                                    }
+                                                ]
+                                            },
+                                            {
+                                                "core": {
+                                                    "name": "Channel72",
+                                                    "units": "",
+                                                    "engine data type": 2,
+                                                    "string data type": 2,
+                                                    "string offset": 0
+                                                },
+                                                "component settings": [
+                                                    {
+                                                        "component": "RDMA",
+                                                        "values": []
+                                                    }
+                                                ]
+                                            },
+                                            {
+                                                "core": {
+                                                    "name": "Channel73",
+                                                    "units": "",
+                                                    "engine data type": 2,
+                                                    "string data type": 2,
+                                                    "string offset": 0
+                                                },
+                                                "component settings": [
+                                                    {
+                                                        "component": "RDMA",
+                                                        "values": []
+                                                    }
+                                                ]
+                                            },
+                                            {
+                                                "core": {
+                                                    "name": "Channel74",
+                                                    "units": "",
+                                                    "engine data type": 2,
+                                                    "string data type": 2,
+                                                    "string offset": 0
+                                                },
+                                                "component settings": [
+                                                    {
+                                                        "component": "RDMA",
+                                                        "values": []
+                                                    }
+                                                ]
+                                            },
+                                            {
+                                                "core": {
+                                                    "name": "Channel75",
+                                                    "units": "",
+                                                    "engine data type": 2,
+                                                    "string data type": 2,
+                                                    "string offset": 0
+                                                },
+                                                "component settings": [
+                                                    {
+                                                        "component": "RDMA",
+                                                        "values": []
+                                                    }
+                                                ]
+                                            },
+                                            {
+                                                "core": {
+                                                    "name": "Channel76",
+                                                    "units": "",
+                                                    "engine data type": 2,
+                                                    "string data type": 2,
+                                                    "string offset": 0
+                                                },
+                                                "component settings": [
+                                                    {
+                                                        "component": "RDMA",
+                                                        "values": []
+                                                    }
+                                                ]
+                                            },
+                                            {
+                                                "core": {
+                                                    "name": "Channel77",
+                                                    "units": "",
+                                                    "engine data type": 2,
+                                                    "string data type": 2,
+                                                    "string offset": 0
+                                                },
+                                                "component settings": [
+                                                    {
+                                                        "component": "RDMA",
+                                                        "values": []
+                                                    }
+                                                ]
+                                            },
+                                            {
+                                                "core": {
+                                                    "name": "Channel78",
+                                                    "units": "",
+                                                    "engine data type": 2,
+                                                    "string data type": 2,
+                                                    "string offset": 0
+                                                },
+                                                "component settings": [
+                                                    {
+                                                        "component": "RDMA",
+                                                        "values": []
+                                                    }
+                                                ]
+                                            },
+                                            {
+                                                "core": {
+                                                    "name": "Channel79",
+                                                    "units": "",
+                                                    "engine data type": 2,
+                                                    "string data type": 2,
+                                                    "string offset": 0
+                                                },
+                                                "component settings": [
+                                                    {
+                                                        "component": "RDMA",
+                                                        "values": []
+                                                    }
+                                                ]
+                                            },
+                                            {
+                                                "core": {
+                                                    "name": "Channel80",
+                                                    "units": "",
+                                                    "engine data type": 2,
+                                                    "string data type": 2,
+                                                    "string offset": 0
+                                                },
+                                                "component settings": [
+                                                    {
+                                                        "component": "RDMA",
+                                                        "values": []
+                                                    }
+                                                ]
+                                            },
+                                            {
+                                                "core": {
+                                                    "name": "Channel81",
+                                                    "units": "",
+                                                    "engine data type": 2,
+                                                    "string data type": 2,
+                                                    "string offset": 0
+                                                },
+                                                "component settings": [
+                                                    {
+                                                        "component": "RDMA",
+                                                        "values": []
+                                                    }
+                                                ]
+                                            },
+                                            {
+                                                "core": {
+                                                    "name": "Channel82",
+                                                    "units": "",
+                                                    "engine data type": 2,
+                                                    "string data type": 2,
+                                                    "string offset": 0
+                                                },
+                                                "component settings": [
+                                                    {
+                                                        "component": "RDMA",
+                                                        "values": []
+                                                    }
+                                                ]
+                                            },
+                                            {
+                                                "core": {
+                                                    "name": "Channel83",
+                                                    "units": "",
+                                                    "engine data type": 2,
+                                                    "string data type": 2,
+                                                    "string offset": 0
+                                                },
+                                                "component settings": [
+                                                    {
+                                                        "component": "RDMA",
+                                                        "values": []
+                                                    }
+                                                ]
+                                            },
+                                            {
+                                                "core": {
+                                                    "name": "Channel84",
+                                                    "units": "",
+                                                    "engine data type": 2,
+                                                    "string data type": 2,
+                                                    "string offset": 0
+                                                },
+                                                "component settings": [
+                                                    {
+                                                        "component": "RDMA",
+                                                        "values": []
+                                                    }
+                                                ]
+                                            },
+                                            {
+                                                "core": {
+                                                    "name": "Channel85",
+                                                    "units": "",
+                                                    "engine data type": 2,
+                                                    "string data type": 2,
+                                                    "string offset": 0
+                                                },
+                                                "component settings": [
+                                                    {
+                                                        "component": "RDMA",
+                                                        "values": []
+                                                    }
+                                                ]
+                                            },
+                                            {
+                                                "core": {
+                                                    "name": "Channel86",
+                                                    "units": "",
+                                                    "engine data type": 2,
+                                                    "string data type": 2,
+                                                    "string offset": 0
+                                                },
+                                                "component settings": [
+                                                    {
+                                                        "component": "RDMA",
+                                                        "values": []
+                                                    }
+                                                ]
+                                            },
+                                            {
+                                                "core": {
+                                                    "name": "Channel87",
+                                                    "units": "",
+                                                    "engine data type": 2,
+                                                    "string data type": 2,
+                                                    "string offset": 0
+                                                },
+                                                "component settings": [
+                                                    {
+                                                        "component": "RDMA",
+                                                        "values": []
+                                                    }
+                                                ]
+                                            },
+                                            {
+                                                "core": {
+                                                    "name": "Channel88",
+                                                    "units": "",
+                                                    "engine data type": 2,
+                                                    "string data type": 2,
+                                                    "string offset": 0
+                                                },
+                                                "component settings": [
+                                                    {
+                                                        "component": "RDMA",
+                                                        "values": []
+                                                    }
+                                                ]
+                                            },
+                                            {
+                                                "core": {
+                                                    "name": "Channel89",
+                                                    "units": "",
+                                                    "engine data type": 2,
+                                                    "string data type": 2,
+                                                    "string offset": 0
+                                                },
+                                                "component settings": [
+                                                    {
+                                                        "component": "RDMA",
+                                                        "values": []
+                                                    }
+                                                ]
+                                            },
+                                            {
+                                                "core": {
+                                                    "name": "Channel90",
+                                                    "units": "",
+                                                    "engine data type": 2,
+                                                    "string data type": 2,
+                                                    "string offset": 0
+                                                },
+                                                "component settings": [
+                                                    {
+                                                        "component": "RDMA",
+                                                        "values": []
+                                                    }
+                                                ]
+                                            },
+                                            {
+                                                "core": {
+                                                    "name": "Channel91",
+                                                    "units": "",
+                                                    "engine data type": 2,
+                                                    "string data type": 2,
+                                                    "string offset": 0
+                                                },
+                                                "component settings": [
+                                                    {
+                                                        "component": "RDMA",
+                                                        "values": []
+                                                    }
+                                                ]
+                                            },
+                                            {
+                                                "core": {
+                                                    "name": "Channel92",
+                                                    "units": "",
+                                                    "engine data type": 2,
+                                                    "string data type": 2,
+                                                    "string offset": 0
+                                                },
+                                                "component settings": [
+                                                    {
+                                                        "component": "RDMA",
+                                                        "values": []
+                                                    }
+                                                ]
+                                            },
+                                            {
+                                                "core": {
+                                                    "name": "Channel93",
+                                                    "units": "",
+                                                    "engine data type": 2,
+                                                    "string data type": 2,
+                                                    "string offset": 0
+                                                },
+                                                "component settings": [
+                                                    {
+                                                        "component": "RDMA",
+                                                        "values": []
+                                                    }
+                                                ]
+                                            },
+                                            {
+                                                "core": {
+                                                    "name": "Channel94",
+                                                    "units": "",
+                                                    "engine data type": 2,
+                                                    "string data type": 2,
+                                                    "string offset": 0
+                                                },
+                                                "component settings": [
+                                                    {
+                                                        "component": "RDMA",
+                                                        "values": []
+                                                    }
+                                                ]
+                                            },
+                                            {
+                                                "core": {
+                                                    "name": "Channel95",
+                                                    "units": "",
+                                                    "engine data type": 2,
+                                                    "string data type": 2,
+                                                    "string offset": 0
+                                                },
+                                                "component settings": [
+                                                    {
+                                                        "component": "RDMA",
+                                                        "values": []
+                                                    }
+                                                ]
+                                            },
+                                            {
+                                                "core": {
+                                                    "name": "Channel96",
+                                                    "units": "",
+                                                    "engine data type": 2,
+                                                    "string data type": 2,
+                                                    "string offset": 0
+                                                },
+                                                "component settings": [
+                                                    {
+                                                        "component": "RDMA",
+                                                        "values": []
+                                                    }
+                                                ]
+                                            },
+                                            {
+                                                "core": {
+                                                    "name": "Channel97",
+                                                    "units": "",
+                                                    "engine data type": 2,
+                                                    "string data type": 2,
+                                                    "string offset": 0
+                                                },
+                                                "component settings": [
+                                                    {
+                                                        "component": "RDMA",
+                                                        "values": []
+                                                    }
+                                                ]
+                                            },
+                                            {
+                                                "core": {
+                                                    "name": "Channel98",
+                                                    "units": "",
+                                                    "engine data type": 2,
+                                                    "string data type": 2,
+                                                    "string offset": 0
+                                                },
+                                                "component settings": [
+                                                    {
+                                                        "component": "RDMA",
+                                                        "values": []
+                                                    }
+                                                ]
+                                            },
+                                            {
+                                                "core": {
+                                                    "name": "Channel99",
+                                                    "units": "",
+                                                    "engine data type": 2,
+                                                    "string data type": 2,
+                                                    "string offset": 0
+                                                },
+                                                "component settings": [
+                                                    {
+                                                        "component": "RDMA",
+                                                        "values": []
+                                                    }
+                                                ]
+                                            },
+                                            {
+                                                "core": {
+                                                    "name": "Channel100",
+                                                    "units": "",
+                                                    "engine data type": 2,
+                                                    "string data type": 2,
+                                                    "string offset": 0
+                                                },
+                                                "component settings": [
+                                                    {
+                                                        "component": "RDMA",
+                                                        "values": []
+                                                    }
+                                                ]
+                                            }
+                                        ]
+                                    }
+                                ]
+                            }
+                        ]
+                    }
+                ]
+            }
+        ]
+    }
+}
