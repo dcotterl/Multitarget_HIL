@@ -52,38 +52,6 @@ def make_multidirection_n_channels(nchannels, local_ip, local_tx_port, local_rx_
 
     logger.debug(json.dumps(transfer_rx, indent=4))
 
-
-    """# Create channels for bidirectional communication
-    channels = rjc.makeChannels(number_of_channels)
-    logger.info(f"Created {number_of_channels} channels for bidirectional communication.")
-
-    # Create transfers for bidirectional communication
-    transfer_tx = rjc.makeTransfers(
-        direction=rjc.Direction.TX,
-        channels=channels,
-        localIP=c1_rdma_ip,
-        localPort=c1_tx_port,
-        destIP=c2_rdma_ip,
-        destPort=c2_rx_port,
-        name_prefix="Transfer_C1_to_C2_"
-    )
-
-    logger.debug(json.dumps(transfer_tx, indent=4))
-    logger.info(f"Created TX transfer from {c1_rdma_ip}:{c1_tx_port} to {c2_rdma_ip}:{c2_rx_port}.")
-
-    transfer_rx = rjc.makeTransfers(
-        direction=rjc.Direction.RX,
-        channels=channels,
-        localIP=c1_rdma_ip,
-        localPort=c1_rx_port,
-        name_prefix="Transfer_C2_to_C1_"
-    )
-
-    logger.debug(json.dumps(transfer_rx, indent=4))
-    logger.info(f"Created RX transfer from {c2_rdma_ip}:{c2_tx_port} to {c1_rdma_ip}:{c1_rx_port}.")
-    
-"""
-
     # Create Tx transfer group to contain the transfer
     logger.info(f"Creating TX transfer group TransferGroup_{local_name}_to_{dest_name}_.")
     group_tx = rjc.makeTransferGroups(
@@ -130,12 +98,12 @@ def make_multidirection_n_channels(nchannels, local_ip, local_tx_port, local_rx_
 
 
 if __name__ == "__main__":
-    c1_rdma_ip, c1_tx_port, c1_rx_port = "169.254.49.44", 5010, 5011
-    c2_rdma_ip, c2_tx_port, c2_rx_port = "169.254.23.111", 5011, 5010
+    c1_name, c1_rdma_ip, c1_tx_port, c1_rx_port = "Cotterle","169.254.49.44", 5010, 5011
+    c2_name, c2_rdma_ip, c2_tx_port, c2_rx_port = "Callea","169.254.23.111", 5011, 5010
 
     number_of_channels = 1
 
-
+    logger.info(f"Generating configuration for bidirectional communication from {c1_name} to {c2_name} with {number_of_channels} channels.")
     make_multidirection_n_channels(
         nchannels=number_of_channels,
         local_ip=c1_rdma_ip,
@@ -144,10 +112,11 @@ if __name__ == "__main__":
         dest_ip=c2_rdma_ip,
         dest_tx_port=c2_tx_port,
         dest_rx_port=c2_rx_port,
-        local_name="Cotterle",
-        dest_name="Callea"
+        local_name=c1_name,
+        dest_name=c2_name
     )
 
+    logger.info(f"Generating configuration for bidirectional communication from {c2_name} to {c1_name} with {number_of_channels} channels.")
     make_multidirection_n_channels(
         nchannels=number_of_channels,
         local_ip=c2_rdma_ip,
