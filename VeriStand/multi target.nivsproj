@@ -24,15 +24,15 @@
 			<Description />
 			<Properties />
 			<Errors />
-			<Section Name="multi target.nivssdf" TypeGUID="3a41ca74-36ec-4aff-9219-9d05c8f91208" Identifier="67b392bd-f061-4374-b3e0-4ff9eb80fdfb">
+			<Section Name="simple.nivssdf" TypeGUID="3a41ca74-36ec-4aff-9219-9d05c8f91208" Identifier="67b392bd-f061-4374-b3e0-4ff9eb80fdfb">
 				<Description />
 				<Properties>
 					<Property Name="Path">
-						<DependentFile Type="Relative" Path="multi target.nivssdf">
+						<DependentFile Type="Relative" Path="simple.nivssdf">
 							<Version />
 							<RTDestination />
 							<SupportedTarget />
-							<MD5>4a959bc13ba743815e08bb06fc4ca240</MD5>
+							<MD5>aa81f499af8d3245fd3a7fbc7bdb5773</MD5>
 						</DependentFile>
 					</Property>
 				</Properties>
@@ -228,11 +228,11 @@
 				</Properties>
 				<Errors />
 			</Section>
-			<Section Name="multi target.nivssdf" TypeGUID="369b9797-43bd-4cdf-8352-81032feed666" Identifier="7d69911c-37d4-41f4-99fa-7d4c7b178547">
+			<Section Name="simple.nivssdf" TypeGUID="369b9797-43bd-4cdf-8352-81032feed666" Identifier="086243d2-a953-4e14-8e97-a77dbd6689de">
 				<Description />
 				<Properties>
 					<Property Name="Path">
-						<String>C:\Users\VECU\Documents\Multitarget_HIL\VeriStand\multi target.nivssdf</String>
+						<String>C:\Users\VECU\Documents\Multitarget_HIL\VeriStand\simple.nivssdf</String>
 					</Property>
 				</Properties>
 				<Errors />

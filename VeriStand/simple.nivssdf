@@ -10,7 +10,7 @@
 				<String>simple</String>
 			</Property>
 			<Property Name="Version">
-				<String>1.0.0.44</String>
+				<String>1.0.0.45</String>
 			</Property>
 			<Property Name="Creator">
 				<String />
@@ -1654,7 +1654,7 @@
 							</Property>
 						</Properties>
 						<Errors />
-						<Section Name="[0] Plugin" TypeGUID="e36400aa-5528-4ac8-8885-6b99ede07395" Identifier="3f2f8117-c3bc-43b5-afa5-6414f837b931">
+						<Section Name="[0] Plugin" TypeGUID="e36400aa-5528-4ac8-8885-6b99ede07395" Identifier="1e149dfd-e154-4137-9932-8289df8a4bc8">
 							<Description />
 							<Properties>
 								<Property Name="user.CD.ID">
@@ -1674,7 +1674,7 @@
 								</Property>
 							</Properties>
 							<Errors />
-							<Section Name="[0] Thread" TypeGUID="41c5f14b-093c-4be0-bff4-80a9437906d9" Identifier="cf3aa5f0-dd56-43dd-a240-dd38e8f14029">
+							<Section Name="[0] Thread" TypeGUID="41c5f14b-093c-4be0-bff4-80a9437906d9" Identifier="51cd7996-dedf-4f71-83d4-e13dbe467234">
 								<Description />
 								<Properties>
 									<Property Name="user.CD.ID">
@@ -1694,7 +1694,7 @@
 									</Property>
 								</Properties>
 								<Errors />
-								<Section Name="[0] Group" TypeGUID="473b4065-4cef-436d-b68a-ef19370f2b9b" Identifier="62a15137-cb0d-46b4-95af-90c952156c34">
+								<Section Name="[0] GroupTx" TypeGUID="473b4065-4cef-436d-b68a-ef19370f2b9b" Identifier="6c822f75-479f-4e7c-8e03-d606cbaf206f">
 									<Description />
 									<Properties>
 										<Property Name="user.CD.ID">
@@ -1703,7 +1703,7 @@
 										<Property Name="user.CD.core group settings">
 											<Variant>
 												<Type>AAAACgAUQDD/////C2RhdGEgc3RyaW5n</Type>
-												<Data>AAAB/SUAgAAAAAAJAA5AMP////8EbmFtZQAARQDxAAAAAAAAAAIPRFNGIENvcmUubHZsaWJwEURTRiBEaXJlY3Rpb24uY3RsABtAFQACAlR4AlJ4AAlkaXJlY3Rpb24AD0AIAAhwcmlvcml0eQAAEUAIAApkZWNpbWF0aW9uAAANQAgABm9mZnNldAAASgDx2cklLQAAAAIPRFNGIENvcmUubHZsaWJwE0RTRiBUaW1pbmcgSW5mby5jdGwAHkBQAAMAAgADAAQMY3ljbGUgdGltaW5nAABwAPEAAAAAAAAAAg9EU0YgQ29yZS5sdmxpYnAYRFNGIFRpbWVvdXQgQmVoYXZpb3IuY3RsAD9AFQACFEluY3JlbWVudCBMYXRlIENvdW50C1Rocm93IEVycm9yAAAQdGltZW91dCBiZWhhdmlvcgAAFkAhEWVuYWJsZSBjb252ZXJzaW9uAHkA8QAAAAAAAAADD0RTRiBDb3JlLmx2bGlicBtHcm91cCBDb25maWd1cmF0aW9uLmx2Y2xhc3McQ29yZSBHcm91cCBDb25maWd1cmF0aW9uLmN0bAAoQFAABQAAAAEABQAGAAcTZ3JvdXAgY29uZmlndXJhdGlvbgABAAgAAAAFR3JvdXAAAAAAAAAAAGQAAAAAAAAAAQAAAAAAAAAAAAAAAAAA</Data>
+												<Data>AAAB/yUAgAAAAAAJAA5AMP////8EbmFtZQAARQDxAAAAAAAAAAIPRFNGIENvcmUubHZsaWJwEURTRiBEaXJlY3Rpb24uY3RsABtAFQACAlR4AlJ4AAlkaXJlY3Rpb24AD0AIAAhwcmlvcml0eQAAEUAIAApkZWNpbWF0aW9uAAANQAgABm9mZnNldAAASgDx2cklLQAAAAIPRFNGIENvcmUubHZsaWJwE0RTRiBUaW1pbmcgSW5mby5jdGwAHkBQAAMAAgADAAQMY3ljbGUgdGltaW5nAABwAPEAAAAAAAAAAg9EU0YgQ29yZS5sdmxpYnAYRFNGIFRpbWVvdXQgQmVoYXZpb3IuY3RsAD9AFQACFEluY3JlbWVudCBMYXRlIENvdW50C1Rocm93IEVycm9yAAAQdGltZW91dCBiZWhhdmlvcgAAFkAhEWVuYWJsZSBjb252ZXJzaW9uAHkA8QAAAAAAAAADD0RTRiBDb3JlLmx2bGlicBtHcm91cCBDb25maWd1cmF0aW9uLmx2Y2xhc3McQ29yZSBHcm91cCBDb25maWd1cmF0aW9uLmN0bAAoQFAABQAAAAEABQAGAAcTZ3JvdXAgY29uZmlndXJhdGlvbgABAAgAAAAHR3JvdXBUeAAAAAAAAAAAZAAAAAAAAAABAAAAAAAAAAAAAAAAAAA=</Data>
 											</Variant>
 										</Property>
 										<Property Name="user.CD.component settings">
@@ -1714,7 +1714,7 @@
 										</Property>
 									</Properties>
 									<Errors />
-									<Section Name="[0] TransferTx" TypeGUID="bcb89113-3f5b-435a-8111-e471fb52bdd7" Identifier="a2d2f2c1-f557-4700-9d33-492265eb2212">
+									<Section Name="[0] TransferTx" TypeGUID="bcb89113-3f5b-435a-8111-e471fb52bdd7" Identifier="d1d36a08-ba4f-4828-8658-7961a3ab1f50">
 										<Description />
 										<Properties>
 											<Property Name="user.CD.ID">
@@ -1734,13 +1734,13 @@
 											</Property>
 										</Properties>
 										<Errors />
-										<Channel Name="[000000] Channel" TypeGUID="6256d297-6817-4828-920b-1215e79da74f" Identifier="90569402-c784-415f-ad18-bd3024fdf028" RowDim="1" ColDim="1" Units="V" BitFields="3">
+										<Channel Name="[000000] Channel1" TypeGUID="6256d297-6817-4828-920b-1215e79da74f" Identifier="e41e2ad3-365a-4ae1-a657-94f5594941d4" RowDim="1" ColDim="1" Units="" BitFields="3">
 											<Description />
 											<Properties>
 												<Property Name="user.CD.core channel settings">
 													<Variant>
 														<Type>AAAACgAUQDD/////C2RhdGEgc3RyaW5n</Type>
-														<Data>AAABviUAgAAAAAAGAA5AMP////8EbmFtZQAADkAw/////wV1bml0cwBzAPEAAAAAAAAAAg9EU0YgQ29yZS5sdmxpYnARRFNGIERhdGEgVHlwZS5jdGwASUAVAAsEQm9vbANTR0wDREJMAkk4A0kxNgNJMzIDSTY0AlU4A1UxNgNVMzIDVTY0AAAQZW5naW5lIGRhdGEgdHlwZQAAcwDxAAAAAAAAAAIPRFNGIENvcmUubHZsaWJwEURTRiBEYXRhIFR5cGUuY3RsAElAFQALBEJvb2wDU0dMA0RCTAJJOANJMTYDSTMyA0k2NAJVOANVMTYDVTMyA1U2NAAAEHN0cmluZyBkYXRhIHR5cGUAABNACAANc3RyaW5nIG9mZnNldAB/APEAAAAAAAAAAw9EU0YgQ29yZS5sdmxpYnAdQ2hhbm5lbCBDb25maWd1cmF0aW9uLmx2Y2xhc3MeQ29yZSBDaGFubmVsIENvbmZpZ3VyYXRpb24uY3RsACpAUAAFAAAAAQACAAMABBVjaGFubmVsIGNvbmZpZ3VyYXRpb24AAQAFAAAAB0NoYW5uZWwAAAABVgICAAAAAAAAAAAAAAAA</Data>
+														<Data>AAABviUAgAAAAAAGAA5AMP////8EbmFtZQAADkAw/////wV1bml0cwBzAPEAAAAAAAAAAg9EU0YgQ29yZS5sdmxpYnARRFNGIERhdGEgVHlwZS5jdGwASUAVAAsEQm9vbANTR0wDREJMAkk4A0kxNgNJMzIDSTY0AlU4A1UxNgNVMzIDVTY0AAAQZW5naW5lIGRhdGEgdHlwZQAAcwDxAAAAAAAAAAIPRFNGIENvcmUubHZsaWJwEURTRiBEYXRhIFR5cGUuY3RsAElAFQALBEJvb2wDU0dMA0RCTAJJOANJMTYDSTMyA0k2NAJVOANVMTYDVTMyA1U2NAAAEHN0cmluZyBkYXRhIHR5cGUAABNACAANc3RyaW5nIG9mZnNldAB/APEAAAAAAAAAAw9EU0YgQ29yZS5sdmxpYnAdQ2hhbm5lbCBDb25maWd1cmF0aW9uLmx2Y2xhc3MeQ29yZSBDaGFubmVsIENvbmZpZ3VyYXRpb24uY3RsACpAUAAFAAAAAQACAAMABBVjaGFubmVsIGNvbmZpZ3VyYXRpb24AAQAFAAAACENoYW5uZWwxAAAAAAICAAAAAAAAAAAAAAAA</Data>
 													</Variant>
 												</Property>
 												<Property Name="user.CD.component settings">
@@ -1755,13 +1755,13 @@
 												<Elem>0</Elem>
 											</DefaultValue>
 										</Channel>
-										<Channel Name="[000001] Channel1" TypeGUID="6256d297-6817-4828-920b-1215e79da74f" Identifier="0f0e8d16-6a47-431f-a11c-ed39be29ac4f" RowDim="1" ColDim="1" Units="V" BitFields="3">
+										<Channel Name="[000001] Channel2" TypeGUID="6256d297-6817-4828-920b-1215e79da74f" Identifier="6579421e-2dc4-461c-ac10-117cac4f53f5" RowDim="1" ColDim="1" Units="" BitFields="3">
 											<Description />
 											<Properties>
 												<Property Name="user.CD.core channel settings">
 													<Variant>
 														<Type>AAAACgAUQDD/////C2RhdGEgc3RyaW5n</Type>
-														<Data>AAABvyUAgAAAAAAGAA5AMP////8EbmFtZQAADkAw/////wV1bml0cwBzAPEAAAAAAAAAAg9EU0YgQ29yZS5sdmxpYnARRFNGIERhdGEgVHlwZS5jdGwASUAVAAsEQm9vbANTR0wDREJMAkk4A0kxNgNJMzIDSTY0AlU4A1UxNgNVMzIDVTY0AAAQZW5naW5lIGRhdGEgdHlwZQAAcwDxAAAAAAAAAAIPRFNGIENvcmUubHZsaWJwEURTRiBEYXRhIFR5cGUuY3RsAElAFQALBEJvb2wDU0dMA0RCTAJJOANJMTYDSTMyA0k2NAJVOANVMTYDVTMyA1U2NAAAEHN0cmluZyBkYXRhIHR5cGUAABNACAANc3RyaW5nIG9mZnNldAB/APEAAAAAAAAAAw9EU0YgQ29yZS5sdmxpYnAdQ2hhbm5lbCBDb25maWd1cmF0aW9uLmx2Y2xhc3MeQ29yZSBDaGFubmVsIENvbmZpZ3VyYXRpb24uY3RsACpAUAAFAAAAAQACAAMABBVjaGFubmVsIGNvbmZpZ3VyYXRpb24AAQAFAAAACENoYW5uZWwxAAAAAVYCAgAAAAAAAAAAAAAAAA==</Data>
+														<Data>AAABviUAgAAAAAAGAA5AMP////8EbmFtZQAADkAw/////wV1bml0cwBzAPEAAAAAAAAAAg9EU0YgQ29yZS5sdmxpYnARRFNGIERhdGEgVHlwZS5jdGwASUAVAAsEQm9vbANTR0wDREJMAkk4A0kxNgNJMzIDSTY0AlU4A1UxNgNVMzIDVTY0AAAQZW5naW5lIGRhdGEgdHlwZQAAcwDxAAAAAAAAAAIPRFNGIENvcmUubHZsaWJwEURTRiBEYXRhIFR5cGUuY3RsAElAFQALBEJvb2wDU0dMA0RCTAJJOANJMTYDSTMyA0k2NAJVOANVMTYDVTMyA1U2NAAAEHN0cmluZyBkYXRhIHR5cGUAABNACAANc3RyaW5nIG9mZnNldAB/APEAAAAAAAAAAw9EU0YgQ29yZS5sdmxpYnAdQ2hhbm5lbCBDb25maWd1cmF0aW9uLmx2Y2xhc3MeQ29yZSBDaGFubmVsIENvbmZpZ3VyYXRpb24uY3RsACpAUAAFAAAAAQACAAMABBVjaGFubmVsIGNvbmZpZ3VyYXRpb24AAQAFAAAACENoYW5uZWwyAAAAAAICAAAAAAAAAAAAAAAA</Data>
 													</Variant>
 												</Property>
 												<Property Name="user.CD.component settings">
@@ -1777,11 +1777,11 @@
 											</DefaultValue>
 										</Channel>
 									</Section>
-									<Section Name="Monitoring" TypeGUID="fc8a3050-8455-4f24-acdb-50198eb01274" Identifier="2ac5a7d1-3ff9-4db1-9e08-1e518d083897">
+									<Section Name="Monitoring" TypeGUID="fc8a3050-8455-4f24-acdb-50198eb01274" Identifier="0d007263-7b24-4310-83f8-2d52039852ae">
 										<Description />
 										<Properties />
 										<Errors />
-										<Channel Name="Duration" TypeGUID="03D3BB99-1485-13A6-561D1F898F032919" Identifier="e0754d19-5a03-4268-af1f-0c044b7e4f3a" RowDim="1" ColDim="1" Units="µs" BitFields="1">
+										<Channel Name="Duration" TypeGUID="03D3BB99-1485-13A6-561D1F898F032919" Identifier="342bc155-e440-4c38-88b7-a35f0d43c1ee" RowDim="1" ColDim="1" Units="µs" BitFields="1">
 											<Description />
 											<Properties />
 											<Errors />
@@ -1789,7 +1789,7 @@
 												<Elem>0</Elem>
 											</DefaultValue>
 										</Channel>
-										<Channel Name="Frequency" TypeGUID="03D3BB99-1485-13A6-561D1F898F032919" Identifier="88cd181e-bcca-45b1-89e2-0b90dbde313e" RowDim="1" ColDim="1" Units="Hz" BitFields="1">
+										<Channel Name="Frequency" TypeGUID="03D3BB99-1485-13A6-561D1F898F032919" Identifier="f9f8b2b3-e6d8-44cb-9599-9b2736847845" RowDim="1" ColDim="1" Units="Hz" BitFields="1">
 											<Description />
 											<Properties />
 											<Errors />
@@ -1797,7 +1797,7 @@
 												<Elem>0</Elem>
 											</DefaultValue>
 										</Channel>
-										<Channel Name="Iteration" TypeGUID="03D3BB99-1485-13A6-561D1F898F032919" Identifier="15495ded-484a-4b8e-869f-5ffc7ba3155e" RowDim="1" ColDim="1" Units="" BitFields="1">
+										<Channel Name="Iteration" TypeGUID="03D3BB99-1485-13A6-561D1F898F032919" Identifier="250f32d4-1617-458c-8904-e7dd07457df7" RowDim="1" ColDim="1" Units="" BitFields="1">
 											<Description />
 											<Properties />
 											<Errors />
@@ -1805,7 +1805,7 @@
 												<Elem>0</Elem>
 											</DefaultValue>
 										</Channel>
-										<Channel Name="Late Count" TypeGUID="03D3BB99-1485-13A6-561D1F898F032919" Identifier="9d91aa92-5a75-498c-a32b-7f0825548c85" RowDim="1" ColDim="1" Units="" BitFields="1">
+										<Channel Name="Late Count" TypeGUID="03D3BB99-1485-13A6-561D1F898F032919" Identifier="7fc7c9d0-51bd-4185-899d-780c2e1dbb58" RowDim="1" ColDim="1" Units="" BitFields="1">
 											<Description />
 											<Properties />
 											<Errors />
