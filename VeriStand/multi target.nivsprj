@@ -1,9 +1,9 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<SourceFile Checksum="C01AFB2D450C2FAC41F700A921AACD0A2A1C9C1FDC6D4B5F3C736E748EAF71B6B44F58F4C63B2F780165839011AA9D1C6B664A23B6CEC3BC652F312C40E62607" xmlns="http://www.ni.com/PlatformFramework">
+<SourceFile Checksum="B27E31189C53A62AEDD5004B297C101B0313E5960ABC99FF41DCD46E647BDF5391B8C02D7140244A3CF5827958621DCB6D6E80B62BB6F4CB918999F6769002EA" xmlns="http://www.ni.com/PlatformFramework">
 	<SourceModelFeatureSet>
-		<ParsableNamespace AssemblyFileVersion="9.19.0.49998" FeatureSetName="Editor" Name="http://www.ni.com/PlatformFramework" OldestCompatibleVersion="8.1.0.49152" Version="8.1.0.49152" />
-		<ParsableNamespace AssemblyFileVersion="9.19.0.49998" FeatureSetName="VeriStand Core Components" Name="http://www.ni.com/VeriStand" OldestCompatibleVersion="9.0.0.49152" Version="9.0.0.49152" />
-		<ApplicationVersionInfo Build="13.0.0.49998" Name="VeriStand" Version="9.19.0.49998" />
+		<ParsableNamespace AssemblyFileVersion="9.17.0.49687" FeatureSetName="Editor" Name="http://www.ni.com/PlatformFramework" OldestCompatibleVersion="8.1.0.49152" Version="8.1.0.49152" />
+		<ParsableNamespace AssemblyFileVersion="9.17.0.49687" FeatureSetName="VeriStand Core Components" Name="http://www.ni.com/VeriStand" OldestCompatibleVersion="9.0.0.49152" Version="9.0.0.49152" />
+		<ApplicationVersionInfo Build="12.5.0.49687" Name="VeriStand" Version="9.17.0.49687" />
 	</SourceModelFeatureSet>
 	<Project xmlns="http://www.ni.com/PlatformFramework">
 		<EnvoyManagerRootEnvoy Id="1" ModelDefinitionType="EnvoyManagerRootEnvoy" Name="RootEnvoy" />
@@ -23,6 +23,7 @@
 			<EmbeddedDefinitionReference Id="9f98bf53bc554e7e93e1fb3ec03f6ad9" ModelDefinitionType="SdfFilePath" Name="SdfPath" Reparentable="False">
 				<SdfFilePath SdfPath="multi target.nivssdf" xmlns="http://www.ni.com/VeriStand" />
 			</EmbeddedDefinitionReference>
+			<SourceFileReference Bindings="EnvoyManager" Id="2935c7a38be243ca96755bdb694a8988" ModelDefinitionType="{http://www.ni.com/VeriStand}SystemDefinition" Name="simple.nivssdf" StoragePath="simple.nivssdf" />
 		</NameScopingEnvoy>
 	</Project>
 	<ProjectInformation xmlns="http://www.ni.com/PlatformFramework" />
