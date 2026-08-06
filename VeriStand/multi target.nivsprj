@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<SourceFile Checksum="05EDDA4944D254EB7B8C068230358BA6DD510E4FD5BB801913E49C02C2C03A47710C9933989D7D9A2876555527496A6FEDA9285BF37D825565F6413DE4ACD4B3" xmlns="http://www.ni.com/PlatformFramework">
+<SourceFile Checksum="F2C459929090A73EAE12460E456181B57EB144DBD00BC4EE73CEBE6CB2264AC960A8E7E274553DE42DC0237BE30B2E408FE0A02B16DF2933831E93160B73DE56" xmlns="http://www.ni.com/PlatformFramework">
 	<SourceModelFeatureSet>
 		<ParsableNamespace AssemblyFileVersion="9.17.0.49687" FeatureSetName="Editor" Name="http://www.ni.com/PlatformFramework" OldestCompatibleVersion="8.1.0.49152" Version="8.1.0.49152" />
 		<ParsableNamespace AssemblyFileVersion="9.17.0.49687" FeatureSetName="VeriStand Core Components" Name="http://www.ni.com/VeriStand" OldestCompatibleVersion="9.0.0.49152" Version="9.0.0.49152" />
@@ -16,19 +16,20 @@
 				<GatewayDefinition xmlns="http://www.ni.com/VeriStand" />
 			</EmbeddedDefinitionReference>
 			<FileReference Bindings=".nivscf" Id="483fac8e5b094d86a147882f83e82ea8" ModelDefinitionType="{http://www.ni.com/PlatformFramework}ExternalFile" Name="multi target.nivscf" StoragePath="multi target.nivscf" />
-			<SourceFileReference Id="2aed25b2b5144bfa9b430e70f05f680a" ModelDefinitionType="{http://www.ni.com/VeriStand}Screen" Name="multi target.nivsscr" StoragePath="multi target.nivsscr" />
+			<SourceFileReference Id="2aed25b2b5144bfa9b430e70f05f680a" ModelDefinitionType="{http://www.ni.com/VeriStand}Screen" Name="RDMA_multi target.nivsscr" StoragePath="RDMA_multi target.nivsscr" />
 			<FileReference Bindings=".nivsscreen" Id="6e661d12f0e54569ab01ca233f9866cb" ModelDefinitionType="{http://www.ni.com/PlatformFramework}ExternalFile" Name="multi target.nivsscreen" StoragePath="multi target.nivsscreen" />
 			<FileReference Bindings=".nivsproj" Id="787baa20f8d64414b285a74773548004" ModelDefinitionType="{http://www.ni.com/PlatformFramework}ExternalFile" Name="multi target.nivsproj" StoragePath="multi target.nivsproj" />
-			<SourceFileReference Bindings="EnvoyManager" Id="68fddd7364464d64814eaa4d09163897" ModelDefinitionType="{http://www.ni.com/VeriStand}SystemDefinition" Name="1chMultitarget.nivssdf" StoragePath="1chMultitarget.nivssdf" />
+			<SourceFileReference Bindings="EnvoyManager" Id="68fddd7364464d64814eaa4d09163897" ModelDefinitionType="{http://www.ni.com/VeriStand}SystemDefinition" Name="RDMA_1chMultitarget.nivssdf" StoragePath="RDMA_1chMultitarget.nivssdf" />
 			<EmbeddedDefinitionReference Id="9f98bf53bc554e7e93e1fb3ec03f6ad9" ModelDefinitionType="SdfFilePath" Name="SdfPath" Reparentable="False">
-				<SdfFilePath SdfPath="10000chMultitarget.nivssdf" xmlns="http://www.ni.com/VeriStand" />
+				<SdfFilePath SdfPath="UDP_1chMultitarget.nivssdf" xmlns="http://www.ni.com/VeriStand" />
 			</EmbeddedDefinitionReference>
-			<SourceFileReference Bindings="EnvoyManager" Id="2935c7a38be243ca96755bdb694a8988" ModelDefinitionType="{http://www.ni.com/VeriStand}SystemDefinition" Name="simple.nivssdf" StoragePath="simple.nivssdf" />
 			<SourceFileReference Id="4939d5d97c8140aba12a0a8bcbc10188" ModelDefinitionType="{http://www.ni.com/VeriStand}Screen" Name="Simple.nivsscr" StoragePath="Simple.nivsscr" />
-			<SourceFileReference Bindings="EnvoyManager" Id="46ed9387782b4cf3af0944f0379aeaec" ModelDefinitionType="{http://www.ni.com/VeriStand}SystemDefinition" Name="10chMultitarget.nivssdf" StoragePath="10chMultitarget.nivssdf" />
-			<SourceFileReference Bindings="EnvoyManager" Id="89192dee60664a98a249b911328a2648" ModelDefinitionType="{http://www.ni.com/VeriStand}SystemDefinition" Name="100chMultitarget.nivssdf" StoragePath="100chMultitarget.nivssdf" />
-			<SourceFileReference Bindings="EnvoyManager" Id="8f6d17e68dbc4b37970e421d4febe9a1" ModelDefinitionType="{http://www.ni.com/VeriStand}SystemDefinition" Name="1000chMultitarget.nivssdf" StoragePath="1000chMultitarget.nivssdf" />
-			<SourceFileReference Bindings="EnvoyManager" Id="385e6771668146478c0a0268455a553d" ModelDefinitionType="{http://www.ni.com/VeriStand}SystemDefinition" Name="10000chMultitarget.nivssdf" StoragePath="10000chMultitarget.nivssdf" />
+			<SourceFileReference Bindings="EnvoyManager" Id="46ed9387782b4cf3af0944f0379aeaec" ModelDefinitionType="{http://www.ni.com/VeriStand}SystemDefinition" Name="RDMA_10chMultitarget.nivssdf" StoragePath="RDMA_10chMultitarget.nivssdf" />
+			<SourceFileReference Bindings="EnvoyManager" Id="89192dee60664a98a249b911328a2648" ModelDefinitionType="{http://www.ni.com/VeriStand}SystemDefinition" Name="RDMA_100chMultitarget.nivssdf" StoragePath="RDMA_100chMultitarget.nivssdf" />
+			<SourceFileReference Bindings="EnvoyManager" Id="8f6d17e68dbc4b37970e421d4febe9a1" ModelDefinitionType="{http://www.ni.com/VeriStand}SystemDefinition" Name="RDMA_1000chMultitarget.nivssdf" StoragePath="RDMA_1000chMultitarget.nivssdf" />
+			<SourceFileReference Bindings="EnvoyManager" Id="385e6771668146478c0a0268455a553d" ModelDefinitionType="{http://www.ni.com/VeriStand}SystemDefinition" Name="RDMA_10000chMultitarget.nivssdf" StoragePath="RDMA_10000chMultitarget.nivssdf" />
+			<SourceFileReference Bindings="EnvoyManager" Id="73b361f4dde64c35945f163fbbb31224" ModelDefinitionType="{http://www.ni.com/VeriStand}SystemDefinition" Name="UDP_1chMultitarget.nivssdf" StoragePath="UDP_1chMultitarget.nivssdf" />
+			<SourceFileReference Id="8eba095d79904b5d8fdb7c8cbe239bb9" ModelDefinitionType="{http://www.ni.com/VeriStand}Screen" Name="UDP_Multitarget.nivsscr" StoragePath="UDP_Multitarget.nivsscr" />
 		</NameScopingEnvoy>
 	</Project>
 	<ProjectInformation xmlns="http://www.ni.com/PlatformFramework" />

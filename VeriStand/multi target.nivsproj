@@ -24,15 +24,15 @@
 			<Description />
 			<Properties />
 			<Errors />
-			<Section Name="10000chMultitarget.nivssdf" TypeGUID="3a41ca74-36ec-4aff-9219-9d05c8f91208" Identifier="67b392bd-f061-4374-b3e0-4ff9eb80fdfb">
+			<Section Name="UDP_1chMultitarget.nivssdf" TypeGUID="3a41ca74-36ec-4aff-9219-9d05c8f91208" Identifier="67b392bd-f061-4374-b3e0-4ff9eb80fdfb">
 				<Description />
 				<Properties>
 					<Property Name="Path">
-						<DependentFile Type="Relative" Path="10000chMultitarget.nivssdf">
+						<DependentFile Type="Relative" Path="UDP_1chMultitarget.nivssdf">
 							<Version />
 							<RTDestination />
 							<SupportedTarget />
-							<MD5>c4c66be3be871f192719c22a5d705796</MD5>
+							<MD5>9e1fb62b0995d4483fd5fe3b4dfab173</MD5>
 						</DependentFile>
 					</Property>
 				</Properties>
@@ -228,11 +228,11 @@
 				</Properties>
 				<Errors />
 			</Section>
-			<Section Name="10000chMultitarget.nivssdf" TypeGUID="369b9797-43bd-4cdf-8352-81032feed666" Identifier="09dacfd1-051f-412f-931b-948c6581e2e4">
+			<Section Name="UDP_1chMultitarget.nivssdf" TypeGUID="369b9797-43bd-4cdf-8352-81032feed666" Identifier="7c112d51-b8b7-460f-852c-d753c375e77d">
 				<Description />
 				<Properties>
 					<Property Name="Path">
-						<String>C:\Users\VECU\Documents\Multitarget_HIL\VeriStand\10000chMultitarget.nivssdf</String>
+						<String>C:\Users\VECU\Documents\Multitarget_HIL\VeriStand\UDP_1chMultitarget.nivssdf</String>
 					</Property>
 				</Properties>
 				<Errors />

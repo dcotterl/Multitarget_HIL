@@ -1,0 +1,196 @@
+{
+	"dsfversion": {
+		"major": 1,
+		"minor": 4,
+		"fix": 0,
+		"build": ""
+	},
+	"version": {
+		"major": 1,
+		"minor": 0,
+		"fix": 0,
+		"build": ""
+	},
+	"configuration": {
+		"plugins": [
+			{
+				"core": {
+					"name": "Plugin",
+					"components": [
+						"UDP"
+					],
+					"cycle timing": {
+						"priority": 10000,
+						"decimation": 1,
+						"offset": 0
+					}
+				},
+				"component settings": [
+					{
+						"component": "UDP",
+						"values": []
+					}
+				],
+				"threads": [
+					{
+						"core": {
+							"processor": -2,
+							"priority offset": 0
+						},
+						"component settings": [
+							{
+								"component": "UDP",
+								"values": [
+									{
+										"key": "local port",
+										"value": "5000"
+									},
+									{
+										"key": "local address",
+										"value": "127.0.0.1"
+									}
+								]
+							}
+						],
+						"transfer groups": [
+							{
+								"core": {
+									"name": "GroupTx",
+									"direction": 0,
+									"cycle timing": {
+										"priority": 100,
+										"decimation": 1,
+										"offset": 0
+									},
+									"timeout behavior": 0,
+									"enable conversion": false
+								},
+								"component settings": [
+									{
+										"component": "UDP",
+										"values": []
+									}
+								],
+								"transfers": [
+									{
+										"core": {
+											"name": "TransferTx"
+										},
+										"component settings": [
+											{
+												"component": "UDP",
+												"values": [
+													{
+														"key": "destination address",
+														"value": "127.0.0.1"
+													},
+													{
+														"key": "destination port",
+														"value": "5001"
+													}
+												]
+											}
+										],
+										"channels": [
+											{
+												"core": {
+													"name": "Channel",
+													"units": "V",
+													"engine data type": 2,
+													"string data type": 2,
+													"string offset": 0
+												},
+												"component settings": []
+											}
+										]
+									}
+								]
+							}
+						]
+					},
+					{
+						"core": {
+							"processor": -2,
+							"priority offset": 0
+						},
+						"component settings": [
+							{
+								"component": "UDP",
+								"values": [
+									{
+										"key": "local port",
+										"value": "5001"
+									},
+									{
+										"key": "local address",
+										"value": "127.0.0.1"
+									}
+								]
+							}
+						],
+						"transfer groups": [
+							{
+								"core": {
+									"name": "GroupRx",
+									"direction": 1,
+									"cycle timing": {
+										"priority": 100,
+										"decimation": 1,
+										"offset": 0
+									},
+									"timeout behavior": 0,
+									"enable conversion": false
+								},
+								"component settings": [
+									{
+										"component": "UDP",
+										"values": []
+									}
+								],
+								"transfers": [
+									{
+										"core": {
+											"name": "TransferRx"
+										},
+										"component settings": [
+											{
+												"component": "UDP",
+												"values": [
+													{
+														"key": "source address",
+														"value": "127.0.0.1"
+													},
+													{
+														"key": "source port",
+														"value": "5000"
+													}
+												]
+											}
+										],
+										"channels": [
+											{
+												"core": {
+													"name": "Channel",
+													"units": "V",
+													"engine data type": 2,
+													"string data type": 2,
+													"string offset": 0
+												},
+												"component settings": [
+													{
+														"component": "UDP",
+														"values": []
+													}
+												]
+											}
+										]
+									}
+								]
+							}
+						]
+					}
+				]
+			}
+		]
+	}
+}
