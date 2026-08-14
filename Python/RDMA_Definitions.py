@@ -3,12 +3,13 @@
 This module provides lightweight classes for constructing an RDMA
 configuration in the same hierarchy used by the serialized definition:
 
-    RDMA_Configuration
-    └── plugin
-        └── thread
-            └── transferGroup
-                └── transfer
-                    └── channel
+# Hierarchy of templates:
+#    config file
+#        plugin [1..n]
+#            thread [1..n]
+#                transfer group [1..n]
+#                    transfer [1..n]
+#                        channel [1..n]
 
 Each object stores its definition as a dictionary, exposes it through
 ``getDict()``, and can be rendered as formatted JSON with ``str()``.
