@@ -1,9 +1,13 @@
-from copy import deepcopy
 import json
 from enum import Enum
-import os
 import logging
 from pathlib import Path
+
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s [%(levelname)s] %(message)s",
+)
+logger = logging.getLogger(__name__)
 
 class Direction(Enum):
 	TX = 0
@@ -21,7 +25,7 @@ class component_settings:
     def __str__(self):
          return json.dumps(self.component_settings, indent=4)
 
-    def get_settings(self):
+    def getSettings(self):
          return self.component_settings
 
 class channel:
@@ -30,18 +34,18 @@ class channel:
 
             self.channel = {"core":{
                                 "name": name,
-                                "unit": unit,
-                                "engine_data_type": engine_data_type,
-                                "string_data_type": string_data_type,
-                                "string_offset": string_offset,
+                                "units": unit,
+                                "engine data type": engine_data_type,
+                                "string data type": string_data_type,
+                                "string offset": string_offset,
                                 },
-                                "component setting": cs.get_settings()}
+                                "component settings": cs.getSettings()}
             logger.debug(f"Creating channel {name} with unit {unit}, engine_data_type {engine_data_type}, string_data_type {string_data_type}, string_offset {string_offset}")
 
      def __str__(self):
         return json.dumps(self.channel, indent=4)
 
-     def get_channel(self):
+     def getChannel(self):
         return self.channel
 
 class transfer:
@@ -57,25 +61,25 @@ class transfer:
 
         chs = []
         for ch in channels:
-            chs.append(ch.get_channel())
+            chs.append(ch.getChannel())
 
         self.transfer = {
                         "core": {"name" : name},
-                        "component setting": settings.get_settings(),
+                        "component settings": settings.getSettings(),
                         "channels": chs
                         }
         logger.debug(f"Created transfer {name} with direction {direction.name}, details:\n{json.dumps(self.transfer, indent=4)}")
 
      def __Setting_TX_Transfer(self, local_address, local_port, destination_address, destination_port):
-        cs = component_settings("RDMA", [{"key" : "local address", "value" : local_address},
-                                          {"key" : "local port", "value" : local_port},
-                                          {"key" : "destination address", "value" : destination_address},
-                                          {"key" : "destination port", "value" : destination_port}])
+        cs = component_settings("RDMA", [{"key" : "local address", "value" : str(local_address)},
+                                          {"key" : "local port", "value" : str(local_port)},
+                                          {"key" : "destination address", "value" : str(destination_address)},
+                                          {"key" : "destination port", "value" : str(destination_port)}])
         return cs
 
      def __Setting_RX_Transfer(self, local_address, local_port):
-        cs = component_settings("RDMA", [{"key" : "local address", "value" : local_address},
-                                         {"key" : "local port", "value" : local_port}])
+        cs = component_settings("RDMA", [{"key" : "local address", "value" : str(local_address)},
+                                         {"key" : "local port", "value" : str(local_port)}])
         return cs
 
      def getTransfer(self):
@@ -85,7 +89,7 @@ class transfer:
          return self.direction
 
      def addChannel(self, channel):
-         self.transfer["channels"].append(channel.get_channel())
+         self.transfer["channels"].append(channel.getChannel())
 
      def __str__(self):
          return json.dumps(self.transfer, indent=4)
@@ -102,23 +106,23 @@ class transferGroup:
 
         self.transferGroup = {"core" : {
                                             "name" : name,
-                                            "direction" : direction.name,
+                                            "direction" : direction.value,
                                             "cycle timing" : {
                                                 "priority" : 100,
                                                 "decimation" : 1,
                                                 "offset" : 0
                                             },
-                                            "timeout behaviour" : 0,
+                                            "timeout behavior" : 0,
                                             "enable conversion" : False,
                                         },
-                                        "component setting" : [component_settings("RDMA").get_settings()],
+                                        "component settings" : [component_settings("RDMA").getSettings()[0]],
                                         "transfers" : transfer_array
                              }
 
     def __str__(self):
         return json.dumps(self.transferGroup, indent=4)
 
-    def get_transferGroup(self):
+    def getTransferGroup(self):
         return self.transferGroup
 
     def add_transfer(self, transfer):
@@ -132,57 +136,59 @@ class thread:
 
         tg_array = []
         for tg in transferGroups:
-            tg_array.append(tg.get_transferGroup())
-
+            tg_array.append(tg.getTransferGroup())
+        settings = component_settings("RDMA").getSettings()
         self.thread = {"core" : {
                                 "processor" : -2,
-                                "priority offset" : 0,
-                                "component setting" : [component_settings("RDMA").get_settings()],
-                                "transfer groups" : tg_array
-                                }
-                        }       
+                                "priority offset" : 0
+                                },
+                        "component settings" : settings,
+                        "transfer groups" : tg_array
+                        }
+                               
 
     def __str__(self):
         return json.dumps(self.thread, indent=4)
 
-    def get_thread(self):
+    def getThread(self):
         return self.thread
 
     def add_transferGroup(self, transferGroup):
-        self.thread["core"]["transfer groups"].append(transferGroup.get_transferGroup())
+        self.thread["transfer groups"].append(transferGroup.getTransferGroup())
 
 class plugin:
     def __init__(self, name, threads):
         thread_array = []
         for th in threads:
-            thread_array.append(th.get_thread())
+            thread_array.append(th.getThread())
 
         self.plugin = {"core" : {
                                 "name" : name,
                                 "components" : ["RDMA"],
                                 "cycle timing" : {
-                                    "priority" : 10000,
-                                    "decimation" : 1,
-                                    "offset" : 0}
-            ,                   },
-                                "component settings" : component_settings("RDMA").get_settings(),
-                                "threads" : thread_array
+                                                "priority" : 10000,
+                                                "decimation" : 1,
+                                                "offset" : 0
+                                                },
+                                },
+                        "component settings" : component_settings("RDMA").getSettings(),
+                        "threads" : thread_array
                         }
                         
     def add_thread(self, thread):
-        self.plugin["core"]["threads"].append(thread.get_thread())
+        self.plugin["threads"].append(thread.getThread())
 
     def __str__(self):
         return json.dumps(self.plugin, indent=4)
 
-    def get_plugin(self):
+    def getPlugin(self):
         return self.plugin
 
-class RDMA_Definitions:
+class RDMA_Configuration:
     def __init__(self, plugins):
         plgs = []
         for plugin in plugins:
-            plgs.append(plugin.get_plugin())
+            plgs.append(plugin.getPlugin())
         self.definition = {
                             "dsfversion": {
                                  "major": 1,
@@ -204,19 +210,18 @@ class RDMA_Definitions:
     def __str__(self):
         return json.dumps(self.definition, indent=4)
 
-    def get_definition(self):
+    def getConfiguration(self):
         return self.definition
 
     def addPlugin(self, plugin):
-        self.definition["configuration"]["plugins"].append(plugin.get_plugin())
+        self.definition["configuration"]["plugins"].append(plugin.getPlugin())
+
+def get_version():
+    return {"major": 1, "minor": 0, "fix": 0, "build": ""}
 
 if __name__ == "__main__":
 
-    logging.basicConfig(
-        level=logging.INFO,
-        format="%(asctime)s [%(levelname)s] %(message)s",
-    )
-    logger = logging.getLogger(__name__)
+
 
     chs = []
 
@@ -235,26 +240,25 @@ if __name__ == "__main__":
 
 
     tg = transferGroup("transferGroup1", Direction.TX, [t])
-    #logger.info(f"Created transfer group: {json.dumps(tg.get_transferGroup(), indent=4)}")
+    #logger.info(f"Created transfer group: {json.dumps(tg.getTransferGroup(), indent=4)}")
 
     tg.add_transfer(t_jolly)
-    #logger.info(json.dumps(tg.get_transferGroup(), indent=4))
+    #logger.info(json.dumps(tg.getTransferGroup(), indent=4))
 
     th = thread([tg])
-    #logger.info(f"Created thread: {json.dumps(th.get_thread(), indent=4)}")
+    #logger.info(f"Created thread: {json.dumps(th.getThread(), indent=4)}")
 
     pl1 = plugin("plugin1", [th])
-    #logger.info(f"Created plugin: {json.dumps(pl1.get_plugin(), indent=4)}")
+    #logger.info(f"Created plugin: {json.dumps(pl1.getPlugin(), indent=4)}")
 
     pl2 = plugin("plugin2", [th])
-    rdma_def = RDMA_Definitions([pl1, pl2])
+    rdma_def = RDMA_Configuration([pl1, pl2])
     #rdma_def.addPlugin(pl2)
 
-    #logger.info(f"Created RDMA definitions: {json.dumps(rdma_def.get_definition(), indent=4)}")
+    #logger.info(f"Created RDMA definitions: {json.dumps(rdma_def.getConfiguration(), indent=4)}")
 
     output_dir = Path("output")
     output_dir.mkdir(exist_ok=True)
-    logger.info(f"Creating output directory: {output_dir}")
 
     with open(output_dir / "rdma_definitions.json", "w") as f:
-        json.dump(rdma_def.get_definition(), f, indent=4)
+        json.dump(rdma_def.getConfiguration(), f, indent=4)
