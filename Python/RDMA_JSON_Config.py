@@ -1,4 +1,6 @@
 """
+-------DEPRECATED-------
+
 RDMA JSON Configuration Module
 
 This module provides configuration management for RDMA (Remote Direct Memory Access)
