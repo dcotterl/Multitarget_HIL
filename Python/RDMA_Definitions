@@ -252,7 +252,7 @@ if __name__ == "__main__":
 
     #logger.info(f"Created RDMA definitions: {json.dumps(rdma_def.get_definition(), indent=4)}")
 
-    output_dir = Path("Python/output")
+    output_dir = Path("output")
     output_dir.mkdir(exist_ok=True)
     logger.info(f"Creating output directory: {output_dir}")
 
