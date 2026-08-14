@@ -3,6 +3,7 @@ import json
 from enum import Enum
 import os
 import logging
+from pathlib import Path
 
 class Direction(Enum):
 	TX = 0
@@ -246,7 +247,14 @@ if __name__ == "__main__":
     #logger.info(f"Created plugin: {json.dumps(pl1.get_plugin(), indent=4)}")
 
     pl2 = plugin("plugin2", [th])
-    rdma_def = RDMA_Definitions([pl1])
-    rdma_def.addPlugin(pl2)
+    rdma_def = RDMA_Definitions([pl1, pl2])
+    #rdma_def.addPlugin(pl2)
 
-    logger.info(f"Created RDMA definitions: {json.dumps(rdma_def.get_definition(), indent=4)}")
+    #logger.info(f"Created RDMA definitions: {json.dumps(rdma_def.get_definition(), indent=4)}")
+
+    output_dir = Path("Python/output")
+    output_dir.mkdir(exist_ok=True)
+    logger.info(f"Creating output directory: {output_dir}")
+
+    with open(output_dir / "rdma_definitions.json", "w") as f:
+        json.dump(rdma_def.get_definition(), f, indent=4)
