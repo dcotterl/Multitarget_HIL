@@ -73,3 +73,18 @@ output_dir.mkdir(exist_ok=True)
 with open(output_dir / "config.dsf", "w") as f:
     json.dump(config.getDict(), f, indent=4)
 
+# Read config from JSON file
+config_file = Path(__file__).resolve().parent.parent / "data" / "config_multidirectional_1_Callea_to_Cotterle_generated.dsf"
+with open(config_file, "r") as f:
+    loaded_config = json.load(f)
+
+generated_config = config.getDict()
+are_equal = loaded_config == generated_config
+
+print(f"loaded_config == config.getDict(): {are_equal}")
+if not are_equal:
+    import pprint
+    print("Generated config:")
+    pprint.pp(generated_config)
+    print("Loaded config:")
+    pprint.pp(loaded_config)

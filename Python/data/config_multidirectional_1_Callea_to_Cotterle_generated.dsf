@@ -1,0 +1,183 @@
+{
+    "configuration": {
+        "plugins": [
+            {
+                "component settings": [
+                    {
+                        "component": "RDMA",
+                        "values": [
+                        ]
+                    }
+                ],
+                "core": {
+                    "components": [
+                        "RDMA"
+                    ],
+                    "cycle timing": {
+                        "decimation": 1,
+                        "offset": 0,
+                        "priority": 10000
+                    },
+                    "name": "BidirectionalPlugin"
+                },
+                "threads": [
+                    {
+                        "component settings": [
+                            {
+                                "component": "RDMA",
+                                "values": [
+                                ]
+                            }
+                        ],
+                        "core": {
+                            "priority offset": 0,
+                            "processor": -2
+                        },
+                        "transfer groups": [
+                            {
+                                "component settings": [
+                                    {
+                                        "component": "RDMA",
+                                        "values": [
+                                        ]
+                                    }
+                                ],
+                                "core": {
+                                    "cycle timing": {
+                                        "decimation": 1,
+                                        "offset": 0,
+                                        "priority": 100
+                                    },
+                                    "direction": 0,
+                                    "enable conversion": false,
+                                    "name": "TransferGroup_Callea_to_Cotterle_Tx",
+                                    "timeout behavior": 0
+                                },
+                                "transfers": [
+                                    {
+                                        "channels": [
+                                            {
+                                                "component settings": [
+                                                    {
+                                                        "component": "RDMA",
+                                                        "values": [
+                                                        ]
+                                                    }
+                                                ],
+                                                "core": {
+                                                    "engine data type": 2,
+                                                    "name": "Channel1",
+                                                    "string data type": 2,
+                                                    "string offset": 0,
+                                                    "units": ""
+                                                }
+                                            }
+                                        ],
+                                        "component settings": [
+                                            {
+                                                "component": "RDMA",
+                                                "values": [
+                                                    {
+                                                        "key": "local address",
+                                                        "value": "169.254.23.111"
+                                                    },
+                                                    {
+                                                        "key": "local port",
+                                                        "value": "5011"
+                                                    },
+                                                    {
+                                                        "key": "destination address",
+                                                        "value": "169.254.49.44"
+                                                    },
+                                                    {
+                                                        "key": "destination port",
+                                                        "value": "5011"
+                                                    }
+                                                ]
+                                            }
+                                        ],
+                                        "core": {
+                                            "name": "Transfer_Callea_to_Cotterle_Tx"
+                                        }
+                                    }
+                                ]
+                            },
+                            {
+                                "component settings": [
+                                    {
+                                        "component": "RDMA",
+                                        "values": [
+                                        ]
+                                    }
+                                ],
+                                "core": {
+                                    "cycle timing": {
+                                        "decimation": 1,
+                                        "offset": 0,
+                                        "priority": 100
+                                    },
+                                    "direction": 1,
+                                    "enable conversion": false,
+                                    "name": "TransferGroup_Cotterle_to_Callea_Rx",
+                                    "timeout behavior": 0
+                                },
+                                "transfers": [
+                                    {
+                                        "channels": [
+                                            {
+                                                "component settings": [
+                                                    {
+                                                        "component": "RDMA",
+                                                        "values": [
+                                                        ]
+                                                    }
+                                                ],
+                                                "core": {
+                                                    "engine data type": 2,
+                                                    "name": "Channel1",
+                                                    "string data type": 2,
+                                                    "string offset": 0,
+                                                    "units": ""
+                                                }
+                                            }
+                                        ],
+                                        "component settings": [
+                                            {
+                                                "component": "RDMA",
+                                                "values": [
+                                                    {
+                                                        "key": "local address",
+                                                        "value": "169.254.23.111"
+                                                    },
+                                                    {
+                                                        "key": "local port",
+                                                        "value": "5010"
+                                                    }
+                                                ]
+                                            }
+                                        ],
+                                        "core": {
+                                            "name": "Transfer_Cotterle_to_Callea_Rx"
+                                        }
+                                    }
+                                ]
+                            }
+                        ]
+                    }
+                ]
+            }
+        ]
+    },
+    "dsfversion": {
+        "build": "",
+        "fix": 0,
+        "major": 1,
+        "minor": 4
+    },
+    "version": {
+        "build": "",
+        "fix": 0,
+        "major": 1,
+        "minor": 0
+    }
+}
