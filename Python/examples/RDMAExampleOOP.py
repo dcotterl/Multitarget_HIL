@@ -133,7 +133,7 @@ def topDown():
                            protocol = "RDMA")
     logger.debug(f"Channel: {channel}")
 
-    # assembly
+# assembly
 
     logger.info(f"Start assembly of the configuration")
 
@@ -180,8 +180,6 @@ def topDown():
     are_equal = loaded_config == generated_config
 
     logger.warning(f"Compare: loaded_config == config.getDict(): {are_equal}\n\n\n")
-
-
 
 if __name__ == "__main__":
     logger.critical(f"Running Top Down Configuration Generation")
