@@ -1,3 +1,5 @@
+# Legacy example of how to generate a configuration file for bidirectional communication between two nodes using RDMA_JSON_Config.
+
 import json
 import sys
 import os
