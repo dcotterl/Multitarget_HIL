@@ -16,45 +16,60 @@ import RDMA_Definitions as rdma
 
 if __name__ == "__main__":
 
-    value = rdma.element("key_name", "value_data")
-    #print(value)
+    config = rdma.RDMA_Configuration()
+    #print(f"Config: {config}")
 
-    component_settings = rdma.component_settings("RDMA", [value, value])
-    #print(json.dumps(component_settings.getDict(), indent=4))
+    plugin = rdma.plugin(name="BidirectionalPlugin", threads=[], protocol="RDMA")
+    #print(f"Plugin: {plugin}")
 
-    array_of_settings = [component_settings]
-    #print(json.dumps([s.getDict() for s in array_of_settings], indent=4))
+    thread = rdma.thread(protocol = "RDMA")
+    #print(f"Thread: {thread}")
 
-    component_settings = rdma.component_settings("RDMA")
-    channel = rdma.channel([component_settings], "channel_name")
-    #print(json.dumps(channel.getDict(), indent=4))
-  
-    channels = [channel, channel]
+    transfer_groupTx = rdma.transferGroup(name="TransferGroup_Callea_to_Cotterle_Tx",
+                                         direction = rdma.Direction.TX,
+                                         protocol = "RDMA")
+    transfer_groupRx = rdma.transferGroup(name="TransferGroup_Cotterle_to_Callea_Rx",
+                                             direction = rdma.Direction.RX,
+                                             protocol = "RDMA")
+    #print(f"Transfer Group: {transfer_group}")
 
-    transfer = rdma.transfer(rdma.Direction.TX, 
-                             "RDMA", "transferTx",
-                             channels,
-                             "1.2.3.4",
-                             1234,
-                             "5.6.7.8",
-                             5678)
-    #print(json.dumps(transfer.getDict(), indent=4))
+    transferTx = rdma.transfer(name="Transfer_Callea_to_Cotterle_Tx",
+                                    direction = rdma.Direction.TX,
+                                    protocol = "RDMA",
+                                    local_address = "169.254.23.111",
+                                    local_port = 5011,
+                                    destination_address = "169.254.49.44",
+                                    destination_port = 5011)
+    #print(f"Transfer TX: {transferTx}")
 
-    tg = rdma.transferGroup("group",
-                            rdma.Direction.TX,
-                            protocol="RDMA",
-                            transfers=[transfer])
-    #print(json.dumps(tg.getDict(), indent=4))
+    transferRx = rdma.transfer(name="Transfer_Cotterle_to_Callea_Rx",
+                                direction = rdma.Direction.RX,
+                                protocol = "RDMA",
+                                local_address = "169.254.23.111",
+                                local_port = 5010)
+    #print(f"Transfer RX: {transferRx}")
 
-    th = rdma.thread(protocol="RDMA",
-                     transfer_groups=[tg])
-    #print(json.dumps(th.getDict(), indent=4))
+    channel = rdma.channel(name="Channel1",
+                           protocol = "RDMA")
+    #print(f"Channel: {channel}")
 
-    plugin = rdma.plugin(name="bidirectionalPlugin",
-                         protocol="RDMA",
-                         threads=[th])
-    
-    #print(json.dumps(plugin.getDict(), indent=4))
+# assembly
 
-    cfg = rdma.RDMA_Configuration([plugin])
-    print(json.dumps(cfg.getDict(), indent=4))
+transferRx.setChannels([channel])
+transferTx.setChannels([channel])
+
+transfer_groupTx.setTransfers([transferTx])
+transfer_groupRx.setTransfers([transferRx])
+
+thread.setTransferGroups([transfer_groupTx, transfer_groupRx])
+
+plugin.setThreads([thread])
+
+config.setPlugins([plugin] )
+
+# Export config to JSON file
+output_dir = Path("output")
+output_dir.mkdir(exist_ok=True)
+with open(output_dir / "config.dsf", "w") as f:
+    json.dump(config.getDict(), f, indent=4)
+
