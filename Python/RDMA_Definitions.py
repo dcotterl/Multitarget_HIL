@@ -534,6 +534,23 @@ class thread:
                                 "transfer groups" : [tg.getDict() for tg in self.transfer_groups]
                 }
         return dict
+    def importFromDict(self, dict):
+        """Import the thread configuration from a dictionary."""
+        core = dict.get("core", {})
+        self.processor = core.get("processor", -2)
+        self.priority_offset = core.get("priority offset", 0)
+
+        self.component_settings = []
+        for cs in dict.get("component settings", []):
+            csapp = component_settings()
+            csapp.importFromDict(cs)
+            self.component_settings.append(csapp)
+
+        self.transfer_groups = []
+        for tg in dict.get("transfer groups", []):
+            tgapp = transferGroup()
+            tgapp.importFromDict(tg)
+            self.transfer_groups.append(tgapp)
 
     def getProcessor(self):
         """Return the processor assigned to the thread."""
@@ -599,6 +616,26 @@ class plugin:
                         "threads" : [th.getDict() for th in self.threads]
                       }
         return self.plugin
+    def importFromDict(self, dict):
+        core = dict.get("core", {})
+        self.name = core.get("name", "")
+        self.components = core.get("components", [])
+        cycle_timing = core.get("cycle timing", {})
+        self.priority = cycle_timing.get("priority", 10000)
+        self.decimation = cycle_timing.get("decimation", 1)
+        self.offset = cycle_timing.get("offset", 0)
+
+        self.component_settings = []
+        for cs in dict.get("component settings", []):
+            csapp = component_settings()
+            csapp.importFromDict(cs)
+            self.component_settings.append(csapp)
+
+        self.threads = []
+        for th in dict.get("threads", []):
+            thapp = thread()
+            thapp.importFromDict(th)
+            self.threads.append(thapp)
 
     def getName(self):
         """Return the plugin name."""
@@ -686,11 +723,25 @@ class RDMA_Configuration:
                                  }
                 }
          return dict
+    def importFromDict(self, dict):
+        """Import the RDMA configuration from a dictionary.
+
+        This method populates the RDMA_Configuration instance with data from
+        the provided dictionary, including DSF version, RDMA version, and
+        plugin definitions.
+        """
+        self.dsfversion = dict.get("dsfversion", {"major": 1,"minor": 4,"fix": 0,"build": ""})
+        self.version = dict.get("version", {"major": 1, "minor": 0, "fix": 0,"build": ""})
+        configuration = dict.get("configuration", {})
+        self.plugins = []
+        for pl in configuration.get("plugins", []):
+            plapp = plugin()
+            plapp.importFromDict(pl)
+            self.plugins.append(plapp)
 
     def getDsfVersion(self):
             """Return the DSF format version metadata."""
             return self.dsfversion
-
     def setDsfVersion(self, dsfversion):
             """Set the DSF format version metadata."""
             self.dsfversion = dsfversion
@@ -698,7 +749,6 @@ class RDMA_Configuration:
     def getVersion(self):
             """Return the RDMA specification version metadata."""
             return self.version
-
     def setVersion(self, version):
             """Set the RDMA specification version metadata."""
             self.version = version
@@ -706,19 +756,17 @@ class RDMA_Configuration:
     def getPlugins(self):
             """Return the plugins in the configuration."""
             return self.plugins
-
     def setPlugins(self, plugins):
             """Set the plugins in the configuration."""
             self.plugins = plugins
-
-    def __str__(self):
-        """Return the configuration as an indented JSON string."""
-        return json.dumps(self.getDict(), indent=4)
-
     def addPlugin(self, plugin:plugin):
         """Add a plugin to the configuration."""
         self.plugins.append(plugin)
 
+    def __str__(self):
+        """Return the configuration as an indented JSON string."""
+        return json.dumps(self.getDict(), indent=4)
+    
 def get_version():
     """Return the current RDMA definition format version."""
     return {"major": 2, "minor": 0, "fix": 0, "build": ""}
