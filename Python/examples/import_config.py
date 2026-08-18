@@ -14,8 +14,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 import RDMA_Definitions as rdma
 
-if __name__ == "__main__":
-
+def testImport():
     logger.info("Creating an element and importing it into another element.")
     element = rdma.element("key1", 3.14)
     logger.debug(f"element: {element.getDict()}")
@@ -81,3 +80,7 @@ if __name__ == "__main__":
     config2.importFromDict(config.getDict())
     logger.debug(f"config2: {config2.getDict()}")
     logger.info(f"Confronting config and config2: {config.getDict() == config2.getDict()}")
+
+
+if __name__ == "__main__":
+    testImport()  
