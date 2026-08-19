@@ -9,7 +9,7 @@ from tkinter import filedialog, messagebox, ttk
 # When run directly, Python searches this examples directory, not its parent.
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 import RDMA_Definitions as rdma
-DEFAULT_CONFIG_PATH = Path(__file__).resolve().parent / "config.dsf"
+DEFAULT_CONFIG_PATH = Path(__file__).resolve().parent / "Simple_c1.dsf"
 
 configuration = rdma.RDMA_Configuration()
 
@@ -69,6 +69,7 @@ def load_file(tree, file_path, file_path_label=None, object_map=None):
 
 
 def load_action(tree, file_path_label, object_map):
+    tree.delete(*tree.get_children())
     file_path = filedialog.askopenfilename(
         title="Select configuration file",
         filetypes=(
