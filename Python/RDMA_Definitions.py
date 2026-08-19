@@ -44,7 +44,6 @@ class element:
     def getKey(self):
         """Return the key for this value."""
         return self.key
-
     def getValue(self):
         """Return the value for this key-value pair."""
         return self.value
@@ -52,7 +51,6 @@ class element:
     def setKey(self, key):
         """Set the key for this value."""
         self.key = key
-
     def setValue(self, value):
         """Set the value for this key-value pair."""
         self.value = value
@@ -64,6 +62,11 @@ class element:
     def __str__(self):
         """Return the key-value pair as a formatted JSON string."""
         return json.dumps(self.getDict(), indent=4) 
+
+    def importFromDict(self, dict):
+        """Import the key-value pair from a dictionary."""
+        self.key = dict.get("key")
+        self.value = dict.get("value")
 
 class component_settings:
     """Store component-specific settings for an object."""
@@ -80,6 +83,11 @@ class component_settings:
     def getDict(self):
             """Return the component settings dictionary."""
             return {"component": self.component, "values": [v.getDict() for v in self.elements]}
+
+    def importFromDict(self, dict):
+            """Import the component settings from a dictionary."""
+            self.component = dict.get("component", "")
+            self.elements = [element(v.get("key"), v.get("value")) for v in dict.get("values", [])]
 
     def getComponent(self):
          """Return the component name for these settings."""
@@ -143,6 +151,20 @@ class channel:
                                 "component settings": [cs.getDict() for cs in self.component_settings]}
           return dict
 
+     def importFromDict(self, dict):
+            """Import the channel definition from a dictionary."""
+            core = dict.get("core", {})
+            self.name = core.get("name", "")
+            self.unit = core.get("units", "")
+            self.engine_data_type = core.get("engine data type", 2)
+            self.string_data_type = core.get("string data type", 2)
+            self.string_offset = core.get("string offset", 0)
+            self.component_settings = []
+            for cs in dict.get("component settings", []):
+                 csapp = component_settings()
+                 csapp.importFromDict(cs)
+                 self.component_settings.append(csapp)
+
      def getName(self):
             """Return the channel name."""
             return self.name
@@ -194,8 +216,10 @@ class transfer:
      
      Manages TX (transmit) or RX (receive) transfers with associated channels and network parameters.
      """
-     def __init__(self, direction: Direction, 
-                  protocol, name="", 
+     def __init__(self, 
+                  direction: Direction = Direction.TX, 
+                  protocol="",
+                  name="", 
                   channels:list[channel]=[], 
                   local_address="", 
                   local_port=0, 
@@ -237,6 +261,21 @@ class transfer:
                  }
 
           return dict
+
+     def importFromDict(self, dict):
+        """Import the transfer configuration from a dictionary."""
+        core = dict.get("core", {})
+        self.name = core.get("name", "")
+        self.component_settings = []
+        for cs in dict.get("component settings", []):
+            csapp = component_settings()
+            csapp.importFromDict(cs)
+            self.component_settings.append(csapp)
+        self.channels = []
+        for ch in dict.get("channels", []):
+            chapp = channel()
+            chapp.importFromDict(ch)
+            self.channels.append(chapp)
 
      def getDirection(self):
         """Return the transfer direction."""
@@ -359,6 +398,30 @@ class transferGroup:
         
         return dict
 
+    def importFromDict(self, dict):
+        """Import the transfer group configuration from a dictionary."""
+        core = dict.get("core", {})
+        self.name = core.get("name", "")
+        self.direction = Direction(core.get("direction", 0))
+        cycle_timing = core.get("cycle timing", {})
+        self.priority = cycle_timing.get("priority", 100)
+        self.decimation = cycle_timing.get("decimation", 1)
+        self.offset = cycle_timing.get("offset", 0)
+        self.timeout_behaviour = core.get("timeout behavior", 0)
+        self.enable_conversion = core.get("enable conversion", False)
+
+        self.component_settings = []
+        for cs in dict.get("component settings", []):
+            csapp = component_settings()
+            csapp.importFromDict(cs)
+            self.component_settings.append(csapp)
+
+        self.transfers = []
+        for t in dict.get("transfers", []):
+            tapp = transfer()
+            tapp.importFromDict(t)
+            self.transfers.append(tapp)
+
     def getName(self):
         """Return the transfer group name."""
         return self.name
@@ -471,6 +534,23 @@ class thread:
                                 "transfer groups" : [tg.getDict() for tg in self.transfer_groups]
                 }
         return dict
+    def importFromDict(self, dict):
+        """Import the thread configuration from a dictionary."""
+        core = dict.get("core", {})
+        self.processor = core.get("processor", -2)
+        self.priority_offset = core.get("priority offset", 0)
+
+        self.component_settings = []
+        for cs in dict.get("component settings", []):
+            csapp = component_settings()
+            csapp.importFromDict(cs)
+            self.component_settings.append(csapp)
+
+        self.transfer_groups = []
+        for tg in dict.get("transfer groups", []):
+            tgapp = transferGroup()
+            tgapp.importFromDict(tg)
+            self.transfer_groups.append(tgapp)
 
     def getProcessor(self):
         """Return the processor assigned to the thread."""
@@ -536,6 +616,26 @@ class plugin:
                         "threads" : [th.getDict() for th in self.threads]
                       }
         return self.plugin
+    def importFromDict(self, dict):
+        core = dict.get("core", {})
+        self.name = core.get("name", "")
+        self.components = core.get("components", [])
+        cycle_timing = core.get("cycle timing", {})
+        self.priority = cycle_timing.get("priority", 10000)
+        self.decimation = cycle_timing.get("decimation", 1)
+        self.offset = cycle_timing.get("offset", 0)
+
+        self.component_settings = []
+        for cs in dict.get("component settings", []):
+            csapp = component_settings()
+            csapp.importFromDict(cs)
+            self.component_settings.append(csapp)
+
+        self.threads = []
+        for th in dict.get("threads", []):
+            thapp = thread()
+            thapp.importFromDict(th)
+            self.threads.append(thapp)
 
     def getName(self):
         """Return the plugin name."""
@@ -623,11 +723,25 @@ class RDMA_Configuration:
                                  }
                 }
          return dict
+    def importFromDict(self, dict):
+        """Import the RDMA configuration from a dictionary.
+
+        This method populates the RDMA_Configuration instance with data from
+        the provided dictionary, including DSF version, RDMA version, and
+        plugin definitions.
+        """
+        self.dsfversion = dict.get("dsfversion", {"major": 1,"minor": 4,"fix": 0,"build": ""})
+        self.version = dict.get("version", {"major": 1, "minor": 0, "fix": 0,"build": ""})
+        configuration = dict.get("configuration", {})
+        self.plugins = []
+        for pl in configuration.get("plugins", []):
+            plapp = plugin()
+            plapp.importFromDict(pl)
+            self.plugins.append(plapp)
 
     def getDsfVersion(self):
             """Return the DSF format version metadata."""
             return self.dsfversion
-
     def setDsfVersion(self, dsfversion):
             """Set the DSF format version metadata."""
             self.dsfversion = dsfversion
@@ -635,7 +749,6 @@ class RDMA_Configuration:
     def getVersion(self):
             """Return the RDMA specification version metadata."""
             return self.version
-
     def setVersion(self, version):
             """Set the RDMA specification version metadata."""
             self.version = version
@@ -643,19 +756,17 @@ class RDMA_Configuration:
     def getPlugins(self):
             """Return the plugins in the configuration."""
             return self.plugins
-
     def setPlugins(self, plugins):
             """Set the plugins in the configuration."""
             self.plugins = plugins
-
-    def __str__(self):
-        """Return the configuration as an indented JSON string."""
-        return json.dumps(self.getDict(), indent=4)
-
     def addPlugin(self, plugin:plugin):
         """Add a plugin to the configuration."""
         self.plugins.append(plugin)
 
+    def __str__(self):
+        """Return the configuration as an indented JSON string."""
+        return json.dumps(self.getDict(), indent=4)
+    
 def get_version():
     """Return the current RDMA definition format version."""
     return {"major": 2, "minor": 0, "fix": 0, "build": ""}
