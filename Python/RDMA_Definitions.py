@@ -86,7 +86,7 @@ class component_settings:
 
     def importFromDict(self, dict):
             """Import the component settings from a dictionary."""
-            self.component = dict.get("component")
+            self.component = dict.get("component", "")
             self.elements = [element(v.get("key"), v.get("value")) for v in dict.get("values", [])]
 
     def getComponent(self):
