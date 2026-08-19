@@ -492,33 +492,4 @@ if __name__ == "__main__":
 	transfer_rx = makeTransfers(Direction.RX, "169.254.23.111", 5001, channels)
 	transfers = [transfer_tx]
 
-	# Building Transfer Groups
-	group_tx = makeTransferGroups(Direction.TX, transfers, "Group")
-	groups = [group_tx]
-
-	# Building threads
-	thread = makeThreads(groups)
-	threads = [thread]
-
-	# Building plugins
-	plugin = makePlugins(threads, "Plugin")
-	plugins = [plugin]
-
-	# Building config file
-	configFile = makeConfigFile(plugins)
-
-	# print JSON to console
-	logger.debug(json.dumps(configFile, indent=4))
-
-	# save the config file to the output folder
-	output_folder = "output"
-	os.makedirs(output_folder, exist_ok=True)
-	output_path = os.path.join(output_folder, "config_simple_c1_generated.dsf")
-
-	logger.debug(f"Writing config file to: {output_path}")
-
-	# Write config file to JSON
-	with open(output_path, "w") as outfile:
-		json.dump(configFile, outfile, indent=4)
-
-	logger.debug("Config file written successfully.")
+	# Building Transfer Groupsas
