@@ -74,6 +74,15 @@ def load_action(tree, file_path_label):
     load_file(tree, file_path, file_path_label)
 
 
+def show_selected_element(tree, details_text, _event=None):
+    selected = tree.selection()
+    element = tree.item(selected[0], "text") if selected else ""
+    details_text.configure(state="normal")
+    details_text.delete("1.0", "end")
+    details_text.insert("1.0", element)
+    details_text.configure(state="disabled")
+
+
 def main():
     root = tk.Tk()
     root.title("RDMA GUI")
@@ -100,16 +109,10 @@ def main():
     tree.pack(side="left", fill="both", expand=True)
     scrollbar.pack(side="right", fill="y")
 
-    def show_selected_element(_event=None):
-        selected = tree.selection()
-        print(f"Selected items: {selected} that is a {type(selected)}")
-        element = tree.item(selected[0], "text") if selected else ""
-        details_text.configure(state="normal")
-        details_text.delete("1.0", "end")
-        details_text.insert("1.0", (element))
-        details_text.configure(state="disabled")
-
-    tree.bind("<<TreeviewSelect>>", show_selected_element)
+    tree.bind(
+        "<<TreeviewSelect>>",
+        lambda event: show_selected_element(tree, details_text, event),
+    )
 
     menu_bar = tk.Menu(root)
 
