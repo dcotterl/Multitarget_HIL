@@ -12,33 +12,40 @@ import RDMA_Definitions as rdma
 DEFAULT_CONFIG_PATH = Path(__file__).resolve().parent / "Simple_c1.dsf"
 
 configuration = rdma.RDMA_Configuration()
+CONFIGURATION_OBJECT_TYPES = (
+    rdma.RDMA_Configuration,
+    rdma.plugin,
+    rdma.thread,
+    rdma.transferGroup,
+    rdma.transfer,
+    rdma.channel,
+    rdma.component_settings
+)
+
+
+def _object_label(value):
+    """Return a readable label for a configuration object."""
+    object_name = type(value).__name__
+    name = getattr(value, "name", "")
+    return f"{object_name}: {name}" if name else object_name
 
 
 def _populate_tree(tree, value, parent="", object_map=None):
-    if isinstance(value, dict):
-        for key, child in value.items():
-            node = tree.insert(parent, "end", text=str(key), open=True)
-            if object_map is not None:
-                object_map[node] = child
+    """Populate the tree with RDMA configuration objects only."""
+    if not isinstance(value, CONFIGURATION_OBJECT_TYPES):
+        return
+
+    node = tree.insert(parent, "end", text=_object_label(value), open=True)
+    if object_map is not None:
+        object_map[node] = value
+
+    for child in vars(value).values():
+        if isinstance(child, CONFIGURATION_OBJECT_TYPES):
             _populate_tree(tree, child, node, object_map)
-    elif isinstance(value, list):
-        for index, child in enumerate(value):
-            node = tree.insert(parent, "end", text=f"[{index}]", open=True)
-            if object_map is not None:
-                object_map[node] = child
-            _populate_tree(tree, child, node, object_map)
-    elif hasattr(value, "__dict__"):
-        for key, child in vars(value).items():
-            if key.startswith("_"):
-                continue
-            node = tree.insert(parent, "end", text=str(key), open=True)
-            if object_map is not None:
-                object_map[node] = child
-            _populate_tree(tree, child, node, object_map)
-    else:
-        node = tree.insert(parent, "end", text=str(value))
-        if object_map is not None:
-            object_map[node] = value
+        elif isinstance(child, list):
+            for item in child:
+                if isinstance(item, CONFIGURATION_OBJECT_TYPES):
+                    _populate_tree(tree, item, node, object_map)
 
 
 
