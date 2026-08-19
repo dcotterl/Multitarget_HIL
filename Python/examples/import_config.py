@@ -81,6 +81,18 @@ def testImport():
     logger.debug(f"config2: {config2.getDict()}")
     logger.info(f"Confronting config and config2: {config.getDict() == config2.getDict()}")
 
+def testImportFromDSF():
+    logger.info(f"Read configuration from .dsf file to use as reference for comparison")
+    config_file = Path(__file__).resolve().parent.parent / "data" / "config_multidirectional_1_Callea_to_Cotterle_generated.dsf"
+    with open(config_file, "r") as f:
+        loaded_config = json.load(f)
+    logger.debug(f"Loaded config: {loaded_config}")
+
+    config = rdma.RDMA_Configuration()
+    config.importFromDict(loaded_config)
+    logger.debug(f"Imported config: {config.getDict()}")
+    logger.info(f"Confronting loaded_config and imported config: {loaded_config == config.getDict()}")
 
 if __name__ == "__main__":
-    testImport()  
+    testImport() 
+    testImportFromDSF()
