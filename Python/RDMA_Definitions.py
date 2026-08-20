@@ -329,7 +329,9 @@ class transfer:
           Returns:
                str: JSON-formatted transfer configuration.
           """
-          return json.dumps(self.getDict(), indent=4)
+          dict = self.getDict()
+          dict["channels"] = "[EMPTY]" if not self.channels else f"[...{len(self.channels)} channels...]"
+          return json.dumps(dict, indent=4)
 
 class transferGroup:
     """Represents a group of transfers with a common direction.
@@ -379,7 +381,9 @@ class transferGroup:
         Returns:
             str: JSON-formatted transfer group configuration.
         """
-        return json.dumps(self.getDict(), indent=4)
+        dict = self.getDict()
+        dict["transfers"] = "[EMPTY]" if not self.transfers else f"[...{len(self.transfers)} transfers...]"
+        return json.dumps(dict, indent=4)
 
     def getDict(self):
         """Get the dictionary representation of this transfer group.
@@ -524,7 +528,9 @@ class thread:
         Returns:
             str: JSON formatted thread configuration.
         """
-        return json.dumps(self.getDict(), indent=4)
+        dict = self.getDict()
+        dict["transfer groups"] = "[EMPTY]" if not self.transfer_groups else f"[...{len(self.transfer_groups)} transfer groups...]"
+        return json.dumps(dict, indent=4)
 
     def getDict(self):
         """Get the dictionary representation of this thread.
@@ -606,7 +612,9 @@ class plugin:
         self.component_settings = [component_settings(protocol)]
 
     def __str__(self):
-        return json.dumps(self.getDict(), indent=4)
+        dict = self.getDict()
+        dict["threads"] = "[EMPTY]" if not self.threads else f"[...{len(self.threads)} threads...]"
+        return json.dumps(dict, indent=4)
 
     def getDict(self):
         self.plugin = {"core" : {
@@ -771,7 +779,9 @@ class RDMA_Configuration:
 
     def __str__(self):
         """Return the configuration as an indented JSON string."""
-        return json.dumps(self.getDict(), indent=4)
+        dict = self.getDict()
+        dict["configuration"]["plugins"] = "[EMPTY]" if not self.plugins else f"[...{len(self.plugins)} plugins...]"
+        return json.dumps(dict, indent=4)
     
 def get_version():
     """Return the current RDMA definition format version."""
