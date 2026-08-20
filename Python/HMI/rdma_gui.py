@@ -118,6 +118,41 @@ def load_action(tree, file_path_label, object_map):
     load_file(tree, file_path, file_path_label, object_map)
 
 
+def new_action(tree, file_path_label, object_map):
+    """Create a new configuration with one complete RDMA data path."""
+    new_configuration = rdma.RDMA_Configuration(plugins=[])
+    new_plugin = rdma.plugin(name="Plugin 1", protocol="RDMA", threads=[])
+    new_thread = rdma.thread(processor=-2, protocol="RDMA", transfer_groups=[])
+    new_group = rdma.transferGroup(
+        name="Transfer Group 1",
+        direction=rdma.Direction.TX,
+        protocol="RDMA",
+        transfers=[],
+    )
+    new_transfer = rdma.transfer(
+        direction=rdma.Direction.TX,
+        protocol="RDMA",
+        name="Transfer 1",
+        channels=[],
+    )
+    new_transfer.addChannel(
+        rdma.channel(name="Channel 1", protocol="RDMA")
+    )
+    new_group.addTransfer(new_transfer)
+    new_thread.addTransferGroup(new_group)
+    new_plugin.addThread(new_thread)
+    new_configuration.addPlugin(new_plugin)
+
+    configuration.dsfversion = new_configuration.dsfversion
+    configuration.version = new_configuration.version
+    configuration.plugins = new_configuration.plugins
+
+    tree.delete(*tree.get_children())
+    object_map.clear()
+    _populate_tree(tree, configuration, object_map=object_map)
+    file_path_label.config(text="New configuration")
+
+
 def save_action(file_path_label, root):
     """Save the current RDMA configuration as an indented JSON DSF file."""
     file_path = filedialog.asksaveasfilename(
@@ -566,6 +601,10 @@ def main():
     menu_bar = tk.Menu(root)
 
     file_menu = tk.Menu(menu_bar, tearoff=0)
+    file_menu.add_command(
+        label="New",
+        command=lambda: new_action(tree, file_path_label, object_map),
+    )
     file_menu.add_command(
         label="Load",
         command=lambda: load_action(tree, file_path_label, object_map),
