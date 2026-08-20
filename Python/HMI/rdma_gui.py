@@ -31,6 +31,7 @@ def _object_label(value):
 
 
 def _populate_tree(tree, value, parent="", object_map=None):
+
     """Populate the tree with RDMA configuration objects only."""
     if not isinstance(value, CONFIGURATION_OBJECT_TYPES):
         return
@@ -110,6 +111,178 @@ def show_selected_element(tree, details_text, object_map, _event=None):
     details_text.configure(state="disabled")
 
 
+def _field_definitions(selected_object):
+    """Return the editable fields for a specific RDMA object type."""
+    if isinstance(selected_object, rdma.RDMA_Configuration):
+        return [
+            ("DSF version", "dsfversion", "json"),
+            ("RDMA version", "version", "json"),
+        ]
+    if isinstance(selected_object, rdma.plugin):
+        return [
+            ("Name", "name", "text"),
+            ("Components (comma-separated)", "components", "list"),
+            ("Priority", "priority", "int"),
+            ("Decimation", "decimation", "int"),
+            ("Offset", "offset", "int"),
+        ]
+    if isinstance(selected_object, rdma.thread):
+        return [
+            ("Processor", "processor", "int"),
+            ("Priority offset", "priority_offset", "int"),
+        ]
+    if isinstance(selected_object, rdma.transferGroup):
+        return [
+            ("Name", "name", "text"),
+            ("Direction", "direction", "direction"),
+            ("Priority", "priority", "int"),
+            ("Decimation", "decimation", "int"),
+            ("Offset", "offset", "int"),
+            ("Timeout behaviour", "timeout_behaviour", "int"),
+            ("Enable conversion", "enable_conversion", "bool"),
+        ]
+    if isinstance(selected_object, rdma.transfer):
+        return [
+            ("Name", "name", "text"),
+            ("Direction", "direction", "direction"),
+        ]
+    if isinstance(selected_object, rdma.channel):
+        return [
+            ("Name", "name", "text"),
+            ("Unit", "unit", "text"),
+            ("Engine data type", "engine_data_type", "int"),
+            ("String data type", "string_data_type", "int"),
+            ("String offset", "string_offset", "int"),
+        ]
+    if isinstance(selected_object, rdma.component_settings):
+        return [
+            ("Component", "component", "text"),
+            ("Values (one key=value per line)", "elements", "elements"),
+        ]
+    return []
+
+
+def _field_value(selected_object, attribute, field_type):
+    """Convert an object attribute to the text used by its editor widget."""
+    value = getattr(selected_object, attribute)
+    if field_type == "json":
+        return json.dumps(value)
+    if field_type == "list":
+        return ", ".join(value)
+    if field_type == "direction":
+        return value.name
+    if field_type == "bool":
+        return "True" if value else "False"
+    if field_type == "elements":
+        return "\n".join(f"{item.key}={item.value}" for item in value)
+    return str(value)
+
+
+def _apply_field_value(selected_object, attribute, field_type, value):
+    """Convert an editor value and assign it to the selected object."""
+    value = value.strip()
+    if field_type == "json":
+        value = json.loads(value)
+    elif field_type == "list":
+        value = [item.strip() for item in value.split(",") if item.strip()]
+    elif field_type == "direction":
+        value = rdma.Direction[value]
+    elif field_type == "bool":
+        if value not in ("True", "False"):
+            raise ValueError("Use True or False.")
+        value = value == "True"
+    elif field_type == "int":
+        value = int(value)
+    elif field_type == "elements":
+        elements = []
+        for line in value.splitlines():
+            if not line.strip():
+                continue
+            if "=" not in line:
+                raise ValueError("Each value must use key=value format.")
+            key, item_value = line.split("=", 1)
+            elements.append(rdma.element(key.strip(), item_value.strip()))
+        value = elements
+    setattr(selected_object, attribute, value)
+
+
+def modify_selected_element(tree, object_map, item_id, root):
+    """Open a type-specific editor for the selected tree object."""
+    selected_object = object_map.get(item_id)
+    if selected_object is None:
+        return
+
+    panel = tk.Toplevel(root)
+    panel.title(f"Modify {type(selected_object).__name__}")
+    panel.transient(root)
+    panel.grab_set()
+    panel.columnconfigure(1, weight=1)
+
+    fields = {}
+    for row, (label, attribute, field_type) in enumerate(
+        _field_definitions(selected_object)
+    ):
+        ttk.Label(panel, text=label).grid(
+            row=row, column=0, sticky="nw", padx=8, pady=6
+        )
+        if field_type == "elements":
+            widget = tk.Text(panel, width=42, height=8)
+            widget.grid(row=row, column=1, sticky="nsew", padx=8, pady=6)
+            widget.insert("1.0", _field_value(selected_object, attribute, field_type))
+        elif field_type == "direction":
+            widget = ttk.Combobox(
+                panel, values=[direction.name for direction in rdma.Direction],
+                state="readonly",
+            )
+            widget.grid(row=row, column=1, sticky="ew", padx=8, pady=6)
+            widget.set(_field_value(selected_object, attribute, field_type))
+        else:
+            widget = ttk.Entry(panel, width=42)
+            widget.grid(row=row, column=1, sticky="ew", padx=8, pady=6)
+            widget.insert(0, _field_value(selected_object, attribute, field_type))
+        fields[attribute] = (widget, field_type)
+
+    def save_changes():
+        try:
+            for attribute, (widget, field_type) in fields.items():
+                value = (
+                    widget.get("1.0", "end")
+                    if field_type == "elements"
+                    else widget.get()
+                )
+                _apply_field_value(selected_object, attribute, field_type, value)
+        except (ValueError, json.JSONDecodeError) as error:
+            messagebox.showerror("Modify Error", str(error), parent=panel)
+            return
+
+        tree.item(item_id, text=_object_label(selected_object))
+        panel.destroy()
+
+    button_frame = ttk.Frame(panel)
+    button_frame.grid(row=len(fields), column=0, columnspan=2, pady=8)
+    ttk.Button(button_frame, text="Save", command=save_changes).pack(
+        side="left", padx=4
+    )
+    ttk.Button(button_frame, text="Cancel", command=panel.destroy).pack(
+        side="left", padx=4
+    )
+
+
+def show_context_menu(event, tree, object_map, root):
+    """Show the tree context menu for the item under the mouse pointer."""
+    item_id = tree.identify_row(event.y)
+    if not item_id or item_id not in object_map:
+        return
+
+    tree.selection_set(item_id)
+    context_menu = tk.Menu(tree, tearoff=0)
+    context_menu.add_command(
+        label="Modify",
+        command=lambda: modify_selected_element(tree, object_map, item_id, root),
+    )
+    context_menu.tk_popup(event.x_root, event.y_root)
+
+
 def main():
     root = tk.Tk()
     root.title("RDMA GUI")
@@ -140,6 +313,10 @@ def main():
     tree.bind(
         "<<TreeviewSelect>>",
         lambda event: show_selected_element(tree, details_text, object_map, event),
+    )
+    tree.bind(
+        "<Button-3>",
+        lambda event: show_context_menu(event, tree, object_map, root),
     )
 
     menu_bar = tk.Menu(root)
