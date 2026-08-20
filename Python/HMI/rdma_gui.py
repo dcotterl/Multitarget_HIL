@@ -314,10 +314,47 @@ def show_context_menu(event, tree, object_map, root):
     tree.selection_set(item_id)
     context_menu = tk.Menu(tree, tearoff=0)
     context_menu.add_command(
-        label="Modify",
+        label="modify",
         command=lambda: modify_selected_element(tree, object_map, item_id, root),
     )
+    selected_object = object_map[item_id]
+    if isinstance(selected_object, rdma.transfer):
+        context_menu.add_command(
+            label="add channel",
+            command=lambda: add_channel_to_transfer(
+                tree, object_map, item_id
+            ),
+        )
     context_menu.tk_popup(event.x_root, event.y_root)
+
+
+def add_channel_to_transfer(tree, object_map, item_id):
+    """Create and append a new RDMA channel to the selected transfer."""
+    selected_transfer = object_map.get(item_id)
+    if not isinstance(selected_transfer, rdma.transfer):
+        return
+
+    protocol = ""
+    if selected_transfer.component_settings:
+        protocol = selected_transfer.component_settings[0].component
+
+    channel_number = len(selected_transfer.channels) + 1
+    selected_transfer.addChannel(
+        rdma.channel(
+            name=f"Channel {channel_number}",
+            protocol=protocol,
+        )
+    )
+
+    tree.delete(*tree.get_children())
+    object_map.clear()
+    _populate_tree(tree, configuration, object_map=object_map)
+
+    for refreshed_item_id, value in object_map.items():
+        if value is selected_transfer:
+            tree.selection_set(refreshed_item_id)
+            tree.see(refreshed_item_id)
+            break
 
 
 def main():
