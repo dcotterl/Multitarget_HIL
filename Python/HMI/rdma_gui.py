@@ -93,6 +93,43 @@ def load_action(tree, file_path_label, object_map):
     load_file(tree, file_path, file_path_label, object_map)
 
 
+def save_action(file_path_label, root):
+    """Save the current RDMA configuration as an indented JSON DSF file."""
+    file_path = filedialog.asksaveasfilename(
+        title="Save configuration file",
+        defaultextension=".dsf",
+        filetypes=(
+            ("Configuration files", "*.dsf"),
+            ("JSON files", "*.json"),
+            ("All files", "*.*"),
+        ),
+        initialdir=str(DEFAULT_CONFIG_PATH.parent),
+        initialfile="configuration.dsf",
+    )
+    if not file_path:
+        return
+
+    try:
+        output_path = Path(file_path)
+        if output_path.suffix.lower() != ".dsf":
+            output_path = output_path.with_suffix(".dsf")
+        with output_path.open("w", encoding="utf-8") as file:
+            json.dump(configuration.getDict(), file, indent=4)
+        if file_path_label is not None:
+            file_path_label.config(text=str(output_path.resolve()))
+        messagebox.showinfo(
+            "Save Complete",
+            f"Configuration saved to:\n{output_path.resolve()}",
+            parent=root,
+        )
+    except (OSError, TypeError, ValueError) as error:
+        messagebox.showerror(
+            "Save Error",
+            f"Could not save the configuration:\n{error}",
+            parent=root,
+        )
+
+
 def show_selected_element(tree, details_text, object_map, _event=None):
     selected = tree.selection()
     selected_object = object_map.get(selected[0]) if selected else None
@@ -326,7 +363,10 @@ def main():
         label="Load",
         command=lambda: load_action(tree, file_path_label, object_map),
     )
-    file_menu.add_command(label="Save", state="disabled")
+    file_menu.add_command(
+        label="Save",
+        command=lambda: save_action(file_path_label, root),
+    )
 
     menu_bar.add_cascade(label="File", menu=file_menu)
 
