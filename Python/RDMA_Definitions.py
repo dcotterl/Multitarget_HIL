@@ -276,6 +276,12 @@ class transfer:
             chapp = channel()
             chapp.importFromDict(ch)
             self.channels.append(chapp)
+        elements = self.component_settings[0].getElements()
+        if "destination address" in [e.getKey() for e in elements]:
+            self.direction = Direction.TX
+        else:
+            self.direction = Direction.RX
+
 
      def getDirection(self):
         """Return the transfer direction."""
