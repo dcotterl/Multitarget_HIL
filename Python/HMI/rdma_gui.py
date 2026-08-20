@@ -63,15 +63,29 @@ def _populate_tree(tree, value, parent="", object_map=None):
     if object_map is not None:
         object_map[node] = value
 
-    for child in vars(value).values():
+    children = []
+    component_settings = getattr(value, "component_settings", None)
+    if isinstance(component_settings, CONFIGURATION_OBJECT_TYPES):
+        children.append(component_settings)
+    elif isinstance(component_settings, list):
+        children.extend(
+            item
+            for item in component_settings
+            if isinstance(item, CONFIGURATION_OBJECT_TYPES)
+        )
+
+    for attribute, child in vars(value).items():
+        if attribute == "component_settings":
+            continue
+        children.append(child)
+
+    for child in children:
         if isinstance(child, CONFIGURATION_OBJECT_TYPES):
             _populate_tree(tree, child, node, object_map)
         elif isinstance(child, list):
             for item in child:
                 if isinstance(item, CONFIGURATION_OBJECT_TYPES):
                     _populate_tree(tree, item, node, object_map)
-
-
 
 
 def load_file(tree, file_path, file_path_label=None, object_map=None):
@@ -858,9 +872,6 @@ def main():
     menu_bar.add_cascade(label="File", menu=file_menu)
 
     root.config(menu=menu_bar)
-
-    if DEFAULT_CONFIG_PATH.is_file():
-        load_file(tree, str(DEFAULT_CONFIG_PATH), file_path_label, object_map)
 
     root.mainloop()
 
