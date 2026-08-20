@@ -35,3 +35,14 @@ The `Example` folder contains two example Python files that demonstrate how to u
 
 `rdma_gui.py` provides a graphical interface for interacting with the RDMA configuration and target connections. This module is intended to make the setup and monitoring of shared-memory data flows easier for users by exposing configuration controls, connection status, and runtime information through a GUI. It typically supports loading or creating RDMA definitions, selecting targets, viewing communication state, and validating data-sharing settings before execution. The GUI serves as a user-friendly layer on top of the lower-level Python objects and scripts, helping simplify setup and troubleshooting for Multitarget HIL workflows.
 
+## Building the Windows application
+
+Install Python with the `py` launcher, install PyInstaller, and install Inno Setup once. Then run this from the Python folder:
+
+```powershell
+py -m pip install pyinstaller
+.\building tools\build_release.ps1
+```
+
+The script creates `dist\RDMA_GUI.exe` and the distributable installer `dist\RDMA_GUI_Setup.exe`.
+
