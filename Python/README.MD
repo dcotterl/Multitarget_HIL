@@ -29,6 +29,8 @@ The `Example` folder contains two example Python files that demonstrate how to u
 
 `import_config_example.py` demonstrates how to load an existing RDMA configuration and use it to establish connections with configured targets for active data exchange. This example shows how to import a previously saved configuration, connect to the targets, and perform read/write operations to exchange RDMA data. It provides practical guidance on how to leverage a configuration created with `rdma_configuration_example.py` to implement real data-sharing workflows in a Multitarget HIL system.
 
+## HMI
+
 ### rdma_gui.py
 
 `rdma_gui.py` provides a graphical interface for interacting with the RDMA configuration and target connections. This module is intended to make the setup and monitoring of shared-memory data flows easier for users by exposing configuration controls, connection status, and runtime information through a GUI. It typically supports loading or creating RDMA definitions, selecting targets, viewing communication state, and validating data-sharing settings before execution. The GUI serves as a user-friendly layer on top of the lower-level Python objects and scripts, helping simplify setup and troubleshooting for Multitarget HIL workflows.
