@@ -325,6 +325,34 @@ def show_context_menu(event, tree, object_map, root):
                 tree, object_map, item_id
             ),
         )
+    if isinstance(selected_object, rdma.transferGroup):
+        context_menu.add_command(
+            label="add transfer",
+            command=lambda: add_transfer_to_group(
+                tree, object_map, item_id
+            ),
+        )
+    if isinstance(selected_object, rdma.thread):
+        context_menu.add_command(
+            label="add group",
+            command=lambda: add_group_to_thread(
+                tree, object_map, item_id
+            ),
+        )
+    if isinstance(selected_object, rdma.plugin):
+        context_menu.add_command(
+            label="add thread",
+            command=lambda: add_thread_to_plugin(
+                tree, object_map, item_id
+            ),
+        )
+    if isinstance(selected_object, rdma.RDMA_Configuration):
+        context_menu.add_command(
+            label="add plugin",
+            command=lambda: add_plugin_to_configuration(
+                tree, object_map, item_id
+            ),
+        )
     context_menu.tk_popup(event.x_root, event.y_root)
 
 
@@ -352,6 +380,119 @@ def add_channel_to_transfer(tree, object_map, item_id):
 
     for refreshed_item_id, value in object_map.items():
         if value is selected_transfer:
+            tree.selection_set(refreshed_item_id)
+            tree.see(refreshed_item_id)
+            break
+
+
+def add_transfer_to_group(tree, object_map, item_id):
+    """Create and append a new RDMA transfer to the selected group."""
+    selected_group = object_map.get(item_id)
+    if not isinstance(selected_group, rdma.transferGroup):
+        return
+
+    protocol = ""
+    if selected_group.component_settings:
+        protocol = selected_group.component_settings[0].component
+
+    transfer_number = len(selected_group.transfers) + 1
+    new_transfer = rdma.transfer(
+        direction=selected_group.direction,
+        protocol=protocol,
+        name=f"Transfer {transfer_number}",
+        channels=[],
+    )
+    selected_group.addTransfer(new_transfer)
+
+    tree.delete(*tree.get_children())
+    object_map.clear()
+    _populate_tree(tree, configuration, object_map=object_map)
+
+    for refreshed_item_id, value in object_map.items():
+        if value is selected_group:
+            tree.selection_set(refreshed_item_id)
+            tree.see(refreshed_item_id)
+            break
+
+
+def add_group_to_thread(tree, object_map, item_id):
+    """Create and append a new RDMA transfer group to the selected thread."""
+    selected_thread = object_map.get(item_id)
+    if not isinstance(selected_thread, rdma.thread):
+        return
+
+    protocol = ""
+    if selected_thread.component_settings:
+        protocol = selected_thread.component_settings[0].component
+
+    group_number = len(selected_thread.transfer_groups) + 1
+    new_group = rdma.transferGroup(
+        name=f"Transfer Group {group_number}",
+        direction=rdma.Direction.TX,
+        protocol=protocol,
+        transfers=[],
+    )
+    selected_thread.addTransferGroup(new_group)
+
+    tree.delete(*tree.get_children())
+    object_map.clear()
+    _populate_tree(tree, configuration, object_map=object_map)
+
+    for refreshed_item_id, value in object_map.items():
+        if value is selected_thread:
+            tree.selection_set(refreshed_item_id)
+            tree.see(refreshed_item_id)
+            break
+
+
+def add_thread_to_plugin(tree, object_map, item_id):
+    """Create and append a new RDMA thread to the selected plugin."""
+    selected_plugin = object_map.get(item_id)
+    if not isinstance(selected_plugin, rdma.plugin):
+        return
+
+    protocol = ""
+    if selected_plugin.component_settings:
+        protocol = selected_plugin.component_settings[0].component
+
+    new_thread = rdma.thread(
+        processor=-2,
+        protocol=protocol,
+        transfer_groups=[],
+    )
+    selected_plugin.addThread(new_thread)
+
+    tree.delete(*tree.get_children())
+    object_map.clear()
+    _populate_tree(tree, configuration, object_map=object_map)
+
+    for refreshed_item_id, value in object_map.items():
+        if value is selected_plugin:
+            tree.selection_set(refreshed_item_id)
+            tree.see(refreshed_item_id)
+            break
+
+
+def add_plugin_to_configuration(tree, object_map, item_id):
+    """Create and append a new RDMA plugin to the configuration."""
+    selected_configuration = object_map.get(item_id)
+    if not isinstance(selected_configuration, rdma.RDMA_Configuration):
+        return
+
+    plugin_number = len(selected_configuration.plugins) + 1
+    new_plugin = rdma.plugin(
+        name=f"Plugin {plugin_number}",
+        protocol="RDMA",
+        threads=[],
+    )
+    selected_configuration.addPlugin(new_plugin)
+
+    tree.delete(*tree.get_children())
+    object_map.clear()
+    _populate_tree(tree, configuration, object_map=object_map)
+
+    for refreshed_item_id, value in object_map.items():
+        if value is selected_configuration:
             tree.selection_set(refreshed_item_id)
             tree.see(refreshed_item_id)
             break
