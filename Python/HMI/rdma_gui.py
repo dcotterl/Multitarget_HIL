@@ -1,3 +1,15 @@
+"""Tkinter editor for RDMA configuration files.
+
+The GUI loads DSF or JSON configuration data into an
+``RDMA_Configuration`` instance and displays only the RDMA model objects in
+a tree.  Each tree item is mapped to its live Python object, allowing the
+details panel and context-menu actions to inspect or modify that object.
+
+The context menu supports editing objects and adding children through the
+RDMA model API: plugins contain threads, threads contain transfer groups,
+transfer groups contain transfers, and transfers contain channels.
+"""
+
 import sys
 import logging
 from pathlib import Path
@@ -10,6 +22,13 @@ from tkinter import filedialog, messagebox, ttk
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 import RDMA_Definitions as rdma
 DEFAULT_CONFIG_PATH = Path(__file__).resolve().parent / "Simple_c1.dsf"
+
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s [%(levelname)s] %(message)s",
+)
+logger = logging.getLogger(__name__)
+
 
 configuration = rdma.RDMA_Configuration()
 CONFIGURATION_OBJECT_TYPES = (
@@ -31,8 +50,12 @@ def _object_label(value):
 
 
 def _populate_tree(tree, value, parent="", object_map=None):
+    """Populate the tree with RDMA objects and map IDs to live objects.
 
-    """Populate the tree with RDMA configuration objects only."""
+    Scalar attributes such as names, ports, and version values are omitted
+    from the tree.  They remain available through the selected object's
+    details and modification panel.
+    """
     if not isinstance(value, CONFIGURATION_OBJECT_TYPES):
         return
 
@@ -52,6 +75,7 @@ def _populate_tree(tree, value, parent="", object_map=None):
 
 
 def load_file(tree, file_path, file_path_label=None, object_map=None):
+    """Load a DSF or JSON file into the global configuration and tree."""
     try:
         suffix = Path(file_path).suffix.lower()
         if suffix in (".json", ".dsf"):
@@ -77,6 +101,7 @@ def load_file(tree, file_path, file_path_label=None, object_map=None):
 
 
 def load_action(tree, file_path_label, object_map):
+    """Open a file picker and load the selected configuration file."""
     tree.delete(*tree.get_children())
     file_path = filedialog.askopenfilename(
         title="Select configuration file",
@@ -131,6 +156,7 @@ def save_action(file_path_label, root):
 
 
 def show_selected_element(tree, details_text, object_map, _event=None):
+    """Show the selected object's label, type, and serialized contents."""
     selected = tree.selection()
     selected_object = object_map.get(selected[0]) if selected else None
     element = tree.item(selected[0], "text") if selected else ""
@@ -149,7 +175,7 @@ def show_selected_element(tree, details_text, object_map, _event=None):
 
 
 def _field_definitions(selected_object):
-    """Return the editable fields for a specific RDMA object type."""
+    """Return ``(label, attribute, type)`` definitions for an RDMA object."""
     if isinstance(selected_object, rdma.RDMA_Configuration):
         return [
             ("DSF version", "dsfversion", "json"),
@@ -244,7 +270,7 @@ def _apply_field_value(selected_object, attribute, field_type, value):
 
 
 def modify_selected_element(tree, object_map, item_id, root):
-    """Open a type-specific editor for the selected tree object."""
+    """Open a modal editor whose fields match the selected object type."""
     selected_object = object_map.get(item_id)
     if selected_object is None:
         return
@@ -306,7 +332,7 @@ def modify_selected_element(tree, object_map, item_id, root):
 
 
 def show_context_menu(event, tree, object_map, root):
-    """Show the tree context menu for the item under the mouse pointer."""
+    """Show Modify and type-specific child-creation actions for a tree item."""
     item_id = tree.identify_row(event.y)
     if not item_id or item_id not in object_map:
         return
@@ -361,10 +387,12 @@ def add_channel_to_transfer(tree, object_map, item_id):
     selected_transfer = object_map.get(item_id)
     if not isinstance(selected_transfer, rdma.transfer):
         return
-
+    
     protocol = ""
     if selected_transfer.component_settings:
         protocol = selected_transfer.component_settings[0].component
+
+    logger.debug(f"Adding channel to transfer: {selected_transfer.getName()} with protocol {protocol}")
 
     channel_number = len(selected_transfer.channels) + 1
     selected_transfer.addChannel(
@@ -499,6 +527,7 @@ def add_plugin_to_configuration(tree, object_map, item_id):
 
 
 def main():
+    """Create the maximized editor window and start Tkinter's event loop."""
     root = tk.Tk()
     root.title("RDMA GUI")
     root.state("zoomed")
