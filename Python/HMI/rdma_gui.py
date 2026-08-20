@@ -386,10 +386,29 @@ def show_context_menu(event, tree, object_map, root):
                 tree, object_map, item_id
             ),
         )
+        context_menu.add_command(
+            label="remove transfer",
+            command=lambda: remove_transfer_from_group(
+                tree, object_map, item_id
+            ),
+        )
+    if isinstance(selected_object, rdma.channel):
+        context_menu.add_command(
+            label="remove channel",
+            command=lambda: remove_channel_from_transfer(
+                tree, object_map, item_id
+            ),
+        )
     if isinstance(selected_object, rdma.transferGroup):
         context_menu.add_command(
             label="add transfer",
             command=lambda: add_transfer_to_group(
+                tree, object_map, item_id
+            ),
+        )
+        context_menu.add_command(
+            label="remove transfer group",
+            command=lambda: remove_group_from_thread(
                 tree, object_map, item_id
             ),
         )
@@ -400,10 +419,22 @@ def show_context_menu(event, tree, object_map, root):
                 tree, object_map, item_id
             ),
         )
+        context_menu.add_command(
+            label="remove thread",
+            command=lambda: remove_thread_from_plugin(
+                tree, object_map, item_id
+            ),
+        )
     if isinstance(selected_object, rdma.plugin):
         context_menu.add_command(
             label="add thread",
             command=lambda: add_thread_to_plugin(
+                tree, object_map, item_id
+            ),
+        )
+        context_menu.add_command(
+            label="remove plugin",
+            command=lambda: remove_plugin_from_configuration(
                 tree, object_map, item_id
             ),
         )
@@ -446,6 +477,194 @@ def add_channel_to_transfer(tree, object_map, item_id):
             tree.selection_set(refreshed_item_id)
             tree.see(refreshed_item_id)
             break
+
+
+def remove_channel_from_transfer(tree, object_map, item_id):
+    """Remove the selected channel from its parent transfer."""
+    selected_channel = object_map.get(item_id)
+    if not isinstance(selected_channel, rdma.channel):
+        return
+
+    parent_transfer = _find_transfer_with_channel(configuration, selected_channel)
+    if parent_transfer is None:
+        return
+
+    parent_transfer.channels.remove(selected_channel)
+
+    tree.delete(*tree.get_children())
+    object_map.clear()
+    _populate_tree(tree, configuration, object_map=object_map)
+
+    for refreshed_item_id, value in object_map.items():
+        if value is parent_transfer:
+            tree.selection_set(refreshed_item_id)
+            tree.see(refreshed_item_id)
+            break
+
+
+def _find_transfer_with_channel(value, selected_channel):
+    """Find the transfer that owns ``selected_channel`` in the model tree."""
+    if isinstance(value, rdma.transfer):
+        if any(channel is selected_channel for channel in value.channels):
+            return value
+        return None
+
+    if isinstance(value, CONFIGURATION_OBJECT_TYPES):
+        for child in vars(value).values():
+            if isinstance(child, list):
+                for item in child:
+                    parent_transfer = _find_transfer_with_channel(
+                        item, selected_channel
+                    )
+                    if parent_transfer is not None:
+                        return parent_transfer
+            elif isinstance(child, CONFIGURATION_OBJECT_TYPES):
+                parent_transfer = _find_transfer_with_channel(
+                    child, selected_channel
+                )
+                if parent_transfer is not None:
+                    return parent_transfer
+    return None
+
+
+def remove_transfer_from_group(tree, object_map, item_id):
+    """Remove the selected transfer from its parent transfer group."""
+    selected_transfer = object_map.get(item_id)
+    if not isinstance(selected_transfer, rdma.transfer):
+        return
+
+    parent_group = _find_group_with_transfer(configuration, selected_transfer)
+    if parent_group is None:
+        return
+
+    parent_group.transfers.remove(selected_transfer)
+
+    tree.delete(*tree.get_children())
+    object_map.clear()
+    _populate_tree(tree, configuration, object_map=object_map)
+
+    for refreshed_item_id, value in object_map.items():
+        if value is parent_group:
+            tree.selection_set(refreshed_item_id)
+            tree.see(refreshed_item_id)
+            break
+
+
+def _find_group_with_transfer(value, selected_transfer):
+    """Find the transfer group that owns ``selected_transfer``."""
+    if isinstance(value, rdma.transferGroup):
+        if any(transfer is selected_transfer for transfer in value.transfers):
+            return value
+        return None
+
+    if isinstance(value, CONFIGURATION_OBJECT_TYPES):
+        for child in vars(value).values():
+            if isinstance(child, list):
+                for item in child:
+                    parent_group = _find_group_with_transfer(
+                        item, selected_transfer
+                    )
+                    if parent_group is not None:
+                        return parent_group
+            elif isinstance(child, CONFIGURATION_OBJECT_TYPES):
+                parent_group = _find_group_with_transfer(
+                    child, selected_transfer
+                )
+                if parent_group is not None:
+                    return parent_group
+    return None
+
+
+def remove_group_from_thread(tree, object_map, item_id):
+    """Remove the selected transfer group from its parent thread."""
+    selected_group = object_map.get(item_id)
+    if not isinstance(selected_group, rdma.transferGroup):
+        return
+
+    parent_thread = _find_thread_with_group(configuration, selected_group)
+    if parent_thread is None:
+        return
+
+    parent_thread.transfer_groups.remove(selected_group)
+
+    tree.delete(*tree.get_children())
+    object_map.clear()
+    _populate_tree(tree, configuration, object_map=object_map)
+
+    for refreshed_item_id, value in object_map.items():
+        if value is parent_thread:
+            tree.selection_set(refreshed_item_id)
+            tree.see(refreshed_item_id)
+            break
+
+
+def _find_thread_with_group(value, selected_group):
+    """Find the thread that owns ``selected_group``."""
+    if isinstance(value, rdma.thread):
+        if any(group is selected_group for group in value.transfer_groups):
+            return value
+        return None
+
+    if isinstance(value, CONFIGURATION_OBJECT_TYPES):
+        for child in vars(value).values():
+            if isinstance(child, list):
+                for item in child:
+                    parent_thread = _find_thread_with_group(item, selected_group)
+                    if parent_thread is not None:
+                        return parent_thread
+            elif isinstance(child, CONFIGURATION_OBJECT_TYPES):
+                parent_thread = _find_thread_with_group(child, selected_group)
+                if parent_thread is not None:
+                    return parent_thread
+    return None
+
+
+def remove_thread_from_plugin(tree, object_map, item_id):
+    """Remove the selected thread from its parent plugin."""
+    selected_thread = object_map.get(item_id)
+    if not isinstance(selected_thread, rdma.thread):
+        return
+
+    parent_plugin = _find_plugin_with_thread(configuration, selected_thread)
+    if parent_plugin is None:
+        return
+
+    parent_plugin.threads.remove(selected_thread)
+
+    tree.delete(*tree.get_children())
+    object_map.clear()
+    _populate_tree(tree, configuration, object_map=object_map)
+
+    for refreshed_item_id, value in object_map.items():
+        if value is parent_plugin:
+            tree.selection_set(refreshed_item_id)
+            tree.see(refreshed_item_id)
+            break
+
+
+def _find_plugin_with_thread(value, selected_thread):
+    """Find the plugin that owns ``selected_thread``."""
+    if isinstance(value, rdma.plugin):
+        if any(thread is selected_thread for thread in value.threads):
+            return value
+        return None
+
+    if isinstance(value, CONFIGURATION_OBJECT_TYPES):
+        for child in vars(value).values():
+            if isinstance(child, list):
+                for item in child:
+                    parent_plugin = _find_plugin_with_thread(
+                        item, selected_thread
+                    )
+                    if parent_plugin is not None:
+                        return parent_plugin
+            elif isinstance(child, CONFIGURATION_OBJECT_TYPES):
+                parent_plugin = _find_plugin_with_thread(
+                    child, selected_thread
+                )
+                if parent_plugin is not None:
+                    return parent_plugin
+    return None
 
 
 def add_transfer_to_group(tree, object_map, item_id):
@@ -556,6 +775,28 @@ def add_plugin_to_configuration(tree, object_map, item_id):
 
     for refreshed_item_id, value in object_map.items():
         if value is selected_configuration:
+            tree.selection_set(refreshed_item_id)
+            tree.see(refreshed_item_id)
+            break
+
+
+def remove_plugin_from_configuration(tree, object_map, item_id):
+    """Remove the selected plugin from the configuration."""
+    selected_plugin = object_map.get(item_id)
+    if not isinstance(selected_plugin, rdma.plugin):
+        return
+
+    if selected_plugin not in configuration.plugins:
+        return
+
+    configuration.plugins.remove(selected_plugin)
+
+    tree.delete(*tree.get_children())
+    object_map.clear()
+    _populate_tree(tree, configuration, object_map=object_map)
+
+    for refreshed_item_id, value in object_map.items():
+        if value is configuration:
             tree.selection_set(refreshed_item_id)
             tree.see(refreshed_item_id)
             break
