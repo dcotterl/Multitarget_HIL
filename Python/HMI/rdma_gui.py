@@ -116,7 +116,6 @@ def load_file(tree, file_path, file_path_label=None, object_map=None):
 
 def load_action(tree, file_path_label, object_map):
     """Open a file picker and load the selected configuration file."""
-    tree.delete(*tree.get_children())
     file_path = filedialog.askopenfilename(
         title="Select configuration file",
         filetypes=(
@@ -130,7 +129,6 @@ def load_action(tree, file_path_label, object_map):
     if not file_path:
         return
     load_file(tree, file_path, file_path_label, object_map)
-
 
 def new_action(tree, file_path_label, object_map):
     """Create a new configuration with one complete RDMA data path."""
