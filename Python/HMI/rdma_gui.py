@@ -183,7 +183,8 @@ def save_action(file_path_label, root):
 
     try:
         output_path = Path(file_path)
-        if output_path.suffix.lower() != ".dsf":
+        suffix = output_path.suffix.lower()
+        if suffix not in (".dsf", ".json"):
             output_path = output_path.with_suffix(".dsf")
         with output_path.open("w", encoding="utf-8") as file:
             json.dump(configuration.getDict(), file, indent=4)
