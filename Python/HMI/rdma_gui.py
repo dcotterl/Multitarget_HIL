@@ -378,6 +378,15 @@ def modify_selected_element(tree, object_map, item_id, root):
         side="left", padx=4
     )
 
+    panel.update_idletasks()
+    panel_width = panel.winfo_reqwidth()
+    panel_height = panel.winfo_reqheight()
+    screen_width = panel.winfo_screenwidth()
+    screen_height = panel.winfo_screenheight()
+    panel_x = (screen_width - panel_width) // 2
+    panel_y = (screen_height - panel_height) // 2
+    panel.geometry(f"{panel_width}x{panel_height}+{panel_x}+{panel_y}")
+
 
 def show_context_menu(event, tree, object_map, root):
     """Show Modify and type-specific child-creation actions for a tree item."""
