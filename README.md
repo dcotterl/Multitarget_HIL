@@ -45,6 +45,8 @@ From `/home/runner/work/Multitarget_HIL/Multitarget_HIL/Python`:
 python -m unittest discover -s tests -v
 python -m compileall multitarget_hil tests examples
 python HMI/rdma_gui.py
+python -m examples.import_config_example
+python -m examples.rdma_configuration_example
 ```
 
 Optional lint/format commands if Ruff is installed:

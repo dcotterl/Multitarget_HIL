@@ -77,8 +77,8 @@ The GUI can load or save `.dsf` and `.json` files. It defaults to the sample fil
 ## Running the examples
 
 ```bash
-python examples/import_config_example.py
-python examples/rdma_configuration_example.py
+python -m examples.import_config_example
+python -m examples.rdma_configuration_example
 ```
 
 ## Building the Windows application
