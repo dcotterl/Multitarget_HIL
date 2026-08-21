@@ -346,7 +346,9 @@ class TransferGroup:
         if hasattr(self, "_transfers"):
             for transfer in self._transfers:
                 if transfer.direction != direction:
-                    raise ValueError("TransferGroup.direction must match all contained transfer directions.")
+                    raise ValueError(
+                        f"Transfer '{transfer.name}' direction {transfer.direction.name} does not match group direction {direction.name}."
+                    )
         self._direction = direction
 
     @property
@@ -656,8 +658,6 @@ class RDMA_Configuration:
 def get_version() -> dict:
     """Return the current RDMA definition format version."""
     return {"major": 2, "minor": 0, "fix": 0, "build": ""}
-
-
 
 
 if __name__ == "__main__":
