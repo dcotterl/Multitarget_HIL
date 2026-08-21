@@ -16,9 +16,9 @@ import RDMA_Definitions as rdma
 
 def bottomUp():
 # Create a complete RDMA configuration using a bottom-up approach, starting with the creation of channels, transfers, transfer groups, threads, and plugins, and finally assembling them into a complete configuration.
-    logger.info(f"Create channels")
+    logger.info("Create channels")
     channels = rdma.channel(name="Channel1", protocol="RDMA")
-    logger.info(f"Create Tx Transfer")
+    logger.info("Create Tx Transfer")
     transferTx = rdma.transfer(name="Transfer_Callea_to_Cotterle_Tx",
                                     direction = rdma.Direction.TX,
                                     protocol = "RDMA",
@@ -29,7 +29,7 @@ def bottomUp():
                                     channels = [channels])
     logger.debug(f"Transfer TX: {transferTx}")
 
-    logger.info(f"Create Rx Transfer")
+    logger.info("Create Rx Transfer")
     transferRx = rdma.transfer(name="Transfer_Cotterle_to_Callea_Rx",
                                 direction = rdma.Direction.RX,
                                 protocol = "RDMA",
@@ -38,34 +38,34 @@ def bottomUp():
                                 channels = [channels])
     logger.debug(f"Transfer RX: {transferRx}")
 
-    logger.info(f"Create Tx Transfer Group")
+    logger.info("Create Tx Transfer Group")
     transfer_groupTx = rdma.transferGroup(name="TransferGroup_Callea_to_Cotterle_Tx",
                                          direction = rdma.Direction.TX,
                                          protocol = "RDMA",
                                          transfers = [transferTx])
     logger.debug(f"Transfer Group TX: {transfer_groupTx}")
 
-    logger.info(f"Create Rx Transfer Group")
+    logger.info("Create Rx Transfer Group")
     transfer_groupRx = rdma.transferGroup(name="TransferGroup_Cotterle_to_Callea_Rx",
                                              direction = rdma.Direction.RX,
                                              protocol = "RDMA",
                                              transfers = [transferRx])
     logger.debug(f"Transfer Group RX: {transfer_groupRx}")
 
-    logger.info(f"Create thread for bidirectional communication")
+    logger.info("Create thread for bidirectional communication")
     thread = rdma.thread(protocol = "RDMA", transfer_groups = [transfer_groupTx, transfer_groupRx])
     logger.debug(f"Thread: {thread}")
 
-    logger.info(f"Create plugin for bidirectional communication")
+    logger.info("Create plugin for bidirectional communication")
     plugin = rdma.plugin(name="BidirectionalPlugin", protocol="RDMA",threads = [thread])
     logger.debug(f"Plugin: {plugin}")
 
-    logger.info(f"Create RDMA configuration for bidirectional communication between Callea and Cotterle")
+    logger.info("Create RDMA configuration for bidirectional communication between Callea and Cotterle")
     config = rdma.RDMA_Configuration(plugins = [plugin])
     logger.debug(f"Config: {config}")
 
     # Export config to JSON file
-    logger.info(f"Export configuration to .dsf file")
+    logger.info("Export configuration to .dsf file")
     output_dir = Path("output")
     output_dir.mkdir(exist_ok=True)
     with open(output_dir / "configBU.dsf", "w") as f:
@@ -73,7 +73,7 @@ def bottomUp():
     logger.info(f"Configuration exported to {output_dir / 'configBU.dsf'}")
 
     # Read config from JSON file
-    logger.info(f"Read configuration from .dsf file to use as reference for comparison")
+    logger.info("Read configuration from .dsf file to use as reference for comparison")
     config_file = Path(__file__).resolve().parent.parent / "data" / "config_multidirectional_1_Callea_to_Cotterle_generated.dsf"
     with open(config_file, "r") as f:
         loaded_config = json.load(f)
@@ -82,35 +82,35 @@ def bottomUp():
     generated_config = config.getDict()
     are_equal = loaded_config == generated_config
 
-    logger.warning(f"Compare: loaded_config == config.getDict(): {are_equal}\n\n\n")
+    logger.info(f"Compare: loaded_config == config.getDict(): {are_equal}\n\n\n")
 
 def topDown():
     # Generate the configuration top down, starting with the configuration object and adding plugins, threads, transfer groups, transfers, and channels.
     config = rdma.RDMA_Configuration()
     logger.debug(f"Config: {config}")
 
-    logger.info(f"Create plugin for bidirectional communication")
+    logger.info("Create plugin for bidirectional communication")
     plugin = rdma.plugin(name="BidirectionalPlugin", threads=[], protocol="RDMA")
     logger.debug(f"Plugin: {plugin}")
 
-    logger.info(f"Create thread for bidirectional communication")
+    logger.info("Create thread for bidirectional communication")
     thread = rdma.thread(protocol = "RDMA")
     logger.debug(f"Thread: {thread}")
 
-    logger.info(f"Create Tx Transfer Group")
+    logger.info("Create Tx Transfer Group")
     transfer_groupTx = rdma.transferGroup(name="TransferGroup_Callea_to_Cotterle_Tx",
                                          direction = rdma.Direction.TX,
                                          protocol = "RDMA")
     logger.debug(f"Transfer Group TX: {transfer_groupTx}")
 
-    logger.info(f"Create Rx Transfer Group")
+    logger.info("Create Rx Transfer Group")
     transfer_groupRx = rdma.transferGroup(name="TransferGroup_Cotterle_to_Callea_Rx",
                                              direction = rdma.Direction.RX,
                                              protocol = "RDMA")
     logger.debug(f"Transfer Group RX: {transfer_groupRx}")
 
 
-    logger.info(f"Create Tx Transfer")
+    logger.info("Create Tx Transfer")
     transferTx = rdma.transfer(name="Transfer_Callea_to_Cotterle_Tx",
                                     direction = rdma.Direction.TX,
                                     protocol = "RDMA",
@@ -120,7 +120,7 @@ def topDown():
                                     destination_port = 5011)
     logger.debug(f"Transfer TX: {transferTx}")
 
-    logger.info(f"Create Rx Transfer")
+    logger.info("Create Rx Transfer")
     transferRx = rdma.transfer(name="Transfer_Cotterle_to_Callea_Rx",
                                 direction = rdma.Direction.RX,
                                 protocol = "RDMA",
@@ -128,41 +128,41 @@ def topDown():
                                 local_port = 5010)
     logger.debug(f"Transfer RX: {transferRx}")
 
-    logger.info(f"Create Channel")
+    logger.info("Create Channel")
     channel = rdma.channel(name="Channel1",
                            protocol = "RDMA")
     logger.debug(f"Channel: {channel}")
 
 # assembly
 
-    logger.info(f"Start assembly of the configuration")
+    logger.info("Start assembly of the configuration")
 
-    logger.info(f"Set channels for transfers")
-    transferRx.setChannels([channel])
+    logger.info("Set channels for transfers")
+    transferRx.channels = [channel]
     logger.debug(f"Transfer RX: {transferRx}")
-    transferTx.setChannels([channel])
+    transferTx.channels = [channel]
     logger.debug(f"Transfer TX: {transferTx}")
 
-    logger.info(f"Set transfers for transfer groups")
-    transfer_groupTx.setTransfers([transferTx])
+    logger.info("Set transfers for transfer groups")
+    transfer_groupTx.transfers = [transferTx]
     logger.debug(f"Transfer Group TX: {transfer_groupTx}")
-    transfer_groupRx.setTransfers([transferRx])
+    transfer_groupRx.transfers = [transferRx]
     logger.debug(f"Transfer Group RX: {transfer_groupRx}")
 
-    logger.info(f"Set transfer groups for thread")
-    thread.setTransferGroups([transfer_groupTx, transfer_groupRx])
+    logger.info("Set transfer groups for thread")
+    thread.transfer_groups = [transfer_groupTx, transfer_groupRx]
     logger.debug(f"Thread: {thread}")
 
-    logger.info(f"Set threads for plugin")
-    plugin.setThreads([thread])
+    logger.info("Set threads for plugin")
+    plugin.threads = [thread]
     logger.debug(f"Plugin: {plugin}")
 
-    logger.info(f"Set plugins for configuration")
-    config.setPlugins([plugin])
+    logger.info("Set plugins for configuration")
+    config.plugins = [plugin]
     logger.debug(f"Config: {config}")
 
     # Export config to JSON file
-    logger.info(f"Export configuration to .dsf file")
+    logger.info("Export configuration to .dsf file")
     output_dir = Path("output")
     output_dir.mkdir(exist_ok=True)
     with open(output_dir / "configTD.dsf", "w") as f:
@@ -170,7 +170,7 @@ def topDown():
     logger.info(f"Configuration exported to {output_dir / 'configTD.dsf'}")
 
     # Read config from JSON file
-    logger.info(f"Read configuration from .dsf file to use as reference for comparison")
+    logger.info("Read configuration from .dsf file to use as reference for comparison")
     config_file = Path(__file__).resolve().parent.parent / "data" / "config_multidirectional_1_Callea_to_Cotterle_generated.dsf"
     with open(config_file, "r") as f:
         loaded_config = json.load(f)
@@ -179,11 +179,11 @@ def topDown():
     generated_config = config.getDict()
     are_equal = loaded_config == generated_config
 
-    logger.warning(f"Compare: loaded_config == config.getDict(): {are_equal}\n\n\n")
+    logger.info(f"Compare: loaded_config == config.getDict(): {are_equal}\n\n\n")
 
 if __name__ == "__main__":
-    logger.critical(f"Running Top Down Configuration Generation")
+    logger.info("Running Top Down Configuration Generation")
     topDown()
-    
-    logger.critical(f"Running Bottom Up Configuration Generation")
+
+    logger.info("Running Bottom Up Configuration Generation")
     bottomUp()
