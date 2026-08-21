@@ -22,7 +22,6 @@ def bottom_up():
     logger.info("Create TX transfer")
     transfer_tx = rdma.Transfer(
         name="Transfer_Callea_to_Cotterle_Tx",
-        direction=rdma.Direction.TX,
         protocol="RDMA",
         local_address="169.254.23.111",
         local_port=5011,
@@ -34,7 +33,6 @@ def bottom_up():
     logger.info("Create RX transfer")
     transfer_rx = rdma.Transfer(
         name="Transfer_Cotterle_to_Callea_Rx",
-        direction=rdma.Direction.RX,
         protocol="RDMA",
         local_address="169.254.23.111",
         local_port=5010,
@@ -44,7 +42,6 @@ def bottom_up():
     logger.info("Create transfer groups")
     transfer_group_tx = rdma.TransferGroup(
         name="TransferGroup_Callea_to_Cotterle_Tx",
-        direction=rdma.Direction.TX,
         protocol="RDMA",
         transfers=[transfer_tx],
     )
@@ -77,7 +74,6 @@ def top_down():
     )
     transfer_tx = rdma.Transfer(
         name="Transfer_Callea_to_Cotterle_Tx",
-        direction=rdma.Direction.TX,
         protocol="RDMA",
         local_address="169.254.23.111",
         local_port=5011,
@@ -86,7 +82,6 @@ def top_down():
     )
     transfer_rx = rdma.Transfer(
         name="Transfer_Cotterle_to_Callea_Rx",
-        direction=rdma.Direction.RX,
         protocol="RDMA",
         local_address="169.254.23.111",
         local_port=5010,
