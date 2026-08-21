@@ -64,7 +64,7 @@ The shared Ruff settings live in `pyproject.toml`.
 From `Python/`:
 
 ```bash
-python data_sharing_framework_config_api/gui/app.py
+python -m data_sharing_framework_config_api.gui.app
 ```
 
 The GUI can load or save `.dsf` and `.json` files. It defaults to the sample file at `data/Simple_c1.dsf` when available.

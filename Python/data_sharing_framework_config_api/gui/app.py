@@ -4,8 +4,14 @@ from __future__ import annotations
 
 import json
 import logging
+import os
+import sys
 import tkinter as tk
 from tkinter import filedialog, messagebox, ttk
+
+# Add the project root when this file is launched directly instead of as a module.
+if __package__ in (None, ""):
+    sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 
 from data_sharing_framework_config_api import rdma_definitions as rdma
 from data_sharing_framework_config_api.gui.session import ConfigurationSession
@@ -550,7 +556,7 @@ def main():
     root.config(menu=menu_bar)
 
     if session.default_config_path() is not None:
-        file_path_label.config(text=f"Sample available: {session.default_config_path()}")
+        file_path_label.config(text=f"No file loaded")
 
     root.mainloop()
 
