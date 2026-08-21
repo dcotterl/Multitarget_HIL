@@ -82,7 +82,7 @@ def testImport():
     logger.info(f"Confronting config and config2: {config.getDict() == config2.getDict()}")
 
 def testImportFromDSF():
-    logger.info(f"Read configuration from .dsf file to use as reference for comparison")
+    logger.info("Read configuration from .dsf file to use as reference for comparison")
     config_file = Path(__file__).resolve().parent.parent / "data" / "config_multidirectional_1_Callea_to_Cotterle_generated.dsf"
     with open(config_file, "r") as f:
         loaded_config = json.load(f)

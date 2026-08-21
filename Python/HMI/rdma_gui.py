@@ -14,10 +14,11 @@ import sys
 import logging
 from pathlib import Path
 import json
+from dataclasses import dataclass, field
+from typing import Callable, Optional
 
 import tkinter as tk
 from tkinter import filedialog, messagebox, ttk
-#from zipfile import Path
 # When run directly, Python searches this examples directory, not its parent.
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 import RDMA_Definitions as rdma
@@ -33,13 +34,33 @@ logger = logging.getLogger(__name__)
 configuration = rdma.RDMA_Configuration()
 CONFIGURATION_OBJECT_TYPES = (
     rdma.RDMA_Configuration,
-    rdma.plugin,
-    rdma.thread,
-    rdma.transferGroup,
-    rdma.transfer,
-    rdma.channel,
-    rdma.component_settings
+    rdma.Plugin,
+    rdma.Thread,
+    rdma.TransferGroup,
+    rdma.Transfer,
+    rdma.Channel,
+    rdma.ComponentSettings,
 )
+
+
+@dataclass
+class EditorState:
+    """State shared across selection, details, and inline editor helpers."""
+    selection_guard: bool = False
+    modify_panel: Optional[ttk.Frame] = None
+    edit_item_id: Optional[str] = None
+    edit_fields: dict = field(default_factory=dict)
+    edit_initial_values: dict = field(default_factory=dict)
+    save_changes: Optional[Callable[[], bool]] = None
+
+
+def _editor_state(details_text):
+    """Return the editor state container attached to the details widget."""
+    state = getattr(details_text, "editor_state", None)
+    if state is None:
+        state = EditorState()
+        details_text.editor_state = state
+    return state
 
 
 def _object_label(value):
@@ -88,7 +109,10 @@ def _populate_tree(tree, value, parent="", object_map=None):
                     _populate_tree(tree, item, node, object_map)
 
 
-def load_file(tree, file_path, file_path_label=None, object_map=None):
+def load_file(
+    tree, file_path, file_path_label=None, object_map=None, details_text=None,
+    right_frame=None, root=None
+):
     """Load a DSF or JSON file into the global configuration and tree."""
     try:
         suffix = Path(file_path).suffix.lower()
@@ -103,18 +127,20 @@ def load_file(tree, file_path, file_path_label=None, object_map=None):
 
         configuration.importFromDict(file_content)
 
-        tree.delete(*tree.get_children())
-        if object_map is not None:
-            object_map.clear()
-
-        _populate_tree(tree, configuration, object_map=object_map)
+        _refresh_tree_and_select(
+            tree,
+            object_map if object_map is not None else {},
+            details_text,
+            right_frame,
+            root,
+        )
         if file_path_label is not None:
             file_path_label.config(text=str(Path(file_path).resolve()))
     except Exception as error:
         messagebox.showerror("Load Error", f"Could not load file:\n{error}")
 
 
-def load_action(tree, file_path_label, object_map):
+def load_action(tree, file_path_label, object_map, details_text, right_frame, root):
     """Open a file picker and load the selected configuration file."""
     file_path = filedialog.askopenfilename(
         title="Select configuration file",
@@ -128,52 +154,51 @@ def load_action(tree, file_path_label, object_map):
     )
     if not file_path:
         return
-    load_file(tree, file_path, file_path_label, object_map)
+    load_file(
+        tree, file_path, file_path_label, object_map, details_text, right_frame, root
+    )
 
-def new_action(tree, file_path_label, object_map):
+def new_action(tree, file_path_label, object_map, details_text, right_frame, root):
     """Create a new configuration with one complete RDMA data path."""
     new_configuration = rdma.RDMA_Configuration(plugins=[])
-    new_plugin = rdma.plugin(name="Plugin 1", protocol="RDMA", threads=[])
-    new_thread = rdma.thread(processor=-2, protocol="RDMA", transfer_groups=[])
-    new_group = rdma.transferGroup(
+    new_plugin = rdma.Plugin(name="Plugin 1", protocol="RDMA", threads=[])
+    new_thread = rdma.Thread(processor=-2, protocol="RDMA", transfer_groups=[])
+    new_group = rdma.TransferGroup(
         name="Transfer Group 1",
         direction=rdma.Direction.TX,
         protocol="RDMA",
         transfers=[],
     )
-    new_transfer = rdma.transfer(
+    new_transfer = rdma.Transfer(
         direction=rdma.Direction.TX,
         protocol="RDMA",
         name="Transfer 1",
         channels=[],
     )
     new_transfer.addChannel(
-        rdma.channel(name="Channel 1", protocol="RDMA")
+        rdma.Channel(name="Channel 1", protocol="RDMA")
     )
     new_group.addTransfer(new_transfer)
     new_thread.addTransferGroup(new_group)
     new_plugin.addThread(new_thread)
     new_configuration.addPlugin(new_plugin)
 
-    configuration.dsfversion = new_configuration.dsfversion
-    configuration.version = new_configuration.version
-    configuration.plugins = new_configuration.plugins
+    configuration.importFromDict(new_configuration.getDict())
 
-    tree.delete(*tree.get_children())
-    object_map.clear()
-    _populate_tree(tree, configuration, object_map=object_map)
+    _refresh_tree_and_select(tree, object_map, details_text, right_frame, root)
     file_path_label.config(text="New configuration")
 
 
 def save_action(file_path_label, root, details_text=None):
     """Save the current RDMA configuration as an indented JSON DSF file."""
+    state = _editor_state(details_text) if details_text is not None else None
     if (
-        details_text is not None
-        and getattr(details_text, "modify_panel", None) is not None
+        state is not None
+        and state.modify_panel is not None
         and _has_unsaved_changes(details_text)
-        and details_text.save_changes is not None
+        and state.save_changes is not None
     ):
-        if not details_text.save_changes():
+        if not state.save_changes():
             return
 
     file_path = filedialog.asksaveasfilename(
@@ -235,14 +260,15 @@ def show_selected_element(
     tree, details_text, object_map, right_frame, root, _event=None, open_editor=True
 ):
     """Show the selected object's label, type, and serialized contents."""
-    if getattr(details_text, "selection_guard", False):
-        details_text.selection_guard = False
+    state = _editor_state(details_text)
+    if state.selection_guard:
+        state.selection_guard = False
         return
 
     selected = tree.selection()
     selected_item_id = selected[0] if selected else None
-    modify_panel = getattr(details_text, "modify_panel", None)
-    edit_item_id = getattr(details_text, "edit_item_id", None)
+    modify_panel = state.modify_panel
+    edit_item_id = state.edit_item_id
     if modify_panel is not None:
         if (
             selected_item_id != edit_item_id
@@ -251,7 +277,7 @@ def show_selected_element(
             if not edit_item_id or not tree.exists(edit_item_id):
                 _close_inline_editor(details_text)
             else:
-                details_text.selection_guard = True
+                state.selection_guard = True
                 tree.selection_set(edit_item_id)
                 _prompt_unsaved_changes(
                     tree,
@@ -281,7 +307,7 @@ def _field_definitions(selected_object):
             ("DSF version", "dsfversion", "json"),
             ("RDMA version", "version", "json"),
         ]
-    if isinstance(selected_object, rdma.plugin):
+    if isinstance(selected_object, rdma.Plugin):
         return [
             ("Name", "name", "text"),
             ("Components (comma-separated)", "components", "list"),
@@ -289,12 +315,12 @@ def _field_definitions(selected_object):
             ("Decimation", "decimation", "int"),
             ("Offset", "offset", "int"),
         ]
-    if isinstance(selected_object, rdma.thread):
+    if isinstance(selected_object, rdma.Thread):
         return [
             ("Processor", "processor", "int"),
             ("Priority offset", "priority_offset", "int"),
         ]
-    if isinstance(selected_object, rdma.transferGroup):
+    if isinstance(selected_object, rdma.TransferGroup):
         return [
             ("Name", "name", "text"),
             ("Direction", "direction", "direction"),
@@ -304,12 +330,12 @@ def _field_definitions(selected_object):
             ("Timeout behaviour", "timeout_behaviour", "int"),
             ("Enable conversion", "enable_conversion", "bool"),
         ]
-    if isinstance(selected_object, rdma.transfer):
+    if isinstance(selected_object, rdma.Transfer):
         return [
             ("Name", "name", "text"),
             ("Direction", "direction", "direction"),
         ]
-    if isinstance(selected_object, rdma.channel):
+    if isinstance(selected_object, rdma.Channel):
         return [
             ("Name", "name", "text"),
             ("Unit", "unit", "text"),
@@ -317,7 +343,7 @@ def _field_definitions(selected_object):
             ("String data type", "string_data_type", "int"),
             ("String offset", "string_offset", "int"),
         ]
-    if isinstance(selected_object, rdma.component_settings):
+    if isinstance(selected_object, rdma.ComponentSettings):
         return [
             ("Component", "component", "text"),
             ("Values (one key=value per line)", "elements", "elements"),
@@ -384,8 +410,9 @@ def _mark_changed(widget, initial_value, field_type, _event=None):
 
 def _has_unsaved_changes(details_text):
     """Return whether the inline editor contains unsaved values."""
-    fields = getattr(details_text, "edit_fields", {})
-    initial_values = getattr(details_text, "edit_initial_values", {})
+    state = _editor_state(details_text)
+    fields = state.edit_fields
+    initial_values = state.edit_initial_values
     return any(
         _editor_value(widget, field_type) != initial_values[attribute]
         for attribute, (widget, field_type) in fields.items()
@@ -394,14 +421,15 @@ def _has_unsaved_changes(details_text):
 
 def _close_inline_editor(details_text):
     """Remove the inline editor and clear its tracked editing state."""
-    panel = getattr(details_text, "modify_panel", None)
+    state = _editor_state(details_text)
+    panel = state.modify_panel
     if panel is not None:
         panel.destroy()
-    details_text.modify_panel = None
-    details_text.edit_item_id = None
-    details_text.edit_fields = {}
-    details_text.edit_initial_values = {}
-    details_text.save_changes = None
+    state.modify_panel = None
+    state.edit_item_id = None
+    state.edit_fields = {}
+    state.edit_initial_values = {}
+    state.save_changes = None
 
 
 def _prompt_unsaved_changes(
@@ -423,20 +451,22 @@ def _prompt_unsaved_changes(
     button_frame.pack(pady=(0, 12))
 
     def continue_selection(save):
-        if save and details_text.save_changes is not None:
-            if not details_text.save_changes():
+        state = _editor_state(details_text)
+        if save and state.save_changes is not None:
+            if not state.save_changes():
                 return
         prompt.destroy()
         _close_inline_editor(details_text)
         if on_continue is not None:
-            details_text.selection_guard = False
+            state.selection_guard = False
             on_continue()
             return
         if pending_item_id and tree.exists(pending_item_id):
+            state.selection_guard = False
             tree.selection_set(pending_item_id)
             tree.see(pending_item_id)
         else:
-            details_text.selection_guard = False
+            state.selection_guard = False
 
     ttk.Button(
         button_frame,
@@ -458,14 +488,15 @@ def _prompt_unsaved_changes(
 
 def modify_selected_element(tree, object_map, item_id, details_text, right_frame, root):
     """Show an in-place editor in the details panel for the selected object."""
+    state = _editor_state(details_text)
     selected_object = object_map.get(item_id)
     if selected_object is None:
         return
 
     details_text.pack_forget()
     panel = ttk.Frame(right_frame)
-    details_text.modify_panel = panel
-    details_text.edit_item_id = item_id
+    state.modify_panel = panel
+    state.edit_item_id = item_id
     panel.pack(fill="x", padx=4, pady=(4, 0))
     details_text.pack(fill="both", expand=True, padx=4, pady=4)
     panel.columnconfigure(1, weight=1)
@@ -536,9 +567,9 @@ def modify_selected_element(tree, object_map, item_id, details_text, right_frame
         _update_details_text(tree, details_text, object_map)
         return True
 
-    details_text.save_changes = save_changes
-    details_text.edit_fields = fields
-    details_text.edit_initial_values = initial_values
+    state.save_changes = save_changes
+    state.edit_fields = fields
+    state.edit_initial_values = initial_values
 
     def restore_changes():
         for attribute, (widget, field_type) in fields.items():
@@ -567,7 +598,8 @@ def _run_tree_mutation_with_unsaved_changes(
     tree, details_text, object_map, right_frame, root, mutate_action
 ):
     """Run a tree mutation after resolving unsaved inline editor changes."""
-    modify_panel = getattr(details_text, "modify_panel", None)
+    state = _editor_state(details_text)
+    modify_panel = state.modify_panel
     if modify_panel is not None and _has_unsaved_changes(details_text):
         _prompt_unsaved_changes(
             tree,
@@ -593,72 +625,90 @@ def show_context_menu(event, tree, object_map, details_text, right_frame, root):
     tree.selection_set(item_id)
     context_menu = tk.Menu(tree, tearoff=0)
     selected_object = object_map[item_id]
-    if isinstance(selected_object, rdma.transfer):
+    if isinstance(selected_object, rdma.Transfer):
         context_menu.add_command(
             label="add channel",
             command=lambda: _run_tree_mutation_with_unsaved_changes(
                 tree, details_text, object_map, right_frame, root,
-                lambda: add_channel_to_transfer(tree, object_map, item_id)
+                lambda: add_channel_to_transfer(
+                    tree, object_map, details_text, right_frame, root, item_id
+                )
             ),
         )
         context_menu.add_command(
             label="remove transfer",
             command=lambda: _run_tree_mutation_with_unsaved_changes(
                 tree, details_text, object_map, right_frame, root,
-                lambda: remove_transfer_from_group(tree, object_map, item_id)
+                lambda: remove_transfer_from_group(
+                    tree, object_map, details_text, right_frame, root, item_id
+                )
             ),
         )
-    if isinstance(selected_object, rdma.channel):
+    if isinstance(selected_object, rdma.Channel):
         context_menu.add_command(
             label="remove channel",
             command=lambda: _run_tree_mutation_with_unsaved_changes(
                 tree, details_text, object_map, right_frame, root,
-                lambda: remove_channel_from_transfer(tree, object_map, item_id)
+                lambda: remove_channel_from_transfer(
+                    tree, object_map, details_text, right_frame, root, item_id
+                )
             ),
         )
-    if isinstance(selected_object, rdma.transferGroup):
+    if isinstance(selected_object, rdma.TransferGroup):
         context_menu.add_command(
             label="add transfer",
             command=lambda: _run_tree_mutation_with_unsaved_changes(
                 tree, details_text, object_map, right_frame, root,
-                lambda: add_transfer_to_group(tree, object_map, item_id)
+                lambda: add_transfer_to_group(
+                    tree, object_map, details_text, right_frame, root, item_id
+                )
             ),
         )
         context_menu.add_command(
             label="remove transfer group",
             command=lambda: _run_tree_mutation_with_unsaved_changes(
                 tree, details_text, object_map, right_frame, root,
-                lambda: remove_group_from_thread(tree, object_map, item_id)
+                lambda: remove_group_from_thread(
+                    tree, object_map, details_text, right_frame, root, item_id
+                )
             ),
         )
-    if isinstance(selected_object, rdma.thread):
+    if isinstance(selected_object, rdma.Thread):
         context_menu.add_command(
             label="add group",
             command=lambda: _run_tree_mutation_with_unsaved_changes(
                 tree, details_text, object_map, right_frame, root,
-                lambda: add_group_to_thread(tree, object_map, item_id)
+                lambda: add_group_to_thread(
+                    tree, object_map, details_text, right_frame, root, item_id
+                )
             ),
         )
         context_menu.add_command(
             label="remove thread",
             command=lambda: _run_tree_mutation_with_unsaved_changes(
                 tree, details_text, object_map, right_frame, root,
-                lambda: remove_thread_from_plugin(tree, object_map, item_id)
+                lambda: remove_thread_from_plugin(
+                    tree, object_map, details_text, right_frame, root, item_id
+                )
             ),
         )
-    if isinstance(selected_object, rdma.plugin):
+    if isinstance(selected_object, rdma.Plugin):
         context_menu.add_command(
             label="add thread",
             command=lambda: _run_tree_mutation_with_unsaved_changes(
                 tree, details_text, object_map, right_frame, root,
-                lambda: add_thread_to_plugin(tree, object_map, item_id)
+                lambda: add_thread_to_plugin(
+                    tree, object_map, details_text, right_frame, root, item_id
+                )
             ),
         )
         context_menu.add_command(
             label="remove plugin",
             command=lambda: _run_tree_mutation_with_unsaved_changes(
                 tree, details_text, object_map, right_frame, root,
-                lambda: remove_plugin_from_configuration(tree, object_map, item_id)
+                lambda: remove_plugin_from_configuration(
+                    tree, object_map, details_text, right_frame, root, item_id
+                )
             ),
         )
     if isinstance(selected_object, rdma.RDMA_Configuration):
@@ -666,7 +716,9 @@ def show_context_menu(event, tree, object_map, details_text, right_frame, root):
             label="add plugin",
             command=lambda: _run_tree_mutation_with_unsaved_changes(
                 tree, details_text, object_map, right_frame, root,
-                lambda: add_plugin_to_configuration(tree, object_map, item_id)
+                lambda: add_plugin_to_configuration(
+                    tree, object_map, details_text, right_frame, root, item_id
+                )
             ),
         )
     context_menu.tk_popup(event.x_root, event.y_root)
@@ -675,357 +727,275 @@ def show_context_menu(event, tree, object_map, details_text, right_frame, root):
 def _parent_component(parent, default=""):
     """Return the component name used by a parent's first setting."""
     settings = getattr(parent, "component_settings", [])
-    if isinstance(settings, rdma.component_settings):
+    if isinstance(settings, rdma.ComponentSettings):
         return settings.component
     if settings:
         return settings[0].component
     return default
 
 
-def add_channel_to_transfer(tree, object_map, item_id):
+def _refresh_tree_and_select(
+    tree, object_map, details_text=None, right_frame=None, root=None,
+    select_object=None
+):
+    """Rebuild the tree from the global configuration and optionally re-select an object.
+
+    This helper centralises the repeated pattern of clearing the tree,
+    repopulating it, and restoring focus to a specific model object.
+    """
+    tree.delete(*tree.get_children())
+    object_map.clear()
+    _populate_tree(tree, configuration, object_map=object_map)
+    selected_item_id = None
+    if select_object is not None:
+        for item_id, value in object_map.items():
+            if value is select_object:
+                selected_item_id = item_id
+                tree.selection_set(item_id)
+                tree.see(item_id)
+                break
+    if details_text is None:
+        return
+
+    _close_inline_editor(details_text)
+    if selected_item_id is None:
+        tree.selection_remove(tree.selection())
+        _update_details_text(tree, details_text, object_map)
+        return
+
+    _update_details_text(tree, details_text, object_map)
+    return
+
+
+def _find_parent(root, parent_type, child_list_attr, target_child):
+    """Return the first object of *parent_type* whose *child_list_attr* contains *target_child*.
+
+    This generic helper replaces the four structurally identical
+    ``_find_*_with_*`` functions that previously existed in this module.
+    The search recurses through all children of ``root`` that belong to
+    ``CONFIGURATION_OBJECT_TYPES``.
+
+    Args:
+        root: The model object to search from (usually the top-level
+            ``RDMA_Configuration`` instance).
+        parent_type: The class that owns the child list (e.g. ``rdma.Transfer``).
+        child_list_attr: The attribute name of the list on the parent (e.g.
+            ``"channels"``).
+        target_child: The specific child object to locate.
+
+    Returns:
+        The parent object if found, otherwise ``None``.
+    """
+    if isinstance(root, parent_type):
+        if any(child is target_child for child in getattr(root, child_list_attr, [])):
+            return root
+        return None
+
+    if isinstance(root, CONFIGURATION_OBJECT_TYPES):
+        for child in vars(root).values():
+            if isinstance(child, list):
+                for item in child:
+                    result = _find_parent(item, parent_type, child_list_attr, target_child)
+                    if result is not None:
+                        return result
+            elif isinstance(child, CONFIGURATION_OBJECT_TYPES):
+                result = _find_parent(child, parent_type, child_list_attr, target_child)
+                if result is not None:
+                    return result
+    return None
+
+
+def add_channel_to_transfer(tree, object_map, details_text, right_frame, root, item_id):
     """Create and append a new RDMA channel to the selected transfer."""
     selected_transfer = object_map.get(item_id)
-    if not isinstance(selected_transfer, rdma.transfer):
+    if not isinstance(selected_transfer, rdma.Transfer):
         return
-    
+
     protocol = _parent_component(selected_transfer)
 
-    logger.debug(f"Adding channel to transfer: {selected_transfer.getName()} with protocol {protocol}")
+    logger.debug(f"Adding channel to transfer: {selected_transfer.name} with protocol {protocol}")
 
     channel_number = len(selected_transfer.channels) + 1
     selected_transfer.addChannel(
-        rdma.channel(
+        rdma.Channel(
             name=f"Channel {channel_number}",
             protocol=protocol,
         )
     )
 
-    tree.delete(*tree.get_children())
-    object_map.clear()
-    _populate_tree(tree, configuration, object_map=object_map)
-
-    for refreshed_item_id, value in object_map.items():
-        if value is selected_transfer:
-            tree.selection_set(refreshed_item_id)
-            tree.see(refreshed_item_id)
-            break
+    _refresh_tree_and_select(
+        tree, object_map, details_text, right_frame, root, selected_transfer
+    )
 
 
-def remove_channel_from_transfer(tree, object_map, item_id):
+def remove_channel_from_transfer(
+    tree, object_map, details_text, right_frame, root, item_id
+):
     """Remove the selected channel from its parent transfer."""
     selected_channel = object_map.get(item_id)
-    if not isinstance(selected_channel, rdma.channel):
+    if not isinstance(selected_channel, rdma.Channel):
         return
 
-    parent_transfer = _find_transfer_with_channel(configuration, selected_channel)
+    parent_transfer = _find_parent(configuration, rdma.Transfer, "channels", selected_channel)
     if parent_transfer is None:
         return
 
     parent_transfer.channels.remove(selected_channel)
-
-    tree.delete(*tree.get_children())
-    object_map.clear()
-    _populate_tree(tree, configuration, object_map=object_map)
-
-    for refreshed_item_id, value in object_map.items():
-        if value is parent_transfer:
-            tree.selection_set(refreshed_item_id)
-            tree.see(refreshed_item_id)
-            break
+    _refresh_tree_and_select(
+        tree, object_map, details_text, right_frame, root, parent_transfer
+    )
 
 
-def _find_transfer_with_channel(value, selected_channel):
-    """Find the transfer that owns ``selected_channel`` in the model tree."""
-    if isinstance(value, rdma.transfer):
-        if any(channel is selected_channel for channel in value.channels):
-            return value
-        return None
-
-    if isinstance(value, CONFIGURATION_OBJECT_TYPES):
-        for child in vars(value).values():
-            if isinstance(child, list):
-                for item in child:
-                    parent_transfer = _find_transfer_with_channel(
-                        item, selected_channel
-                    )
-                    if parent_transfer is not None:
-                        return parent_transfer
-            elif isinstance(child, CONFIGURATION_OBJECT_TYPES):
-                parent_transfer = _find_transfer_with_channel(
-                    child, selected_channel
-                )
-                if parent_transfer is not None:
-                    return parent_transfer
-    return None
-
-
-def remove_transfer_from_group(tree, object_map, item_id):
+def remove_transfer_from_group(
+    tree, object_map, details_text, right_frame, root, item_id
+):
     """Remove the selected transfer from its parent transfer group."""
     selected_transfer = object_map.get(item_id)
-    if not isinstance(selected_transfer, rdma.transfer):
+    if not isinstance(selected_transfer, rdma.Transfer):
         return
 
-    parent_group = _find_group_with_transfer(configuration, selected_transfer)
+    parent_group = _find_parent(configuration, rdma.TransferGroup, "transfers", selected_transfer)
     if parent_group is None:
         return
 
     parent_group.transfers.remove(selected_transfer)
-
-    tree.delete(*tree.get_children())
-    object_map.clear()
-    _populate_tree(tree, configuration, object_map=object_map)
-
-    for refreshed_item_id, value in object_map.items():
-        if value is parent_group:
-            tree.selection_set(refreshed_item_id)
-            tree.see(refreshed_item_id)
-            break
+    _refresh_tree_and_select(
+        tree, object_map, details_text, right_frame, root, parent_group
+    )
 
 
-def _find_group_with_transfer(value, selected_transfer):
-    """Find the transfer group that owns ``selected_transfer``."""
-    if isinstance(value, rdma.transferGroup):
-        if any(transfer is selected_transfer for transfer in value.transfers):
-            return value
-        return None
-
-    if isinstance(value, CONFIGURATION_OBJECT_TYPES):
-        for child in vars(value).values():
-            if isinstance(child, list):
-                for item in child:
-                    parent_group = _find_group_with_transfer(
-                        item, selected_transfer
-                    )
-                    if parent_group is not None:
-                        return parent_group
-            elif isinstance(child, CONFIGURATION_OBJECT_TYPES):
-                parent_group = _find_group_with_transfer(
-                    child, selected_transfer
-                )
-                if parent_group is not None:
-                    return parent_group
-    return None
-
-
-def remove_group_from_thread(tree, object_map, item_id):
+def remove_group_from_thread(
+    tree, object_map, details_text, right_frame, root, item_id
+):
     """Remove the selected transfer group from its parent thread."""
     selected_group = object_map.get(item_id)
-    if not isinstance(selected_group, rdma.transferGroup):
+    if not isinstance(selected_group, rdma.TransferGroup):
         return
 
-    parent_thread = _find_thread_with_group(configuration, selected_group)
+    parent_thread = _find_parent(configuration, rdma.Thread, "transfer_groups", selected_group)
     if parent_thread is None:
         return
 
     parent_thread.transfer_groups.remove(selected_group)
-
-    tree.delete(*tree.get_children())
-    object_map.clear()
-    _populate_tree(tree, configuration, object_map=object_map)
-
-    for refreshed_item_id, value in object_map.items():
-        if value is parent_thread:
-            tree.selection_set(refreshed_item_id)
-            tree.see(refreshed_item_id)
-            break
+    _refresh_tree_and_select(
+        tree, object_map, details_text, right_frame, root, parent_thread
+    )
 
 
-def _find_thread_with_group(value, selected_group):
-    """Find the thread that owns ``selected_group``."""
-    if isinstance(value, rdma.thread):
-        if any(group is selected_group for group in value.transfer_groups):
-            return value
-        return None
-
-    if isinstance(value, CONFIGURATION_OBJECT_TYPES):
-        for child in vars(value).values():
-            if isinstance(child, list):
-                for item in child:
-                    parent_thread = _find_thread_with_group(item, selected_group)
-                    if parent_thread is not None:
-                        return parent_thread
-            elif isinstance(child, CONFIGURATION_OBJECT_TYPES):
-                parent_thread = _find_thread_with_group(child, selected_group)
-                if parent_thread is not None:
-                    return parent_thread
-    return None
-
-
-def remove_thread_from_plugin(tree, object_map, item_id):
+def remove_thread_from_plugin(
+    tree, object_map, details_text, right_frame, root, item_id
+):
     """Remove the selected thread from its parent plugin."""
     selected_thread = object_map.get(item_id)
-    if not isinstance(selected_thread, rdma.thread):
+    if not isinstance(selected_thread, rdma.Thread):
         return
 
-    parent_plugin = _find_plugin_with_thread(configuration, selected_thread)
+    parent_plugin = _find_parent(configuration, rdma.Plugin, "threads", selected_thread)
     if parent_plugin is None:
         return
 
     parent_plugin.threads.remove(selected_thread)
-
-    tree.delete(*tree.get_children())
-    object_map.clear()
-    _populate_tree(tree, configuration, object_map=object_map)
-
-    for refreshed_item_id, value in object_map.items():
-        if value is parent_plugin:
-            tree.selection_set(refreshed_item_id)
-            tree.see(refreshed_item_id)
-            break
+    _refresh_tree_and_select(
+        tree, object_map, details_text, right_frame, root, parent_plugin
+    )
 
 
-def _find_plugin_with_thread(value, selected_thread):
-    """Find the plugin that owns ``selected_thread``."""
-    if isinstance(value, rdma.plugin):
-        if any(thread is selected_thread for thread in value.threads):
-            return value
-        return None
-
-    if isinstance(value, CONFIGURATION_OBJECT_TYPES):
-        for child in vars(value).values():
-            if isinstance(child, list):
-                for item in child:
-                    parent_plugin = _find_plugin_with_thread(
-                        item, selected_thread
-                    )
-                    if parent_plugin is not None:
-                        return parent_plugin
-            elif isinstance(child, CONFIGURATION_OBJECT_TYPES):
-                parent_plugin = _find_plugin_with_thread(
-                    child, selected_thread
-                )
-                if parent_plugin is not None:
-                    return parent_plugin
-    return None
-
-
-def add_transfer_to_group(tree, object_map, item_id):
+def add_transfer_to_group(tree, object_map, details_text, right_frame, root, item_id):
     """Create and append a new RDMA transfer to the selected group."""
     selected_group = object_map.get(item_id)
-    if not isinstance(selected_group, rdma.transferGroup):
+    if not isinstance(selected_group, rdma.TransferGroup):
         return
 
     protocol = _parent_component(selected_group)
 
     transfer_number = len(selected_group.transfers) + 1
-    new_transfer = rdma.transfer(
+    new_transfer = rdma.Transfer(
         direction=selected_group.direction,
         protocol=protocol,
         name=f"Transfer {transfer_number}",
         channels=[],
     )
     selected_group.addTransfer(new_transfer)
-
-    tree.delete(*tree.get_children())
-    object_map.clear()
-    _populate_tree(tree, configuration, object_map=object_map)
-
-    for refreshed_item_id, value in object_map.items():
-        if value is selected_group:
-            tree.selection_set(refreshed_item_id)
-            tree.see(refreshed_item_id)
-            break
+    _refresh_tree_and_select(
+        tree, object_map, details_text, right_frame, root, selected_group
+    )
 
 
-def add_group_to_thread(tree, object_map, item_id):
+def add_group_to_thread(tree, object_map, details_text, right_frame, root, item_id):
     """Create and append a new RDMA transfer group to the selected thread."""
     selected_thread = object_map.get(item_id)
-    if not isinstance(selected_thread, rdma.thread):
+    if not isinstance(selected_thread, rdma.Thread):
         return
 
     protocol = _parent_component(selected_thread)
 
     group_number = len(selected_thread.transfer_groups) + 1
-    new_group = rdma.transferGroup(
+    new_group = rdma.TransferGroup(
         name=f"Transfer Group {group_number}",
         direction=rdma.Direction.TX,
         protocol=protocol,
         transfers=[],
     )
     selected_thread.addTransferGroup(new_group)
-
-    tree.delete(*tree.get_children())
-    object_map.clear()
-    _populate_tree(tree, configuration, object_map=object_map)
-
-    for refreshed_item_id, value in object_map.items():
-        if value is selected_thread:
-            tree.selection_set(refreshed_item_id)
-            tree.see(refreshed_item_id)
-            break
+    _refresh_tree_and_select(
+        tree, object_map, details_text, right_frame, root, selected_thread
+    )
 
 
-def add_thread_to_plugin(tree, object_map, item_id):
+def add_thread_to_plugin(tree, object_map, details_text, right_frame, root, item_id):
     """Create and append a new RDMA thread to the selected plugin."""
     selected_plugin = object_map.get(item_id)
-    if not isinstance(selected_plugin, rdma.plugin):
+    if not isinstance(selected_plugin, rdma.Plugin):
         return
 
     protocol = _parent_component(selected_plugin)
 
-    new_thread = rdma.thread(
+    new_thread = rdma.Thread(
         processor=-2,
         protocol=protocol,
         transfer_groups=[],
     )
     selected_plugin.addThread(new_thread)
-
-    tree.delete(*tree.get_children())
-    object_map.clear()
-    _populate_tree(tree, configuration, object_map=object_map)
-
-    for refreshed_item_id, value in object_map.items():
-        if value is selected_plugin:
-            tree.selection_set(refreshed_item_id)
-            tree.see(refreshed_item_id)
-            break
+    _refresh_tree_and_select(
+        tree, object_map, details_text, right_frame, root, selected_plugin
+    )
 
 
-def add_plugin_to_configuration(tree, object_map, item_id):
+def add_plugin_to_configuration(
+    tree, object_map, details_text, right_frame, root, item_id
+):
     """Create and append a new RDMA plugin to the configuration."""
     selected_configuration = object_map.get(item_id)
     if not isinstance(selected_configuration, rdma.RDMA_Configuration):
         return
 
     plugin_number = len(selected_configuration.plugins) + 1
-    new_plugin = rdma.plugin(
+    new_plugin = rdma.Plugin(
         name=f"Plugin {plugin_number}",
         protocol="RDMA",
         threads=[],
     )
     selected_configuration.addPlugin(new_plugin)
-
-    tree.delete(*tree.get_children())
-    object_map.clear()
-    _populate_tree(tree, configuration, object_map=object_map)
-
-    for refreshed_item_id, value in object_map.items():
-        if value is selected_configuration:
-            tree.selection_set(refreshed_item_id)
-            tree.see(refreshed_item_id)
-            break
+    _refresh_tree_and_select(
+        tree, object_map, details_text, right_frame, root, selected_configuration
+    )
 
 
-def remove_plugin_from_configuration(tree, object_map, item_id):
+def remove_plugin_from_configuration(
+    tree, object_map, details_text, right_frame, root, item_id
+):
     """Remove the selected plugin from the configuration."""
     selected_plugin = object_map.get(item_id)
-    if not isinstance(selected_plugin, rdma.plugin):
+    if not isinstance(selected_plugin, rdma.Plugin):
         return
 
     if selected_plugin not in configuration.plugins:
         return
 
     configuration.plugins.remove(selected_plugin)
-
-    tree.delete(*tree.get_children())
-    object_map.clear()
-    _populate_tree(tree, configuration, object_map=object_map)
-
-    for refreshed_item_id, value in object_map.items():
-        if value is configuration:
-            tree.selection_set(refreshed_item_id)
-            tree.see(refreshed_item_id)
-            break
+    _refresh_tree_and_select(
+        tree, object_map, details_text, right_frame, root, configuration
+    )
 
 
 def main():
@@ -1076,14 +1046,18 @@ def main():
         label="New",
         command=lambda: _run_tree_mutation_with_unsaved_changes(
             tree, details_text, object_map, right_frame, root,
-            lambda: new_action(tree, file_path_label, object_map),
+            lambda: new_action(
+                tree, file_path_label, object_map, details_text, right_frame, root
+            ),
         ),
     )
     file_menu.add_command(
         label="Load",
         command=lambda: _run_tree_mutation_with_unsaved_changes(
             tree, details_text, object_map, right_frame, root,
-            lambda: load_action(tree, file_path_label, object_map),
+            lambda: load_action(
+                tree, file_path_label, object_map, details_text, right_frame, root
+            ),
         ),
     )
     file_menu.add_command(
