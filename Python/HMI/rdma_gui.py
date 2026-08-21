@@ -165,8 +165,17 @@ def new_action(tree, file_path_label, object_map):
     file_path_label.config(text="New configuration")
 
 
-def save_action(file_path_label, root):
+def save_action(file_path_label, root, details_text=None):
     """Save the current RDMA configuration as an indented JSON DSF file."""
+    if (
+        details_text is not None
+        and getattr(details_text, "modify_panel", None) is not None
+        and _has_unsaved_changes(details_text)
+        and details_text.save_changes is not None
+    ):
+        if not details_text.save_changes():
+            return
+
     file_path = filedialog.asksaveasfilename(
         title="Save configuration file",
         defaultextension=".dsf",
@@ -1079,7 +1088,7 @@ def main():
     )
     file_menu.add_command(
         label="Save",
-        command=lambda: save_action(file_path_label, root),
+        command=lambda: save_action(file_path_label, root, details_text),
     )
 
     menu_bar.add_cascade(label="File", menu=file_menu)
