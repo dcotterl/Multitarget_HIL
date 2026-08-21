@@ -15,6 +15,7 @@ import logging
 from pathlib import Path
 import json
 from dataclasses import dataclass, field
+from typing import Callable, Optional
 
 import tkinter as tk
 from tkinter import filedialog, messagebox, ttk
@@ -46,11 +47,11 @@ CONFIGURATION_OBJECT_TYPES = (
 class EditorState:
     """State shared across selection, details, and inline editor helpers."""
     selection_guard: bool = False
-    modify_panel: object = None
-    edit_item_id: str = None
+    modify_panel: Optional[ttk.Frame] = None
+    edit_item_id: Optional[str] = None
     edit_fields: dict = field(default_factory=dict)
     edit_initial_values: dict = field(default_factory=dict)
-    save_changes: object = None
+    save_changes: Optional[Callable[[], bool]] = None
 
 
 def _editor_state(details_text):
@@ -464,14 +465,6 @@ def _prompt_unsaved_changes(
             state.selection_guard = False
             tree.selection_set(pending_item_id)
             tree.see(pending_item_id)
-            show_selected_element(
-                tree,
-                details_text,
-                object_map,
-                right_frame,
-                root,
-                open_editor=(right_frame is not None and root is not None),
-            )
         else:
             state.selection_guard = False
 
@@ -770,9 +763,8 @@ def _refresh_tree_and_select(
         _update_details_text(tree, details_text, object_map)
         return
 
-    show_selected_element(
-        tree, details_text, object_map, right_frame, root, open_editor=True
-    )
+    _update_details_text(tree, details_text, object_map)
+    return
 
 
 def _find_parent(root, parent_type, child_list_attr, target_child):
