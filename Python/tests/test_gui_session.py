@@ -2,7 +2,9 @@ import tempfile
 import unittest
 from pathlib import Path
 
+from multitarget_hil import rdma_definitions as rdma
 from multitarget_hil.gui.session import ConfigurationSession
+from multitarget_hil.gui.tree import populate_tree
 
 
 class GuiSessionTests(unittest.TestCase):
@@ -26,6 +28,27 @@ class GuiSessionTests(unittest.TestCase):
             saved_path = session.save_file(Path(tmp_dir) / "example")
             self.assertEqual(".dsf", saved_path.suffix)
             self.assertTrue(saved_path.exists())
+
+    def test_populate_tree_includes_nested_configuration_objects(self):
+        class FakeTree:
+            def __init__(self):
+                self.nodes = []
+
+            def insert(self, parent, _position, text, open):
+                node_id = f"node-{len(self.nodes)}"
+                self.nodes.append((node_id, parent, text, open))
+                return node_id
+
+        session = ConfigurationSession()
+        session.new_configuration()
+        tree = FakeTree()
+        object_map = {}
+
+        populate_tree(tree, session.configuration, object_map=object_map)
+
+        self.assertTrue(any(isinstance(value, rdma.Plugin) for value in object_map.values()))
+        self.assertTrue(any(isinstance(value, rdma.Transfer) for value in object_map.values()))
+        self.assertGreaterEqual(len(tree.nodes), 5)
 
 
 if __name__ == "__main__":

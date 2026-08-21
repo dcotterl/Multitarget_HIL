@@ -14,6 +14,14 @@ CONFIGURATION_OBJECT_TYPES = (
     rdma.ComponentSettings,
 )
 
+CHILD_ATTRIBUTES = {
+    rdma.RDMA_Configuration: ("plugins",),
+    rdma.Plugin: ("threads",),
+    rdma.Thread: ("transfer_groups",),
+    rdma.TransferGroup: ("transfers",),
+    rdma.Transfer: ("channels",),
+}
+
 
 def object_label(value):
     object_name = type(value).__name__
@@ -36,10 +44,11 @@ def populate_tree(tree, value, parent="", object_map=None):
     elif isinstance(component_settings, list):
         children.extend(item for item in component_settings if isinstance(item, CONFIGURATION_OBJECT_TYPES))
 
-    for attribute, child in vars(value).items():
-        if attribute.startswith("_") or attribute == "component_settings":
-            continue
-        children.append(child)
+    for object_type, attribute_names in CHILD_ATTRIBUTES.items():
+        if isinstance(value, object_type):
+            for attribute in attribute_names:
+                children.append(getattr(value, attribute, []))
+            break
 
     for child in children:
         if isinstance(child, CONFIGURATION_OBJECT_TYPES):
