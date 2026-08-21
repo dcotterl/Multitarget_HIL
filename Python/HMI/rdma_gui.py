@@ -226,14 +226,34 @@ def show_selected_element(
     tree, details_text, object_map, right_frame, root, _event=None, open_editor=True
 ):
     """Show the selected object's label, type, and serialized contents."""
+    if getattr(details_text, "selection_guard", False):
+        details_text.selection_guard = False
+        return
+
+    selected = tree.selection()
+    selected_item_id = selected[0] if selected else None
     modify_panel = getattr(details_text, "modify_panel", None)
+    edit_item_id = getattr(details_text, "edit_item_id", None)
     if modify_panel is not None:
-        modify_panel.destroy()
-        details_text.modify_panel = None
+        if (
+            selected_item_id != edit_item_id
+            and _has_unsaved_changes(details_text)
+        ):
+            details_text.selection_guard = True
+            tree.selection_set(edit_item_id)
+            _prompt_unsaved_changes(
+                tree,
+                details_text,
+                object_map,
+                right_frame,
+                root,
+                selected_item_id,
+            )
+            return
+        _close_inline_editor(details_text)
     if not details_text.winfo_manager():
         details_text.pack(fill="both", expand=True, padx=4, pady=4)
 
-    selected = tree.selection()
     selected_object = object_map.get(selected[0]) if selected else None
     _update_details_text(tree, details_text, object_map)
     if selected_object is not None and open_editor:
@@ -337,6 +357,85 @@ def _apply_field_value(selected_object, attribute, field_type, value):
     setattr(selected_object, attribute, value)
 
 
+def _editor_value(widget, field_type):
+    """Return the current text from an editor widget."""
+    if field_type == "elements":
+        return widget.get("1.0", "end-1c")
+    return widget.get()
+
+
+def _mark_changed(widget, initial_value, field_type, _event=None):
+    """Color an editor red while its value differs from its initial value."""
+    current_value = _editor_value(widget, field_type)
+    widget.configure(foreground="red" if current_value != initial_value else "black")
+
+
+def _has_unsaved_changes(details_text):
+    """Return whether the inline editor contains unsaved values."""
+    fields = getattr(details_text, "edit_fields", {})
+    initial_values = getattr(details_text, "edit_initial_values", {})
+    return any(
+        _editor_value(widget, field_type) != initial_values[attribute]
+        for attribute, (widget, field_type) in fields.items()
+    )
+
+
+def _close_inline_editor(details_text):
+    """Remove the inline editor and clear its tracked editing state."""
+    panel = getattr(details_text, "modify_panel", None)
+    if panel is not None:
+        panel.destroy()
+    details_text.modify_panel = None
+    details_text.edit_item_id = None
+    details_text.edit_fields = {}
+    details_text.edit_initial_values = {}
+    details_text.save_changes = None
+
+
+def _prompt_unsaved_changes(
+    tree, details_text, object_map, right_frame, root, pending_item_id
+):
+    """Ask whether to save or discard changes before changing selection."""
+    prompt = tk.Toplevel(root)
+    prompt.title("Unsaved changes")
+    prompt.transient(root)
+    prompt.grab_set()
+
+    ttk.Label(
+        prompt,
+        text="This element has unsaved changes. What would you like to do?",
+        padding=12,
+    ).pack()
+    button_frame = ttk.Frame(prompt)
+    button_frame.pack(pady=(0, 12))
+
+    def continue_selection(save):
+        if save and details_text.save_changes is not None:
+            if not details_text.save_changes():
+                return
+        prompt.destroy()
+        _close_inline_editor(details_text)
+        tree.selection_set(pending_item_id)
+        tree.see(pending_item_id)
+
+    ttk.Button(
+        button_frame,
+        text="Save changes",
+        command=lambda: continue_selection(True),
+    ).pack(side="left", padx=4)
+    ttk.Button(
+        button_frame,
+        text="Don't save",
+        command=lambda: continue_selection(False),
+    ).pack(side="left", padx=4)
+
+    prompt.update_idletasks()
+    prompt.geometry(
+        f"+{(prompt.winfo_screenwidth() - prompt.winfo_reqwidth()) // 2}"
+        f"+{(prompt.winfo_screenheight() - prompt.winfo_reqheight()) // 2}"
+    )
+
+
 def modify_selected_element(tree, object_map, item_id, details_text, right_frame, root):
     """Show an in-place editor in the details panel for the selected object."""
     selected_object = object_map.get(item_id)
@@ -346,6 +445,7 @@ def modify_selected_element(tree, object_map, item_id, details_text, right_frame
     details_text.pack_forget()
     panel = ttk.Frame(right_frame)
     details_text.modify_panel = panel
+    details_text.edit_item_id = item_id
     panel.pack(fill="x", padx=4, pady=(4, 0))
     details_text.pack(fill="both", expand=True, padx=4, pady=4)
     panel.columnconfigure(1, weight=1)
@@ -357,6 +457,7 @@ def modify_selected_element(tree, object_map, item_id, details_text, right_frame
     ).grid(row=0, column=0, columnspan=2, sticky="w", padx=8, pady=(4, 10))
 
     fields = {}
+    initial_values = {}
     for row, (label, attribute, field_type) in enumerate(
         _field_definitions(selected_object)
     ):
@@ -380,6 +481,19 @@ def modify_selected_element(tree, object_map, item_id, details_text, right_frame
             widget.grid(row=row, column=1, sticky="ew", padx=8, pady=6)
             widget.insert(0, _field_value(selected_object, attribute, field_type))
         fields[attribute] = (widget, field_type)
+        initial_value = _editor_value(widget, field_type)
+        initial_values[attribute] = initial_value
+        widget.bind(
+            "<KeyRelease>",
+            lambda event, editor=widget, original=initial_value, kind=field_type:
+            _mark_changed(editor, original, kind, event),
+        )
+        if field_type == "direction":
+            widget.bind(
+                "<<ComboboxSelected>>",
+                lambda event, editor=widget, original=initial_value, kind=field_type:
+                _mark_changed(editor, original, kind, event),
+            )
 
     def save_changes():
         try:
@@ -392,14 +506,39 @@ def modify_selected_element(tree, object_map, item_id, details_text, right_frame
                 _apply_field_value(selected_object, attribute, field_type, value)
         except (ValueError, json.JSONDecodeError) as error:
             messagebox.showerror("Modify Error", str(error), parent=root)
-            return
+            return False
+
+        for attribute, (widget, field_type) in fields.items():
+            initial_values[attribute] = _editor_value(widget, field_type)
+            widget.configure(foreground="black")
 
         tree.item(item_id, text=_object_label(selected_object))
         _update_details_text(tree, details_text, object_map)
+        return True
+
+    details_text.save_changes = save_changes
+    details_text.edit_fields = fields
+    details_text.edit_initial_values = initial_values
+
+    def restore_changes():
+        for attribute, (widget, field_type) in fields.items():
+            initial_value = initial_values[attribute]
+            if field_type == "elements":
+                widget.delete("1.0", "end")
+                widget.insert("1.0", initial_value)
+            elif field_type == "direction":
+                widget.set(initial_value)
+            else:
+                widget.delete(0, "end")
+                widget.insert(0, initial_value)
+            _mark_changed(widget, initial_value, field_type)
 
     button_frame = ttk.Frame(panel)
     button_frame.grid(row=len(fields) + 1, column=0, columnspan=2, pady=8)
     ttk.Button(button_frame, text="Save", command=save_changes).pack(
+        side="left", padx=4
+    )
+    ttk.Button(button_frame, text="Restore", command=restore_changes).pack(
         side="left", padx=4
     )
 
