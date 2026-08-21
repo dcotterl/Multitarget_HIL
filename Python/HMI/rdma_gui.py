@@ -203,8 +203,8 @@ def save_action(file_path_label, root):
         )
 
 
-def show_selected_element(tree, details_text, object_map, _event=None):
-    """Show the selected object's label, type, and serialized contents."""
+def _update_details_text(tree, details_text, object_map):
+    """Refresh the read-only data view for the selected tree item."""
     selected = tree.selection()
     selected_object = object_map.get(selected[0]) if selected else None
     element = tree.item(selected[0], "text") if selected else ""
@@ -220,6 +220,26 @@ def show_selected_element(tree, details_text, object_map, _event=None):
         else element,
     )
     details_text.configure(state="disabled")
+
+
+def show_selected_element(
+    tree, details_text, object_map, right_frame, root, _event=None, open_editor=True
+):
+    """Show the selected object's label, type, and serialized contents."""
+    modify_panel = getattr(details_text, "modify_panel", None)
+    if modify_panel is not None:
+        modify_panel.destroy()
+        details_text.modify_panel = None
+    if not details_text.winfo_manager():
+        details_text.pack(fill="both", expand=True, padx=4, pady=4)
+
+    selected = tree.selection()
+    selected_object = object_map.get(selected[0]) if selected else None
+    _update_details_text(tree, details_text, object_map)
+    if selected_object is not None and open_editor:
+        modify_selected_element(
+            tree, object_map, selected[0], details_text, right_frame, root
+        )
 
 
 def _field_definitions(selected_object):
@@ -317,22 +337,30 @@ def _apply_field_value(selected_object, attribute, field_type, value):
     setattr(selected_object, attribute, value)
 
 
-def modify_selected_element(tree, object_map, item_id, root):
-    """Open a modal editor whose fields match the selected object type."""
+def modify_selected_element(tree, object_map, item_id, details_text, right_frame, root):
+    """Show an in-place editor in the details panel for the selected object."""
     selected_object = object_map.get(item_id)
     if selected_object is None:
         return
 
-    panel = tk.Toplevel(root)
-    panel.title(f"Modify {type(selected_object).__name__}")
-    panel.transient(root)
-    panel.grab_set()
+    details_text.pack_forget()
+    panel = ttk.Frame(right_frame)
+    details_text.modify_panel = panel
+    panel.pack(fill="x", padx=4, pady=(4, 0))
+    details_text.pack(fill="both", expand=True, padx=4, pady=4)
     panel.columnconfigure(1, weight=1)
+
+    ttk.Label(
+        panel,
+        text=f"Modify {type(selected_object).__name__}",
+        font=("TkDefaultFont", 10, "bold"),
+    ).grid(row=0, column=0, columnspan=2, sticky="w", padx=8, pady=(4, 10))
 
     fields = {}
     for row, (label, attribute, field_type) in enumerate(
         _field_definitions(selected_object)
     ):
+        row += 1
         ttk.Label(panel, text=label).grid(
             row=row, column=0, sticky="nw", padx=8, pady=6
         )
@@ -363,32 +391,20 @@ def modify_selected_element(tree, object_map, item_id, root):
                 )
                 _apply_field_value(selected_object, attribute, field_type, value)
         except (ValueError, json.JSONDecodeError) as error:
-            messagebox.showerror("Modify Error", str(error), parent=panel)
+            messagebox.showerror("Modify Error", str(error), parent=root)
             return
 
         tree.item(item_id, text=_object_label(selected_object))
-        panel.destroy()
+        _update_details_text(tree, details_text, object_map)
 
     button_frame = ttk.Frame(panel)
-    button_frame.grid(row=len(fields), column=0, columnspan=2, pady=8)
+    button_frame.grid(row=len(fields) + 1, column=0, columnspan=2, pady=8)
     ttk.Button(button_frame, text="Save", command=save_changes).pack(
         side="left", padx=4
     )
-    ttk.Button(button_frame, text="Cancel", command=panel.destroy).pack(
-        side="left", padx=4
-    )
-
-    panel.update_idletasks()
-    panel_width = panel.winfo_reqwidth()
-    panel_height = panel.winfo_reqheight()
-    screen_width = panel.winfo_screenwidth()
-    screen_height = panel.winfo_screenheight()
-    panel_x = (screen_width - panel_width) // 2
-    panel_y = (screen_height - panel_height) // 2
-    panel.geometry(f"{panel_width}x{panel_height}+{panel_x}+{panel_y}")
 
 
-def show_context_menu(event, tree, object_map, root):
+def show_context_menu(event, tree, object_map, details_text, right_frame, root):
     """Show Modify and type-specific child-creation actions for a tree item."""
     item_id = tree.identify_row(event.y)
     if not item_id or item_id not in object_map:
@@ -396,10 +412,6 @@ def show_context_menu(event, tree, object_map, root):
 
     tree.selection_set(item_id)
     context_menu = tk.Menu(tree, tearoff=0)
-    context_menu.add_command(
-        label="modify",
-        command=lambda: modify_selected_element(tree, object_map, item_id, root),
-    )
     selected_object = object_map[item_id]
     if isinstance(selected_object, rdma.transfer):
         context_menu.add_command(
@@ -854,11 +866,15 @@ def main():
 
     tree.bind(
         "<<TreeviewSelect>>",
-        lambda event: show_selected_element(tree, details_text, object_map, event),
+        lambda event: show_selected_element(
+            tree, details_text, object_map, right_frame, root, event
+        ),
     )
     tree.bind(
         "<Button-3>",
-        lambda event: show_context_menu(event, tree, object_map, root),
+        lambda event: show_context_menu(
+            event, tree, object_map, details_text, right_frame, root
+        ),
     )
 
     menu_bar = tk.Menu(root)
