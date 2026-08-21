@@ -113,6 +113,54 @@ class Rdma_benchmark_configuration(unittest.TestCase):
 
         self.assertEqual(config.getDict(), expected_dict)
 
+    def test_topdown_configuration(self):
+
+         config = rdma.RDMA_Configuration()
+
+         plugin = rdma.Plugin(name="BidirectionalPlugin", threads=[], protocol="RDMA")
+
+         thread = rdma.Thread(protocol="RDMA")
+
+         transfer_group_tx = rdma.TransferGroup(
+            name="TransferGroup_Callea_to_Cotterle_Tx",
+            direction=rdma.Direction.TX,
+            protocol="RDMA")
+         
+         transfer_group_rx = rdma.TransferGroup(
+            name="TransferGroup_Cotterle_to_Callea_Rx",
+            direction=rdma.Direction.RX,
+            protocol="RDMA")
+         
+         transfer_tx = rdma.Transfer(
+            name="Transfer_Callea_to_Cotterle_Tx",
+            direction=rdma.Direction.TX,
+            protocol="RDMA",
+            local_address="169.254.23.111",
+            local_port=5011,
+            destination_address="169.254.49.44",
+            destination_port=5011)
+         
+         transfer_rx = rdma.Transfer(
+            name="Transfer_Cotterle_to_Callea_Rx",
+            direction=rdma.Direction.RX,
+            protocol="RDMA",
+            local_address="169.254.23.111",
+            local_port=5010)
+
+         channel = rdma.Channel(name="Channel1", protocol="RDMA")
+    
+         transfer_rx.channels = [channel]
+         transfer_tx.channels = [channel]
+         transfer_group_tx.transfers = [transfer_tx]
+         transfer_group_rx.transfers = [transfer_rx]
+         thread.transfer_groups = [transfer_group_tx, transfer_group_rx]
+         plugin.threads = [thread]
+         config.plugins = [plugin]
+
+         with open(DATA_PATH, "r") as f:
+                     expected_dict = json.load(f)
+         
+         self.assertEqual(config.getDict(), expected_dict)
 
 if __name__ == "__main__":
     unittest.main()
