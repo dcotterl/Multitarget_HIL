@@ -4,6 +4,10 @@ $buildTools = Split-Path -Parent $MyInvocation.MyCommand.Path
 $projectRoot = Split-Path -Parent $buildTools
 Set-Location $projectRoot
 
+Write-Host "Running unit tests..."
+py -m unittest discover -s tests -v
+if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
 Write-Host "Building RDMA GUI executable..."
 py -m PyInstaller --noconfirm --clean (Join-Path $buildTools "RDMA_GUI.spec")
 
