@@ -482,15 +482,23 @@ def show_context_menu(event, tree, object_map, details_text, right_frame, root):
     context_menu.tk_popup(event.x_root, event.y_root)
 
 
+def _parent_component(parent, default=""):
+    """Return the component name used by a parent's first setting."""
+    settings = getattr(parent, "component_settings", [])
+    if isinstance(settings, rdma.component_settings):
+        return settings.component
+    if settings:
+        return settings[0].component
+    return default
+
+
 def add_channel_to_transfer(tree, object_map, item_id):
     """Create and append a new RDMA channel to the selected transfer."""
     selected_transfer = object_map.get(item_id)
     if not isinstance(selected_transfer, rdma.transfer):
         return
     
-    protocol = ""
-    if selected_transfer.component_settings:
-        protocol = selected_transfer.component_settings[0].component
+    protocol = _parent_component(selected_transfer)
 
     logger.debug(f"Adding channel to transfer: {selected_transfer.getName()} with protocol {protocol}")
 
@@ -707,9 +715,7 @@ def add_transfer_to_group(tree, object_map, item_id):
     if not isinstance(selected_group, rdma.transferGroup):
         return
 
-    protocol = ""
-    if selected_group.component_settings:
-        protocol = selected_group.component_settings[0].component
+    protocol = _parent_component(selected_group)
 
     transfer_number = len(selected_group.transfers) + 1
     new_transfer = rdma.transfer(
@@ -737,9 +743,7 @@ def add_group_to_thread(tree, object_map, item_id):
     if not isinstance(selected_thread, rdma.thread):
         return
 
-    protocol = ""
-    if selected_thread.component_settings:
-        protocol = selected_thread.component_settings[0].component
+    protocol = _parent_component(selected_thread)
 
     group_number = len(selected_thread.transfer_groups) + 1
     new_group = rdma.transferGroup(
@@ -767,9 +771,7 @@ def add_thread_to_plugin(tree, object_map, item_id):
     if not isinstance(selected_plugin, rdma.plugin):
         return
 
-    protocol = ""
-    if selected_plugin.component_settings:
-        protocol = selected_plugin.component_settings[0].component
+    protocol = _parent_component(selected_plugin)
 
     new_thread = rdma.thread(
         processor=-2,
