@@ -20,6 +20,7 @@ from data_sharing_framework_config_api.gui.tree import CONFIGURATION_OBJECT_TYPE
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
 logger = logging.getLogger(__name__)
+GUI_VERSION = "v2.0"
 
 
 def update_details_text(tree, details_text, object_map):
@@ -512,6 +513,11 @@ def save_action(file_path_label, root, details_text, session):
     messagebox.showinfo("Save Complete", f"Configuration saved to:\n{saved_path}", parent=root)
 
 
+def show_about(root):
+    """Show the current GUI version."""
+    messagebox.showinfo("About RDMA GUI", f"RDMA GUI\nVersion {GUI_VERSION}", parent=root)
+
+
 def main():
     root = tk.Tk()
     root.title("RDMA GUI")
@@ -553,6 +559,9 @@ def main():
     ))
     file_menu.add_command(label="Save", command=lambda: save_action(file_path_label, root, details_text, session))
     menu_bar.add_cascade(label="File", menu=file_menu)
+    help_menu = tk.Menu(menu_bar, tearoff=0)
+    help_menu.add_command(label="About", command=lambda: show_about(root))
+    menu_bar.add_cascade(label="Help", menu=help_menu)
     root.config(menu=menu_bar)
 
     if session.default_config_path() is not None:
