@@ -420,11 +420,14 @@ def _prompt_unsaved_changes(
         prompt.destroy()
         _close_inline_editor(details_text)
         if on_continue is not None:
+            details_text.selection_guard = False
             on_continue()
             return
         if pending_item_id and tree.exists(pending_item_id):
             tree.selection_set(pending_item_id)
             tree.see(pending_item_id)
+        else:
+            details_text.selection_guard = False
 
     ttk.Button(
         button_frame,
