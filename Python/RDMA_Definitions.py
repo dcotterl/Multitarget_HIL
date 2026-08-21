@@ -69,7 +69,7 @@ class Element:
 class ComponentSettings:
     """Component-specific settings stored as a list of :class:`Element` pairs."""
 
-    def __init__(self, component: str = "", initial_elements: list | None = None) -> None:
+    def __init__(self, component: str = "", initial_elements: list[Element] = None) -> None:
         """Create settings for *component* with optional initial values."""
         self.component = component
         self.elements: list[Element] = initial_elements if initial_elements is not None else []
@@ -181,7 +181,7 @@ class Transfer:
         direction: Direction = Direction.TX,
         protocol: str = "",
         name: str = "",
-        channels: list | None = None,
+        channels: list[Channel] = None,
         local_address: str = "",
         local_port: int = 0,
         destination_address: str = "",
@@ -282,7 +282,7 @@ class TransferGroup:
         timeout_behaviour: int = 0,
         enable_conversion: bool = False,
         protocol: str = "",
-        transfers: list | None = None,
+        transfers: list[Transfer] = None,
     ) -> None:
         """Initialize a transfer group.
 
@@ -373,7 +373,7 @@ class Thread:
         processor: int = -2,
         priority_offset: int = 0,
         protocol: str = "",
-        transfer_groups: list | None = None,
+        transfer_groups: list[TransferGroup] = None,
     ) -> None:
         self.processor = processor
         self.priority_offset = priority_offset
@@ -434,7 +434,7 @@ class Plugin:
         priority: int = 10000,
         decimation: int = 1,
         offset: int = 0,
-        threads: list | None = None,
+        threads: list[Thread] = None,
     ) -> None:
         self.name = name
         self.components: list[str] = [protocol]
@@ -498,9 +498,9 @@ class RDMA_Configuration:
 
     def __init__(
         self,
-        plugins: list | None = None,
-        dsfversion: dict | None = None,
-        version: dict | None = None,
+        plugins: list[Plugin] = None,
+        dsfversion: dict = None,
+        version: dict = None,
     ) -> None:
         """Initialize the RDMA Configuration.
 
