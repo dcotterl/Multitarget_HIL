@@ -13,358 +13,290 @@ configuration in the same hierarchy used by the serialized definition:
 
 Each object stores its definition as a dictionary, exposes it through
 ``getDict()``, and can be rendered as formatted JSON with ``str()``.
-``component_settings`` stores component-specific settings used by channels,
+``ComponentSettings`` stores component-specific settings used by channels,
 transfers, transfer groups, threads, and plugins.  ``Direction`` identifies
 transfers and transfer groups as transmit (TX) or receive (RX); a transfer
 group rejects transfers with a different direction.
+
+Deprecated aliases ``element``, ``component_settings``, ``channel``,
+``transfer``, ``transferGroup``, ``thread``, ``plugin`` are provided for
+backwards compatibility and will be removed in a future release.
 """
 
 import json
 from enum import Enum
 import logging
-from pathlib import Path
 
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s [%(levelname)s] %(message)s",
-)
 logger = logging.getLogger(__name__)
+logger.addHandler(logging.NullHandler())
+
 
 class Direction(Enum):
     """Direction of an RDMA transfer."""
     TX = 0
     RX = 1
 
-class element:
-    def __init__(self, key, value):
+
+class Element:
+    """A key-value pair used inside :class:`ComponentSettings`."""
+
+    def __init__(self, key: str, value) -> None:
         """Create a key-value pair for component settings."""
         self.key = key
         self.value = value
 
-    def getKey(self):
-        """Return the key for this value."""
-        return self.key
-    def getValue(self):
-        """Return the value for this key-value pair."""
-        return self.value
-
-    def setKey(self, key):
-        """Set the key for this value."""
-        self.key = key
-    def setValue(self, value):
-        """Set the value for this key-value pair."""
-        self.value = value
-
-    def getDict(self):
+    def getDict(self) -> dict:
         """Return the key-value pair as a dictionary."""
         return {"key": self.key, "value": self.value}
 
-    def __str__(self):
+    def __str__(self) -> str:
         """Return the key-value pair as a formatted JSON string."""
-        return json.dumps(self.getDict(), indent=4) 
+        return json.dumps(self.getDict(), indent=4)
 
-    def importFromDict(self, dict):
+    def importFromDict(self, data: dict) -> None:
         """Import the key-value pair from a dictionary."""
-        self.key = dict.get("key")
-        self.value = dict.get("value")
+        self.key = data.get("key")
+        self.value = data.get("value")
 
-class component_settings:
-    """Store component-specific settings for an object."""
+    @classmethod
+    def from_dict(cls, data: dict) -> "Element":
+        """Construct an :class:`Element` from a serialized dictionary."""
+        obj = cls.__new__(cls)
+        obj.importFromDict(data)
+        return obj
 
-    def __init__(self, component = "", initial_elements:list[element] = []):
-        """Create settings for ``component`` with optional initial values."""
+
+class ComponentSettings:
+    """Component-specific settings stored as a list of :class:`Element` pairs."""
+
+    def __init__(self, component: str = "", initial_elements: list | None = None) -> None:
+        """Create settings for *component* with optional initial values."""
         self.component = component
-        self.elements = initial_elements
+        self.elements: list[Element] = initial_elements if initial_elements is not None else []
 
-    def __str__(self):
-         """Return the settings as formatted JSON."""
-         return json.dumps(self.getDict(), indent=4)
+    def __str__(self) -> str:
+        """Return the settings as formatted JSON."""
+        return json.dumps(self.getDict(), indent=4)
 
-    def getDict(self):
-            """Return the component settings dictionary."""
-            return {"component": self.component, "values": [v.getDict() for v in self.elements]}
+    def getDict(self) -> dict:
+        """Return the component settings dictionary."""
+        return {"component": self.component, "values": [v.getDict() for v in self.elements]}
 
-    def importFromDict(self, dict):
-            """Import the component settings from a dictionary."""
-            self.component = dict.get("component", "")
-            self.elements = [element(v.get("key"), v.get("value")) for v in dict.get("values", [])]
+    def importFromDict(self, data: dict) -> None:
+        """Import the component settings from a dictionary."""
+        self.component = data.get("component", "")
+        self.elements = [Element(v.get("key"), v.get("value")) for v in data.get("values", [])]
 
-    def getComponent(self):
-         """Return the component name for these settings."""
-         return self.component
-    def setComponent(self, component):
-         """Set the component name for these settings."""
-         self.component = component
+    @classmethod
+    def from_dict(cls, data: dict) -> "ComponentSettings":
+        """Construct a :class:`ComponentSettings` from a serialized dictionary."""
+        obj = cls.__new__(cls)
+        obj.importFromDict(data)
+        return obj
 
-    def getElements(self):
-         """Return the list of key-value pairs for these settings."""
-         return self.elements  
-    def setElements(self, elements:list[element]):
-         """Set the elements for these settings."""
-         self.elements = elements
+    def addElement(self, key: str, value) -> None:
+        """Add a key-value pair to the settings."""
+        self.elements.append(Element(key, value))
 
-    def addElement(self, key, value):
-         """Add a key-value pair to the settings."""
-         e = element(key, value)
-         self.elements.append(e)
 
-class channel:
-     """Represent an RDMA channel definition and its serialized settings."""
+class Channel:
+    """An RDMA channel definition and its serialized settings."""
 
-     def __init__(self,
-                  name="", 
-                  unit = "",
-                  engine_data_type = 2, 
-                  string_data_type = 2, 
-                  string_offset = 0,
-                  protocol = "",):
-            """Initialize a channel.
+    def __init__(
+        self,
+        name: str = "",
+        unit: str = "",
+        engine_data_type: int = 2,
+        string_data_type: int = 2,
+        string_offset: int = 0,
+        protocol: str = "",
+    ) -> None:
+        """Initialize a channel.
 
-            Args:
-                name: Channel name.
-                unit: Engineering unit string for the channel.
-                engine_data_type: Numeric engine-side data type identifier.
-                string_data_type: Numeric string-side data type identifier.
-                string_offset: String table offset for this channel.
-            """
+        Args:
+            name: Channel name.
+            unit: Engineering unit string for the channel.
+            engine_data_type: Numeric engine-side data type identifier.
+            string_data_type: Numeric string-side data type identifier.
+            string_offset: String table offset for this channel.
+            protocol: Protocol name used for initial component settings.
+        """
+        self.name = name
+        self.unit = unit
+        self.engine_data_type = engine_data_type
+        self.string_data_type = string_data_type
+        self.string_offset = string_offset
+        self.component_settings: list[ComponentSettings] = [ComponentSettings(protocol)]
 
-            self.name = name
-            self.unit = unit
-            self.engine_data_type = engine_data_type
-            self.string_data_type = string_data_type
-            self.string_offset = string_offset
-            self.component_settings = [component_settings(protocol)]
+    def __str__(self) -> str:
+        """Return a formatted JSON string representation of the channel."""
+        return json.dumps(self.getDict(), indent=4)
 
-     def __str__(self):
-          """Return a formatted JSON string representation of the channel."""
-          return json.dumps(self.getDict(), indent=4)
+    def getDict(self) -> dict:
+        """Return the channel as a dictionary for serialization or composition."""
+        return {
+            "core": {
+                "name": self.name,
+                "units": self.unit,
+                "engine data type": self.engine_data_type,
+                "string data type": self.string_data_type,
+                "string offset": self.string_offset,
+            },
+            "component settings": [cs.getDict() for cs in self.component_settings],
+        }
 
-     def getDict(self):
-          """Return the channel as a dictionary for serialization or composition."""
-          dict = {"core":{
-                                "name": self.name,
-                                "units": self.unit,
-                                "engine data type": self.engine_data_type,
-                                "string data type": self.string_data_type,
-                                "string offset": self.string_offset,
-                                },
-                                "component settings": [cs.getDict() for cs in self.component_settings]}
-          return dict
+    def importFromDict(self, data: dict) -> None:
+        """Import the channel definition from a dictionary."""
+        core = data.get("core", {})
+        self.name = core.get("name", "")
+        self.unit = core.get("units", "")
+        self.engine_data_type = core.get("engine data type", 2)
+        self.string_data_type = core.get("string data type", 2)
+        self.string_offset = core.get("string offset", 0)
+        self.component_settings = []
+        for cs in data.get("component settings", []):
+            self.component_settings.append(ComponentSettings.from_dict(cs))
 
-     def importFromDict(self, dict):
-            """Import the channel definition from a dictionary."""
-            core = dict.get("core", {})
-            self.name = core.get("name", "")
-            self.unit = core.get("units", "")
-            self.engine_data_type = core.get("engine data type", 2)
-            self.string_data_type = core.get("string data type", 2)
-            self.string_offset = core.get("string offset", 0)
-            self.component_settings = []
-            for cs in dict.get("component settings", []):
-                 csapp = component_settings()
-                 csapp.importFromDict(cs)
-                 self.component_settings.append(csapp)
+    @classmethod
+    def from_dict(cls, data: dict) -> "Channel":
+        """Construct a :class:`Channel` from a serialized dictionary."""
+        obj = cls.__new__(cls)
+        obj.importFromDict(data)
+        return obj
 
-     def getName(self):
-            """Return the channel name."""
-            return self.name
-     def setName(self, name):
-            """Set the channel name."""
-            self.name = name    
+    def addComponentSetting(self, component_setting: ComponentSettings) -> None:
+        """Add a component setting to this channel's list."""
+        self.component_settings.append(component_setting)
 
-     def getUnit(self):
-            """Return the channel's engineering unit string."""
-            return self.unit
-     def setUnit(self, unit):
-            """Set the channel's engineering unit string."""
-            self.unit = unit
 
-     def getEngineDataType(self):
-            """Return the channel's engine-side data type identifier."""
-            return self.engine_data_type
-     def setEngineDataType(self, engine_data_type):
-            """Set the channel's engine-side data type identifier."""
-            self.engine_data_type = engine_data_type
+class Transfer:
+    """An RDMA data transfer configuration with direction-specific settings.
 
-     def getStringDataType(self):
-            """Return the channel's string-side data type identifier."""
-            return self.string_data_type
-     def setStringDataType(self, string_data_type):
-            """Set the channel's string-side data type identifier."""
-            self.string_data_type = string_data_type
+    Manages TX (transmit) or RX (receive) transfers with associated
+    channels and network parameters.
+    """
 
-     def getStringOffset(self):
-            """Return the channel's string table offset."""
-            return self.string_offset
-     def setStringOffset(self, string_offset):
-            """Set the channel's string table offset."""
-            self.string_offset = string_offset
+    def __init__(
+        self,
+        direction: Direction = Direction.TX,
+        protocol: str = "",
+        name: str = "",
+        channels: list | None = None,
+        local_address: str = "",
+        local_port: int = 0,
+        destination_address: str = "",
+        destination_port: int = 0,
+    ) -> None:
+        """Initialize a transfer with direction and network settings.
 
-     def getComponentSettings(self):
-            """Return the list of component settings for this channel."""
-            return self.component_settings
-     def setComponentSettings(self, component_settings:list[component_settings]):
-            """Set the list of component settings for this channel."""
-            self.component_settings = component_settings
+        Args:
+            direction: Direction enum (TX or RX) specifying transfer direction.
+            protocol: Protocol name used for initial component settings.
+            name: String name identifier for this transfer.
+            channels: List of :class:`Channel` objects to include.
+            local_address: Local network address (IP or hostname).
+            local_port: Local port number for the transfer.
+            destination_address: Remote address for TX transfers (ignored for RX).
+            destination_port: Remote port for TX transfers (ignored for RX).
+        """
+        self.direction = direction
+        self.name = name
+        self.channels: list[Channel] = channels if channels is not None else []
+        elements = [
+            Element("local address", str(local_address)),
+            Element("local port", str(local_port)),
+        ]
+        self.component_settings: list[ComponentSettings] = [ComponentSettings(protocol, elements)]
+        if self.direction == Direction.TX:
+            self.component_settings[0].addElement("destination address", str(destination_address))
+            self.component_settings[0].addElement("destination port", str(destination_port))
 
-     def addComponentSetting(self, component_setting:component_settings):
-            """Add a component setting to this channel's list."""
-            self.component_settings.append(component_setting)
+    def __str__(self) -> str:
+        """Return a formatted JSON string representation of the transfer."""
+        result = self.getDict()
+        result["channels"] = "[EMPTY]" if not self.channels else f"[...{len(self.channels)} channels...]"
+        return json.dumps(result, indent=4)
 
-class transfer:
-     """Represents an RDMA data transfer configuration with direction-specific settings.
-     
-     Manages TX (transmit) or RX (receive) transfers with associated channels and network parameters.
-     """
-     def __init__(self, 
-                  direction: Direction = Direction.TX, 
-                  protocol="",
-                  name="", 
-                  channels:list[channel]=[], 
-                  local_address="", 
-                  local_port=0, 
-                  destination_address="", 
-                  destination_port=0):
-          """Initialize a transfer with direction and network settings.
-          
-          Args:
-               direction: Direction enum (TX or RX) specifying transfer direction.
-               name: String name identifier for this transfer.
-               channels: List of channel objects to include in this transfer.
-               local_address: Local network address (IP or hostname).
-               local_port: Local port number for the transfer.
-               destination_address: Remote address for TX transfers (required for TX, ignored for RX).
-               destination_port: Remote port for TX transfers (required for TX, ignored for RX).
-          """
+    def getDict(self) -> dict:
+        """Return the transfer configuration as a dictionary for serialization."""
+        return {
+            "core": {"name": self.name},
+            "component settings": [cs.getDict() for cs in self.component_settings],
+            "channels": [ch.getDict() for ch in self.channels],
+        }
 
-          self.direction = direction
-          self.name = name
-          self.channels = channels
-          elements = [element("local address",str(local_address)),
-                    element("local port", str(local_port))]
-          self.component_settings = [component_settings(protocol,elements)]
-          if self.direction == Direction.TX:
-               self.component_settings[0].addElement("destination address",str(destination_address))
-               self.component_settings[0].addElement("destination port", str(destination_port))
-    
-     def getDict(self):
-          """Return the transfer configuration as a dictionary for serialization.
-          
-          Returns:
-               dict: Transfer dictionary containing core settings, component settings, and channels.
-          """
-
-          dict = {
-                    "core": {"name" : self.name},
-                    "component settings": [cs.getDict() for cs in self.component_settings],
-                    "channels": [ch.getDict() for ch in self.channels]
-                 }
-
-          return dict
-
-     def importFromDict(self, dict):
+    def importFromDict(self, data: dict) -> None:
         """Import the transfer configuration from a dictionary."""
-        core = dict.get("core", {})
+        core = data.get("core", {})
         self.name = core.get("name", "")
         self.component_settings = []
-        for cs in dict.get("component settings", []):
-            csapp = component_settings()
-            csapp.importFromDict(cs)
-            self.component_settings.append(csapp)
+        for cs in data.get("component settings", []):
+            self.component_settings.append(ComponentSettings.from_dict(cs))
         self.channels = []
-        for ch in dict.get("channels", []):
-            chapp = channel()
-            chapp.importFromDict(ch)
-            self.channels.append(chapp)
-        elements = self.component_settings[0].getElements()
-        if "destination address" in [e.getKey() for e in elements]:
+        for ch in data.get("channels", []):
+            self.channels.append(Channel.from_dict(ch))
+        elements = self.component_settings[0].elements if self.component_settings else []
+        if "destination address" in [e.key for e in elements]:
             self.direction = Direction.TX
         else:
             self.direction = Direction.RX
 
+    @classmethod
+    def from_dict(cls, data: dict) -> "Transfer":
+        """Construct a :class:`Transfer` from a serialized dictionary."""
+        obj = cls.__new__(cls)
+        obj.importFromDict(data)
+        return obj
 
-     def getDirection(self):
-        """Return the transfer direction."""
-        return self.direction
-     def setDirection(self, direction):
-        """Set the transfer direction."""
-        self.direction = direction
-
-     def getName(self):
-        """Return the transfer name."""
-        return self.name
-     def setName(self, name):
-        """Set the transfer name."""
-        self.name = name
-
-     def getChannels(self):
-        """Return the channels assigned to the transfer."""
-        return self.channels
-     def setChannels(self, channels):
-        """Set the channels assigned to the transfer."""
-        self.channels = channels
-     def addChannel(self, channel:channel):
+    def addChannel(self, channel: Channel) -> None:
         """Add a channel to the transfer's channel list."""
         self.channels.append(channel)
 
-     def getComponentSettings(self):
-        """Return the transfer component settings."""
-        return self.component_settings
-     def setComponentSettings(self, component_settings):
-        """Set the transfer component settings."""
-        self.component_settings = component_settings
-     def addElement (self, key, value):
-        """Add a key-value pair to the transfer's component settings."""
+    def addElement(self, key: str, value) -> None:
+        """Add a key-value pair to the transfer's first component settings entry."""
         if self.component_settings:
-            self.component_settings[0].elements.append(element(key, value))
+            self.component_settings[0].elements.append(Element(key, value))
         else:
             logger.warning("No component settings available to add element.")
-     def addComponentSetting(self, component_setting:component_settings):
+
+    def addComponentSetting(self, component_setting: ComponentSettings) -> None:
         """Add a component setting to the transfer's component settings list."""
         self.component_settings.append(component_setting)
 
-     def __str__(self):
-          """Return a formatted JSON string representation of the transfer.
-          
-          Returns:
-               str: JSON-formatted transfer configuration.
-          """
-          dict = self.getDict()
-          dict["channels"] = "[EMPTY]" if not self.channels else f"[...{len(self.channels)} channels...]"
-          return json.dumps(dict, indent=4)
 
-class transferGroup:
-    """Represents a group of transfers with a common direction.
-    
-    This class groups multiple transfer objects that share the same direction
+class TransferGroup:
+    """A group of transfers sharing a common direction.
+
+    Groups multiple :class:`Transfer` objects that share the same direction
     (TX or RX) and manages their configuration including cycle timing and
     component settings.
     """
-    
-    def __init__(self, name = "", 
-                 direction: Direction = Direction.TX,
-                 priority = 100, 
-                 decimation = 1, 
-                 offset = 0, 
-                 timeout_behaviour = 0,
-                 enable_conversion:bool = False,
-                 protocol = "",
-                 transfers:list[transfer]=[]):
+
+    def __init__(
+        self,
+        name: str = "",
+        direction: Direction = Direction.TX,
+        priority: int = 100,
+        decimation: int = 1,
+        offset: int = 0,
+        timeout_behaviour: int = 0,
+        enable_conversion: bool = False,
+        protocol: str = "",
+        transfers: list | None = None,
+    ) -> None:
         """Initialize a transfer group.
 
         Args:
             name: Human-readable name for the transfer group.
-            direction: Transfer direction for all grouped transfers, typically
-                Direction.TX or Direction.RX.
+            direction: Transfer direction for all grouped transfers.
             priority: Scheduling priority used in the group cycle timing.
             decimation: Sample decimation factor for the group.
             offset: Time offset for the group cycle timing.
             timeout_behaviour: Timeout handling behavior configuration.
             enable_conversion: Whether data conversion is enabled.
             protocol: Protocol name used for initial component settings.
-            transfers: List of transfer instances assigned to the group.
+            transfers: List of :class:`Transfer` instances assigned to the group.
         """
-        
         self.name = name
         self.direction = direction
         self.priority = priority
@@ -372,45 +304,36 @@ class transferGroup:
         self.offset = offset
         self.timeout_behaviour = timeout_behaviour
         self.enable_conversion = enable_conversion
-        self.component_settings = [component_settings(protocol)]
-        self.transfers = transfers
+        self.component_settings: list[ComponentSettings] = [ComponentSettings(protocol)]
+        self.transfers: list[Transfer] = transfers if transfers is not None else []
 
-    def __str__(self):
-        """Return a formatted JSON string representation of the transfer group.
-        
-        Returns:
-            str: JSON-formatted transfer group configuration.
-        """
-        dict = self.getDict()
-        dict["transfers"] = "[EMPTY]" if not self.transfers else f"[...{len(self.transfers)} transfers...]"
-        return json.dumps(dict, indent=4)
+    def __str__(self) -> str:
+        """Return a formatted JSON string representation of the transfer group."""
+        result = self.getDict()
+        result["transfers"] = "[EMPTY]" if not self.transfers else f"[...{len(self.transfers)} transfers...]"
+        return json.dumps(result, indent=4)
 
-    def getDict(self):
-        """Get the dictionary representation of this transfer group.
-        
-        Returns:
-            dict: The transfer group configuration dictionary.
-        """
-        dict = {"core" : {
-                          "name" : self.name,
-                          "direction" : self.direction.value,
-                          "cycle timing" : {
-                                            "priority" : self.priority,
-                                            "decimation" : self.decimation,
-                                            "offset" : self.offset
-                                          },
-                          "timeout behavior" : self.timeout_behaviour,
-                          "enable conversion" : self.enable_conversion,
-                    },
-                "component settings" : [cs.getDict() for cs in self.component_settings],
-                "transfers" : [t.getDict() for t in self.transfers]
-                }
-        
-        return dict
+    def getDict(self) -> dict:
+        """Return the transfer group configuration dictionary."""
+        return {
+            "core": {
+                "name": self.name,
+                "direction": self.direction.value,
+                "cycle timing": {
+                    "priority": self.priority,
+                    "decimation": self.decimation,
+                    "offset": self.offset,
+                },
+                "timeout behavior": self.timeout_behaviour,
+                "enable conversion": self.enable_conversion,
+            },
+            "component settings": [cs.getDict() for cs in self.component_settings],
+            "transfers": [t.getDict() for t in self.transfers],
+        }
 
-    def importFromDict(self, dict):
+    def importFromDict(self, data: dict) -> None:
         """Import the transfer group configuration from a dictionary."""
-        core = dict.get("core", {})
+        core = data.get("core", {})
         self.name = core.get("name", "")
         self.direction = Direction(core.get("direction", 0))
         cycle_timing = core.get("cycle timing", {})
@@ -419,373 +342,237 @@ class transferGroup:
         self.offset = cycle_timing.get("offset", 0)
         self.timeout_behaviour = core.get("timeout behavior", 0)
         self.enable_conversion = core.get("enable conversion", False)
-
         self.component_settings = []
-        for cs in dict.get("component settings", []):
-            csapp = component_settings()
-            csapp.importFromDict(cs)
-            self.component_settings.append(csapp)
-
+        for cs in data.get("component settings", []):
+            self.component_settings.append(ComponentSettings.from_dict(cs))
         self.transfers = []
-        for t in dict.get("transfers", []):
-            tapp = transfer()
-            tapp.importFromDict(t)
-            self.transfers.append(tapp)
+        for t in data.get("transfers", []):
+            self.transfers.append(Transfer.from_dict(t))
 
-    def getName(self):
-        """Return the transfer group name."""
-        return self.name
-    def setName(self, name):
-        """Set the transfer group name.
+    @classmethod
+    def from_dict(cls, data: dict) -> "TransferGroup":
+        """Construct a :class:`TransferGroup` from a serialized dictionary."""
+        obj = cls.__new__(cls)
+        obj.importFromDict(data)
+        return obj
 
-        Args:
-            name: New name for the transfer group.
-        """
-        self.name = name
-
-    def getDirection(self):
-        """Return the transfer group direction."""
-        return self.direction
-    def setDirection(self, direction):
-        """Set the transfer group direction.
-
-        Args:
-            direction: Direction enum value for the group.
-        """
-        self.direction = direction
-
-    def getPriority(self):
-        """Return the transfer group priority."""
-        return self.priority
-    def setPriority(self, priority):
-        """Set the transfer group priority."""
-        self.priority = priority
-
-    def getDecimation(self):
-        """Return the transfer group decimation."""
-        return self.decimation
-    def setDecimation(self, decimation):
-        """Set the transfer group decimation."""
-        self.decimation = decimation
-
-    def getOffset(self):
-        """Return the transfer group offset."""
-        return self.offset
-    def setOffset(self, offset):
-        """Set the transfer group offset."""
-        self.offset = offset
-
-    def getTimeoutBehaviour(self):
-        """Return the transfer group timeout behavior."""
-        return self.timeout_behaviour
-    def setTimeoutBehaviour(self, timeout_behaviour):
-        """Set the transfer group timeout behavior."""
-        self.timeout_behaviour = timeout_behaviour
-
-    def getEnableConversion(self):
-        """Return whether conversion is enabled for the group."""
-        return self.enable_conversion
-    def setEnableConversion(self, enable_conversion:bool):
-        """Set whether conversion is enabled for the group."""
-        self.enable_conversion = enable_conversion
-
-    def getComponentSettings(self):
-        """Return the transfer group component settings."""
-        return self.component_settings
-    def setComponentSettings(self, component_settings:component_settings):
-        """Set the transfer group component settings."""
-        self.component_settings = component_settings
-
-    def getTransfers(self):
-        """Return the transfers in the group."""
-        return self.transfers
-    def setTransfers(self, transfers:list[transfer]):
-        """Set the transfers in the group."""
-        self.transfers = transfers
-    def addTransfer(self, transfer:transfer):
+    def addTransfer(self, transfer: Transfer) -> None:
         """Add a transfer to the group."""
         self.transfers.append(transfer)
 
-class thread:
-    """Represents a thread configuration for RDMA operations.
-    
-    This class encapsulates thread settings including core configuration,
+
+class Thread:
+    """A thread configuration for RDMA operations.
+
+    Encapsulates thread settings including core configuration,
     component settings, and associated transfer groups.
     """
-    def __init__(self,
-                 processor = -2,
-                 priority_offset = 0, 
-                 protocol = "", 
-                 transfer_groups:list[transferGroup]=[]):
-       self.processor = processor
-       self.priority_offset = priority_offset
-       self.component_settings = [component_settings(protocol)]
-       self.transfer_groups = transfer_groups
-                               
-    def __str__(self):
-        """Return a JSON string representation of this thread.
-        
-        Returns:
-            str: JSON formatted thread configuration.
-        """
-        dict = self.getDict()
-        dict["transfer groups"] = "[EMPTY]" if not self.transfer_groups else f"[...{len(self.transfer_groups)} transfer groups...]"
-        return json.dumps(dict, indent=4)
 
-    def getDict(self):
-        """Get the dictionary representation of this thread.
-        
-        Returns:
-            dict: The thread configuration dictionary.
-        """
-        dict = {"core" : {
-                          "processor" : self.processor,
-                          "priority offset" : self.priority_offset
-                         },
-                "component settings" : [cs.getDict() for cs in self.component_settings],
-                                "transfer groups" : [tg.getDict() for tg in self.transfer_groups]
-                }
-        return dict
-    def importFromDict(self, dict):
+    def __init__(
+        self,
+        processor: int = -2,
+        priority_offset: int = 0,
+        protocol: str = "",
+        transfer_groups: list | None = None,
+    ) -> None:
+        self.processor = processor
+        self.priority_offset = priority_offset
+        self.component_settings: list[ComponentSettings] = [ComponentSettings(protocol)]
+        self.transfer_groups: list[TransferGroup] = transfer_groups if transfer_groups is not None else []
+
+    def __str__(self) -> str:
+        """Return a JSON string representation of this thread."""
+        result = self.getDict()
+        result["transfer groups"] = (
+            "[EMPTY]" if not self.transfer_groups
+            else f"[...{len(self.transfer_groups)} transfer groups...]"
+        )
+        return json.dumps(result, indent=4)
+
+    def getDict(self) -> dict:
+        """Return the thread configuration dictionary."""
+        return {
+            "core": {
+                "processor": self.processor,
+                "priority offset": self.priority_offset,
+            },
+            "component settings": [cs.getDict() for cs in self.component_settings],
+            "transfer groups": [tg.getDict() for tg in self.transfer_groups],
+        }
+
+    def importFromDict(self, data: dict) -> None:
         """Import the thread configuration from a dictionary."""
-        core = dict.get("core", {})
+        core = data.get("core", {})
         self.processor = core.get("processor", -2)
         self.priority_offset = core.get("priority offset", 0)
-
         self.component_settings = []
-        for cs in dict.get("component settings", []):
-            csapp = component_settings()
-            csapp.importFromDict(cs)
-            self.component_settings.append(csapp)
-
+        for cs in data.get("component settings", []):
+            self.component_settings.append(ComponentSettings.from_dict(cs))
         self.transfer_groups = []
-        for tg in dict.get("transfer groups", []):
-            tgapp = transferGroup()
-            tgapp.importFromDict(tg)
-            self.transfer_groups.append(tgapp)
+        for tg in data.get("transfer groups", []):
+            self.transfer_groups.append(TransferGroup.from_dict(tg))
 
-    def getProcessor(self):
-        """Return the processor assigned to the thread."""
-        return self.processor
-    def setProcessor(self, processor):
-        """Set the processor assigned to the thread."""
-        self.processor = processor
+    @classmethod
+    def from_dict(cls, data: dict) -> "Thread":
+        """Construct a :class:`Thread` from a serialized dictionary."""
+        obj = cls.__new__(cls)
+        obj.importFromDict(data)
+        return obj
 
-    def getPriorityOffset(self):
-        """Return the thread priority offset."""
-        return self.priority_offset
-    def setPriorityOffset(self, priority_offset):
-        """Set the thread priority offset."""
-        self.priority_offset = priority_offset
-
-    def getComponentSettings(self):
-        """Return the thread component settings."""
-        return self.component_settings
-    def setComponentSettings(self, component_settings:list[component_settings]):
-        """Set the thread component settings."""
-        self.component_settings = component_settings
-
-    def getTransferGroups(self):
-        """Return the transfer groups assigned to the thread."""
-        return self.transfer_groups
-    def setTransferGroups(self, transfer_groups:list[transferGroup]):
-        """Set the transfer groups assigned to the thread."""
-        self.transfer_groups = transfer_groups
-    def addTransferGroup(self, transfer_group:transferGroup):
-        """Add a transfer group to the thread's list of transfer groups."""
+    def addTransferGroup(self, transfer_group: TransferGroup) -> None:
+        """Add a transfer group to the thread's list."""
         self.transfer_groups.append(transfer_group)
 
-class plugin:
-    def __init__(self, 
-                 name = "",
-                 protocol = "",
-                 priority = 10000,
-                 decimation = 1,
-                 offset = 0,
-                 threads:list[thread] = []):
+
+class Plugin:
+    """An RDMA plugin containing one or more threads."""
+
+    def __init__(
+        self,
+        name: str = "",
+        protocol: str = "",
+        priority: int = 10000,
+        decimation: int = 1,
+        offset: int = 0,
+        threads: list | None = None,
+    ) -> None:
         self.name = name
-        self.components = [protocol]
+        self.components: list[str] = [protocol]
         self.priority = priority
         self.decimation = decimation
         self.offset = offset
-        self.threads = threads
-        self.component_settings = [component_settings(protocol)]
+        self.threads: list[Thread] = threads if threads is not None else []
+        self.component_settings: list[ComponentSettings] = [ComponentSettings(protocol)]
 
-    def __str__(self):
-        dict = self.getDict()
-        dict["threads"] = "[EMPTY]" if not self.threads else f"[...{len(self.threads)} threads...]"
-        return json.dumps(dict, indent=4)
+    def __str__(self) -> str:
+        result = self.getDict()
+        result["threads"] = "[EMPTY]" if not self.threads else f"[...{len(self.threads)} threads...]"
+        return json.dumps(result, indent=4)
 
-    def getDict(self):
-        self.plugin = {"core" : {
-                                "name" : self.name,
-                                "components" : self.components,
-                                "cycle timing" : {
-                                                "priority" : self.priority,
-                                                "decimation" : self.decimation,
-                                                "offset" : self.offset
-                                                },
-                                },
-                        "component settings" : [cs.getDict() for cs in self.component_settings],
-                        "threads" : [th.getDict() for th in self.threads]
-                      }
-        return self.plugin
-    def importFromDict(self, dict):
-        core = dict.get("core", {})
+    def getDict(self) -> dict:
+        """Return the plugin configuration dictionary."""
+        return {
+            "core": {
+                "name": self.name,
+                "components": self.components,
+                "cycle timing": {
+                    "priority": self.priority,
+                    "decimation": self.decimation,
+                    "offset": self.offset,
+                },
+            },
+            "component settings": [cs.getDict() for cs in self.component_settings],
+            "threads": [th.getDict() for th in self.threads],
+        }
+
+    def importFromDict(self, data: dict) -> None:
+        """Import the plugin configuration from a dictionary."""
+        core = data.get("core", {})
         self.name = core.get("name", "")
         self.components = core.get("components", [])
         cycle_timing = core.get("cycle timing", {})
         self.priority = cycle_timing.get("priority", 10000)
         self.decimation = cycle_timing.get("decimation", 1)
         self.offset = cycle_timing.get("offset", 0)
-
         self.component_settings = []
-        for cs in dict.get("component settings", []):
-            csapp = component_settings()
-            csapp.importFromDict(cs)
-            self.component_settings.append(csapp)
-
+        for cs in data.get("component settings", []):
+            self.component_settings.append(ComponentSettings.from_dict(cs))
         self.threads = []
-        for th in dict.get("threads", []):
-            thapp = thread()
-            thapp.importFromDict(th)
-            self.threads.append(thapp)
+        for th in data.get("threads", []):
+            self.threads.append(Thread.from_dict(th))
 
-    def getName(self):
-        """Return the plugin name."""
-        return self.name
-    def setName(self, name):
-        """Set the plugin name."""
-        self.name = name
+    @classmethod
+    def from_dict(cls, data: dict) -> "Plugin":
+        """Construct a :class:`Plugin` from a serialized dictionary."""
+        obj = cls.__new__(cls)
+        obj.importFromDict(data)
+        return obj
 
-    def getComponents(self):
-        """Return the plugin component names."""
-        return self.components
-    def setComponents(self, components):
-        """Set the plugin component names."""
-        self.components = components
-
-    def getPriority(self):
-        """Return the plugin priority."""
-        return self.priority
-    def setPriority(self, priority):
-        """Set the plugin priority."""
-        self.priority = priority
-
-    def getDecimation(self):
-        """Return the plugin decimation."""
-        return self.decimation
-    def setDecimation(self, decimation):
-        """Set the plugin decimation."""
-        self.decimation = decimation
-
-    def getOffset(self):
-        """Return the plugin offset."""
-        return self.offset
-    def setOffset(self, offset):
-        """Set the plugin offset."""
-        self.offset = offset
-
-    def getThreads(self):
-        """Return the threads assigned to the plugin."""
-        return self.threads
-    def setThreads(self, threads):
-        """Set the threads assigned to the plugin."""
-        self.threads = threads
-    def addThread(self, thread:thread):
-        """Add a thread to the plugin's list of threads."""
+    def addThread(self, thread: Thread) -> None:
+        """Add a thread to the plugin's list."""
         self.threads.append(thread)
 
-    def getComponentSettings(self):
-        """Return the plugin component settings."""
-        return self.component_settings
-    def setComponentSettings(self, component_settings):
-        """Set the plugin component settings."""
-        self.component_settings = component_settings
 
 class RDMA_Configuration:
+    """Top-level RDMA configuration containing one or more plugins."""
 
-    def __init__(self, 
-                 plugins:list[plugin] = [],
-                 dsfversion ={"major": 1,"minor": 4,"fix": 0,"build": ""},
-                 version = {"major": 1, "minor": 0, "fix": 0,"build": ""}):
-         """Initialize the RDMA Configuration.
-         
-         Args:
-             plugins: List of plugin objects. Defaults to empty list.
-             dsfversion: Dictionary containing DSF format version metadata with keys
-                        'major', 'minor', 'fix', and 'build'. Defaults to version 1.4.0.
-             version: Dictionary containing RDMA specification version metadata with keys
-                     'major', 'minor', 'fix', and 'build'. Defaults to version 1.0.0.
-         """
-         self.dsfversion = dsfversion
-         self.version = version
-         self.plugins = plugins
+    def __init__(
+        self,
+        plugins: list | None = None,
+        dsfversion: dict | None = None,
+        version: dict | None = None,
+    ) -> None:
+        """Initialize the RDMA Configuration.
 
-    def getDict(self):
-         """Return the RDMA configuration as a dictionary suitable for JSON export.
-
-         The dictionary includes the DSF format version, the RDMA specification
-         version, and the serialized plugin definitions contained in this
-         configuration.
-         """
-         dict = {
-                "dsfversion": self.dsfversion,
-                "version": self.version,
-                "configuration": {
-                                 "plugins": [pl.getDict() for pl in self.plugins] 
-                                 }
-                }
-         return dict
-    def importFromDict(self, dict):
-        """Import the RDMA configuration from a dictionary.
-
-        This method populates the RDMA_Configuration instance with data from
-        the provided dictionary, including DSF version, RDMA version, and
-        plugin definitions.
+        Args:
+            plugins: List of :class:`Plugin` objects. Defaults to empty list.
+            dsfversion: DSF format version metadata dict with keys
+                ``major``, ``minor``, ``fix``, and ``build``.
+                Defaults to version 1.4.0.
+            version: RDMA specification version metadata dict with keys
+                ``major``, ``minor``, ``fix``, and ``build``.
+                Defaults to version 1.0.0.
         """
-        self.dsfversion = dict.get("dsfversion", {"major": 1,"minor": 4,"fix": 0,"build": ""})
-        self.version = dict.get("version", {"major": 1, "minor": 0, "fix": 0,"build": ""})
-        configuration = dict.get("configuration", {})
+        self.dsfversion = dsfversion if dsfversion is not None else {"major": 1, "minor": 4, "fix": 0, "build": ""}
+        self.version = version if version is not None else {"major": 1, "minor": 0, "fix": 0, "build": ""}
+        self.plugins: list[Plugin] = plugins if plugins is not None else []
+
+    def getDict(self) -> dict:
+        """Return the RDMA configuration as a dictionary suitable for JSON export."""
+        return {
+            "dsfversion": self.dsfversion,
+            "version": self.version,
+            "configuration": {
+                "plugins": [pl.getDict() for pl in self.plugins],
+            },
+        }
+
+    def importFromDict(self, data: dict) -> None:
+        """Populate this instance from a serialized configuration dictionary."""
+        self.dsfversion = data.get("dsfversion", {"major": 1, "minor": 4, "fix": 0, "build": ""})
+        self.version = data.get("version", {"major": 1, "minor": 0, "fix": 0, "build": ""})
+        configuration = data.get("configuration", {})
         self.plugins = []
         for pl in configuration.get("plugins", []):
-            plapp = plugin()
-            plapp.importFromDict(pl)
-            self.plugins.append(plapp)
+            self.plugins.append(Plugin.from_dict(pl))
 
-    def getDsfVersion(self):
-            """Return the DSF format version metadata."""
-            return self.dsfversion
-    def setDsfVersion(self, dsfversion):
-            """Set the DSF format version metadata."""
-            self.dsfversion = dsfversion
+    @classmethod
+    def from_dict(cls, data: dict) -> "RDMA_Configuration":
+        """Construct an :class:`RDMA_Configuration` from a serialized dictionary."""
+        obj = cls.__new__(cls)
+        obj.importFromDict(data)
+        return obj
 
-    def getVersion(self):
-            """Return the RDMA specification version metadata."""
-            return self.version
-    def setVersion(self, version):
-            """Set the RDMA specification version metadata."""
-            self.version = version
-
-    def getPlugins(self):
-            """Return the plugins in the configuration."""
-            return self.plugins
-    def setPlugins(self, plugins):
-            """Set the plugins in the configuration."""
-            self.plugins = plugins
-    def addPlugin(self, plugin:plugin):
+    def addPlugin(self, plugin: Plugin) -> None:
         """Add a plugin to the configuration."""
         self.plugins.append(plugin)
 
-    def __str__(self):
+    def __str__(self) -> str:
         """Return the configuration as an indented JSON string."""
-        dict = self.getDict()
-        dict["configuration"]["plugins"] = "[EMPTY]" if not self.plugins else f"[...{len(self.plugins)} plugins...]"
-        return json.dumps(dict, indent=4)
-    
-def get_version():
+        result = self.getDict()
+        result["configuration"]["plugins"] = (
+            "[EMPTY]" if not self.plugins
+            else f"[...{len(self.plugins)} plugins...]"
+        )
+        return json.dumps(result, indent=4)
+
+
+def get_version() -> dict:
     """Return the current RDMA definition format version."""
     return {"major": 2, "minor": 0, "fix": 0, "build": ""}
+
+
+# ---------------------------------------------------------------------------
+# Backwards-compatibility aliases (deprecated — use PascalCase names above)
+# ---------------------------------------------------------------------------
+element = Element
+component_settings = ComponentSettings
+channel = Channel
+transfer = Transfer
+transferGroup = TransferGroup
+thread = Thread
+plugin = Plugin
+
 
 if __name__ == "__main__":
     print(f"RDMA definition format version: {get_version()}")
