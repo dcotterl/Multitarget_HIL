@@ -165,8 +165,17 @@ def new_action(tree, file_path_label, object_map):
     file_path_label.config(text="New configuration")
 
 
-def save_action(file_path_label, root):
+def save_action(file_path_label, root, details_text=None):
     """Save the current RDMA configuration as an indented JSON DSF file."""
+    if (
+        details_text is not None
+        and getattr(details_text, "modify_panel", None) is not None
+        and _has_unsaved_changes(details_text)
+        and details_text.save_changes is not None
+    ):
+        if not details_text.save_changes():
+            return
+
     file_path = filedialog.asksaveasfilename(
         title="Save configuration file",
         defaultextension=".dsf",
@@ -203,8 +212,8 @@ def save_action(file_path_label, root):
         )
 
 
-def show_selected_element(tree, details_text, object_map, _event=None):
-    """Show the selected object's label, type, and serialized contents."""
+def _update_details_text(tree, details_text, object_map):
+    """Refresh the read-only data view for the selected tree item."""
     selected = tree.selection()
     selected_object = object_map.get(selected[0]) if selected else None
     element = tree.item(selected[0], "text") if selected else ""
@@ -220,6 +229,49 @@ def show_selected_element(tree, details_text, object_map, _event=None):
         else element,
     )
     details_text.configure(state="disabled")
+
+
+def show_selected_element(
+    tree, details_text, object_map, right_frame, root, _event=None, open_editor=True
+):
+    """Show the selected object's label, type, and serialized contents."""
+    if getattr(details_text, "selection_guard", False):
+        details_text.selection_guard = False
+        return
+
+    selected = tree.selection()
+    selected_item_id = selected[0] if selected else None
+    modify_panel = getattr(details_text, "modify_panel", None)
+    edit_item_id = getattr(details_text, "edit_item_id", None)
+    if modify_panel is not None:
+        if (
+            selected_item_id != edit_item_id
+            and _has_unsaved_changes(details_text)
+        ):
+            if not edit_item_id or not tree.exists(edit_item_id):
+                _close_inline_editor(details_text)
+            else:
+                details_text.selection_guard = True
+                tree.selection_set(edit_item_id)
+                _prompt_unsaved_changes(
+                    tree,
+                    details_text,
+                    object_map,
+                    right_frame,
+                    root,
+                    selected_item_id,
+                )
+                return
+        _close_inline_editor(details_text)
+    if not details_text.winfo_manager():
+        details_text.pack(fill="both", expand=True, padx=4, pady=4)
+
+    selected_object = object_map.get(selected[0]) if selected else None
+    _update_details_text(tree, details_text, object_map)
+    if selected_object is not None and open_editor:
+        modify_selected_element(
+            tree, object_map, selected[0], details_text, right_frame, root
+        )
 
 
 def _field_definitions(selected_object):
@@ -317,22 +369,119 @@ def _apply_field_value(selected_object, attribute, field_type, value):
     setattr(selected_object, attribute, value)
 
 
-def modify_selected_element(tree, object_map, item_id, root):
-    """Open a modal editor whose fields match the selected object type."""
+def _editor_value(widget, field_type):
+    """Return the current text from an editor widget."""
+    if field_type == "elements":
+        return widget.get("1.0", "end-1c")
+    return widget.get()
+
+
+def _mark_changed(widget, initial_value, field_type, _event=None):
+    """Color an editor red while its value differs from its initial value."""
+    current_value = _editor_value(widget, field_type)
+    widget.configure(foreground="red" if current_value != initial_value else "black")
+
+
+def _has_unsaved_changes(details_text):
+    """Return whether the inline editor contains unsaved values."""
+    fields = getattr(details_text, "edit_fields", {})
+    initial_values = getattr(details_text, "edit_initial_values", {})
+    return any(
+        _editor_value(widget, field_type) != initial_values[attribute]
+        for attribute, (widget, field_type) in fields.items()
+    )
+
+
+def _close_inline_editor(details_text):
+    """Remove the inline editor and clear its tracked editing state."""
+    panel = getattr(details_text, "modify_panel", None)
+    if panel is not None:
+        panel.destroy()
+    details_text.modify_panel = None
+    details_text.edit_item_id = None
+    details_text.edit_fields = {}
+    details_text.edit_initial_values = {}
+    details_text.save_changes = None
+
+
+def _prompt_unsaved_changes(
+    tree, details_text, object_map, right_frame, root, pending_item_id,
+    on_continue=None
+):
+    """Ask whether to save or discard changes before changing selection."""
+    prompt = tk.Toplevel(root)
+    prompt.title("Unsaved changes")
+    prompt.transient(root)
+    prompt.grab_set()
+
+    ttk.Label(
+        prompt,
+        text="This element has unsaved changes. What would you like to do?",
+        padding=12,
+    ).pack()
+    button_frame = ttk.Frame(prompt)
+    button_frame.pack(pady=(0, 12))
+
+    def continue_selection(save):
+        if save and details_text.save_changes is not None:
+            if not details_text.save_changes():
+                return
+        prompt.destroy()
+        _close_inline_editor(details_text)
+        if on_continue is not None:
+            details_text.selection_guard = False
+            on_continue()
+            return
+        if pending_item_id and tree.exists(pending_item_id):
+            tree.selection_set(pending_item_id)
+            tree.see(pending_item_id)
+        else:
+            details_text.selection_guard = False
+
+    ttk.Button(
+        button_frame,
+        text="Save changes",
+        command=lambda: continue_selection(True),
+    ).pack(side="left", padx=4)
+    ttk.Button(
+        button_frame,
+        text="Don't save",
+        command=lambda: continue_selection(False),
+    ).pack(side="left", padx=4)
+
+    prompt.update_idletasks()
+    prompt.geometry(
+        f"+{(prompt.winfo_screenwidth() - prompt.winfo_reqwidth()) // 2}"
+        f"+{(prompt.winfo_screenheight() - prompt.winfo_reqheight()) // 2}"
+    )
+
+
+def modify_selected_element(tree, object_map, item_id, details_text, right_frame, root):
+    """Show an in-place editor in the details panel for the selected object."""
     selected_object = object_map.get(item_id)
     if selected_object is None:
         return
 
-    panel = tk.Toplevel(root)
-    panel.title(f"Modify {type(selected_object).__name__}")
-    panel.transient(root)
-    panel.grab_set()
+    details_text.pack_forget()
+    panel = ttk.Frame(right_frame)
+    details_text.modify_panel = panel
+    details_text.edit_item_id = item_id
+    panel.pack(fill="x", padx=4, pady=(4, 0))
+    details_text.pack(fill="both", expand=True, padx=4, pady=4)
     panel.columnconfigure(1, weight=1)
 
+    ttk.Label(
+        panel,
+        text=f"Modify {type(selected_object).__name__}",
+        font=("TkDefaultFont", 10, "bold"),
+    ).grid(row=0, column=0, columnspan=2, sticky="w", padx=8, pady=(4, 10))
+
     fields = {}
+    initial_values = {}
     for row, (label, attribute, field_type) in enumerate(
         _field_definitions(selected_object)
     ):
+        row += 1
         ttk.Label(panel, text=label).grid(
             row=row, column=0, sticky="nw", padx=8, pady=6
         )
@@ -352,6 +501,19 @@ def modify_selected_element(tree, object_map, item_id, root):
             widget.grid(row=row, column=1, sticky="ew", padx=8, pady=6)
             widget.insert(0, _field_value(selected_object, attribute, field_type))
         fields[attribute] = (widget, field_type)
+        initial_value = _editor_value(widget, field_type)
+        initial_values[attribute] = initial_value
+        widget.bind(
+            "<KeyRelease>",
+            lambda event, editor=widget, original=initial_value, kind=field_type:
+            _mark_changed(editor, original, kind, event),
+        )
+        if field_type == "direction":
+            widget.bind(
+                "<<ComboboxSelected>>",
+                lambda event, editor=widget, original=initial_value, kind=field_type:
+                _mark_changed(editor, original, kind, event),
+            )
 
     def save_changes():
         try:
@@ -363,32 +525,66 @@ def modify_selected_element(tree, object_map, item_id, root):
                 )
                 _apply_field_value(selected_object, attribute, field_type, value)
         except (ValueError, json.JSONDecodeError) as error:
-            messagebox.showerror("Modify Error", str(error), parent=panel)
-            return
+            messagebox.showerror("Modify Error", str(error), parent=root)
+            return False
+
+        for attribute, (widget, field_type) in fields.items():
+            initial_values[attribute] = _editor_value(widget, field_type)
+            widget.configure(foreground="black")
 
         tree.item(item_id, text=_object_label(selected_object))
-        panel.destroy()
+        _update_details_text(tree, details_text, object_map)
+        return True
+
+    details_text.save_changes = save_changes
+    details_text.edit_fields = fields
+    details_text.edit_initial_values = initial_values
+
+    def restore_changes():
+        for attribute, (widget, field_type) in fields.items():
+            initial_value = initial_values[attribute]
+            if field_type == "elements":
+                widget.delete("1.0", "end")
+                widget.insert("1.0", initial_value)
+            elif field_type == "direction":
+                widget.set(initial_value)
+            else:
+                widget.delete(0, "end")
+                widget.insert(0, initial_value)
+            _mark_changed(widget, initial_value, field_type)
 
     button_frame = ttk.Frame(panel)
-    button_frame.grid(row=len(fields), column=0, columnspan=2, pady=8)
+    button_frame.grid(row=len(fields) + 1, column=0, columnspan=2, pady=8)
     ttk.Button(button_frame, text="Save", command=save_changes).pack(
         side="left", padx=4
     )
-    ttk.Button(button_frame, text="Cancel", command=panel.destroy).pack(
+    ttk.Button(button_frame, text="Restore", command=restore_changes).pack(
         side="left", padx=4
     )
 
-    panel.update_idletasks()
-    panel_width = panel.winfo_reqwidth()
-    panel_height = panel.winfo_reqheight()
-    screen_width = panel.winfo_screenwidth()
-    screen_height = panel.winfo_screenheight()
-    panel_x = (screen_width - panel_width) // 2
-    panel_y = (screen_height - panel_height) // 2
-    panel.geometry(f"{panel_width}x{panel_height}+{panel_x}+{panel_y}")
+
+def _run_tree_mutation_with_unsaved_changes(
+    tree, details_text, object_map, right_frame, root, mutate_action
+):
+    """Run a tree mutation after resolving unsaved inline editor changes."""
+    modify_panel = getattr(details_text, "modify_panel", None)
+    if modify_panel is not None and _has_unsaved_changes(details_text):
+        _prompt_unsaved_changes(
+            tree,
+            details_text,
+            object_map,
+            right_frame,
+            root,
+            None,
+            on_continue=mutate_action,
+        )
+        return
+    if modify_panel is not None:
+        _close_inline_editor(details_text)
+    mutate_action()
 
 
-def show_context_menu(event, tree, object_map, root):
+def show_context_menu(event, tree, object_map, details_text, right_frame, root):
     """Show Modify and type-specific child-creation actions for a tree item."""
     item_id = tree.identify_row(event.y)
     if not item_id or item_id not in object_map:
@@ -396,78 +592,94 @@ def show_context_menu(event, tree, object_map, root):
 
     tree.selection_set(item_id)
     context_menu = tk.Menu(tree, tearoff=0)
-    context_menu.add_command(
-        label="modify",
-        command=lambda: modify_selected_element(tree, object_map, item_id, root),
-    )
     selected_object = object_map[item_id]
     if isinstance(selected_object, rdma.transfer):
         context_menu.add_command(
             label="add channel",
-            command=lambda: add_channel_to_transfer(
-                tree, object_map, item_id
+            command=lambda: _run_tree_mutation_with_unsaved_changes(
+                tree, details_text, object_map, right_frame, root,
+                lambda: add_channel_to_transfer(tree, object_map, item_id)
             ),
         )
         context_menu.add_command(
             label="remove transfer",
-            command=lambda: remove_transfer_from_group(
-                tree, object_map, item_id
+            command=lambda: _run_tree_mutation_with_unsaved_changes(
+                tree, details_text, object_map, right_frame, root,
+                lambda: remove_transfer_from_group(tree, object_map, item_id)
             ),
         )
     if isinstance(selected_object, rdma.channel):
         context_menu.add_command(
             label="remove channel",
-            command=lambda: remove_channel_from_transfer(
-                tree, object_map, item_id
+            command=lambda: _run_tree_mutation_with_unsaved_changes(
+                tree, details_text, object_map, right_frame, root,
+                lambda: remove_channel_from_transfer(tree, object_map, item_id)
             ),
         )
     if isinstance(selected_object, rdma.transferGroup):
         context_menu.add_command(
             label="add transfer",
-            command=lambda: add_transfer_to_group(
-                tree, object_map, item_id
+            command=lambda: _run_tree_mutation_with_unsaved_changes(
+                tree, details_text, object_map, right_frame, root,
+                lambda: add_transfer_to_group(tree, object_map, item_id)
             ),
         )
         context_menu.add_command(
             label="remove transfer group",
-            command=lambda: remove_group_from_thread(
-                tree, object_map, item_id
+            command=lambda: _run_tree_mutation_with_unsaved_changes(
+                tree, details_text, object_map, right_frame, root,
+                lambda: remove_group_from_thread(tree, object_map, item_id)
             ),
         )
     if isinstance(selected_object, rdma.thread):
         context_menu.add_command(
             label="add group",
-            command=lambda: add_group_to_thread(
-                tree, object_map, item_id
+            command=lambda: _run_tree_mutation_with_unsaved_changes(
+                tree, details_text, object_map, right_frame, root,
+                lambda: add_group_to_thread(tree, object_map, item_id)
             ),
         )
         context_menu.add_command(
             label="remove thread",
-            command=lambda: remove_thread_from_plugin(
-                tree, object_map, item_id
+            command=lambda: _run_tree_mutation_with_unsaved_changes(
+                tree, details_text, object_map, right_frame, root,
+                lambda: remove_thread_from_plugin(tree, object_map, item_id)
             ),
         )
     if isinstance(selected_object, rdma.plugin):
         context_menu.add_command(
             label="add thread",
-            command=lambda: add_thread_to_plugin(
-                tree, object_map, item_id
+            command=lambda: _run_tree_mutation_with_unsaved_changes(
+                tree, details_text, object_map, right_frame, root,
+                lambda: add_thread_to_plugin(tree, object_map, item_id)
             ),
         )
         context_menu.add_command(
             label="remove plugin",
-            command=lambda: remove_plugin_from_configuration(
-                tree, object_map, item_id
+            command=lambda: _run_tree_mutation_with_unsaved_changes(
+                tree, details_text, object_map, right_frame, root,
+                lambda: remove_plugin_from_configuration(tree, object_map, item_id)
             ),
         )
     if isinstance(selected_object, rdma.RDMA_Configuration):
         context_menu.add_command(
             label="add plugin",
-            command=lambda: add_plugin_to_configuration(
-                tree, object_map, item_id
+            command=lambda: _run_tree_mutation_with_unsaved_changes(
+                tree, details_text, object_map, right_frame, root,
+                lambda: add_plugin_to_configuration(tree, object_map, item_id)
             ),
         )
     context_menu.tk_popup(event.x_root, event.y_root)
+
+
+def _parent_component(parent, default=""):
+    """Return the component name used by a parent's first setting."""
+    settings = getattr(parent, "component_settings", [])
+    if isinstance(settings, rdma.component_settings):
+        return settings.component
+    if settings:
+        return settings[0].component
+    return default
 
 
 def add_channel_to_transfer(tree, object_map, item_id):
@@ -476,9 +688,7 @@ def add_channel_to_transfer(tree, object_map, item_id):
     if not isinstance(selected_transfer, rdma.transfer):
         return
     
-    protocol = ""
-    if selected_transfer.component_settings:
-        protocol = selected_transfer.component_settings[0].component
+    protocol = _parent_component(selected_transfer)
 
     logger.debug(f"Adding channel to transfer: {selected_transfer.getName()} with protocol {protocol}")
 
@@ -695,9 +905,7 @@ def add_transfer_to_group(tree, object_map, item_id):
     if not isinstance(selected_group, rdma.transferGroup):
         return
 
-    protocol = ""
-    if selected_group.component_settings:
-        protocol = selected_group.component_settings[0].component
+    protocol = _parent_component(selected_group)
 
     transfer_number = len(selected_group.transfers) + 1
     new_transfer = rdma.transfer(
@@ -725,9 +933,7 @@ def add_group_to_thread(tree, object_map, item_id):
     if not isinstance(selected_thread, rdma.thread):
         return
 
-    protocol = ""
-    if selected_thread.component_settings:
-        protocol = selected_thread.component_settings[0].component
+    protocol = _parent_component(selected_thread)
 
     group_number = len(selected_thread.transfer_groups) + 1
     new_group = rdma.transferGroup(
@@ -755,9 +961,7 @@ def add_thread_to_plugin(tree, object_map, item_id):
     if not isinstance(selected_plugin, rdma.plugin):
         return
 
-    protocol = ""
-    if selected_plugin.component_settings:
-        protocol = selected_plugin.component_settings[0].component
+    protocol = _parent_component(selected_plugin)
 
     new_thread = rdma.thread(
         processor=-2,
@@ -854,11 +1058,15 @@ def main():
 
     tree.bind(
         "<<TreeviewSelect>>",
-        lambda event: show_selected_element(tree, details_text, object_map, event),
+        lambda event: show_selected_element(
+            tree, details_text, object_map, right_frame, root, event
+        ),
     )
     tree.bind(
         "<Button-3>",
-        lambda event: show_context_menu(event, tree, object_map, root),
+        lambda event: show_context_menu(
+            event, tree, object_map, details_text, right_frame, root
+        ),
     )
 
     menu_bar = tk.Menu(root)
@@ -866,15 +1074,21 @@ def main():
     file_menu = tk.Menu(menu_bar, tearoff=0)
     file_menu.add_command(
         label="New",
-        command=lambda: new_action(tree, file_path_label, object_map),
+        command=lambda: _run_tree_mutation_with_unsaved_changes(
+            tree, details_text, object_map, right_frame, root,
+            lambda: new_action(tree, file_path_label, object_map),
+        ),
     )
     file_menu.add_command(
         label="Load",
-        command=lambda: load_action(tree, file_path_label, object_map),
+        command=lambda: _run_tree_mutation_with_unsaved_changes(
+            tree, details_text, object_map, right_frame, root,
+            lambda: load_action(tree, file_path_label, object_map),
+        ),
     )
     file_menu.add_command(
         label="Save",
-        command=lambda: save_action(file_path_label, root),
+        command=lambda: save_action(file_path_label, root, details_text),
     )
 
     menu_bar.add_cascade(label="File", menu=file_menu)
