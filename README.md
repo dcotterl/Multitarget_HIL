@@ -4,9 +4,9 @@ Tools and project assets for building, configuring, and validating multitarget H
 
 ## Repository layout
 
-- `/home/runner/work/Multitarget_HIL/Multitarget_HIL/Python`
+- `Python/`
   - Python package, GUI, examples, tests, and sample DSF files.
-- `/home/runner/work/Multitarget_HIL/Multitarget_HIL/VeriStand`
+- `VeriStand/`
   - VeriStand projects, screens, and DSF assets used by the deployed HIL workflows.
 
 ## Architecture
@@ -32,14 +32,14 @@ Main Python components:
 
 ## Typical workflow
 
-1. Create or edit a configuration in `/home/runner/work/Multitarget_HIL/Multitarget_HIL/Python`.
+1. Create or edit a configuration in `Python/`.
 2. Save the configuration as a `.dsf` file.
-3. Use the generated DSF alongside the VeriStand project files under `/home/runner/work/Multitarget_HIL/Multitarget_HIL/VeriStand`.
+3. Use the generated DSF alongside the VeriStand project files under `VeriStand/`.
 4. Validate behavior with the included Python tests before packaging or sharing updates.
 
 ## Python quick start
 
-From `/home/runner/work/Multitarget_HIL/Multitarget_HIL/Python`:
+From `Python/`:
 
 ```bash
 python -m unittest discover -s tests -v
@@ -58,13 +58,13 @@ ruff format --check .
 
 ## Where the sample data lives
 
-- `/home/runner/work/Multitarget_HIL/Multitarget_HIL/Python/data/Simple_c1.dsf`
+- `Python/data/Simple_c1.dsf`
   - Default GUI sample file.
-- `/home/runner/work/Multitarget_HIL/Multitarget_HIL/Python/data/config_multidirectional_1_Callea_to_Cotterle_generated.dsf`
+- `Python/data/config_multidirectional_1_Callea_to_Cotterle_generated.dsf`
   - Regression/reference configuration used by examples and tests.
-- `/home/runner/work/Multitarget_HIL/Multitarget_HIL/VeriStand/rdma configs`
+- `VeriStand/rdma configs/`
   - VeriStand-oriented DSF samples and generated configuration artifacts.
 
 ## Building the Windows GUI
 
-See `/home/runner/work/Multitarget_HIL/Multitarget_HIL/Python/building tools/README.md`.
+See `Python/building tools/README.md`.

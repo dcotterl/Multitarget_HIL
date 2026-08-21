@@ -228,7 +228,7 @@ def modify_selected_element(tree, object_map, item_id, details_text, right_frame
     def save_changes():
         try:
             for attribute, (widget, field_type) in fields.items():
-                value = widget.get("1.0", "end") if field_type == "elements" else widget.get()
+                value = widget.get("1.0", "end-1c") if field_type == "elements" else widget.get()
                 apply_field_value(selected_object, attribute, field_type, value)
         except (ValueError, TypeError, json.JSONDecodeError) as error:
             messagebox.showerror("Modify Error", str(error), parent=root)

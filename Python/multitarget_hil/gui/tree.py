@@ -37,7 +37,7 @@ def populate_tree(tree, value, parent="", object_map=None):
         children.extend(item for item in component_settings if isinstance(item, CONFIGURATION_OBJECT_TYPES))
 
     for attribute, child in vars(value).items():
-        if attribute in {"component_settings", "_component_settings"}:
+        if attribute.startswith("_") or attribute == "component_settings":
             continue
         children.append(child)
 

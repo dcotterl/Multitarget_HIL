@@ -4,19 +4,19 @@ This directory contains the Python package, GUI, examples, tests, and build asse
 
 ## Contents
 
-- `/home/runner/work/Multitarget_HIL/Multitarget_HIL/Python/multitarget_hil`
+- `multitarget_hil/`
   - Packaged Python source for the RDMA model and GUI.
-- `/home/runner/work/Multitarget_HIL/Multitarget_HIL/Python/HMI/rdma_gui.py`
+- `HMI/rdma_gui.py`
   - Compatibility launcher for the packaged GUI.
-- `/home/runner/work/Multitarget_HIL/Multitarget_HIL/Python/RDMA_Definitions.py`
+- `RDMA_Definitions.py`
   - Compatibility wrapper for the packaged model module.
-- `/home/runner/work/Multitarget_HIL/Multitarget_HIL/Python/examples`
+- `examples/`
   - Example scripts for configuration creation and import/export validation.
-- `/home/runner/work/Multitarget_HIL/Multitarget_HIL/Python/tests`
+- `tests/`
   - Automated regression coverage for the model and GUI session logic.
-- `/home/runner/work/Multitarget_HIL/Multitarget_HIL/Python/data`
+- `data/`
   - Sample and reference DSF files used by the GUI, tests, and examples.
-- `/home/runner/work/Multitarget_HIL/Multitarget_HIL/Python/building tools`
+- `building tools/`
   - Windows packaging assets for the standalone GUI executable and installer.
 
 ## Package structure
@@ -41,7 +41,7 @@ Provides:
 
 ## Running the tests
 
-From `/home/runner/work/Multitarget_HIL/Multitarget_HIL/Python`:
+From `Python/`:
 
 ```bash
 python -m unittest discover -s tests -v
@@ -62,17 +62,17 @@ ruff check .
 ruff format --check .
 ```
 
-The shared Ruff settings live in `/home/runner/work/Multitarget_HIL/Multitarget_HIL/Python/pyproject.toml`.
+The shared Ruff settings live in `pyproject.toml`.
 
 ## Running the GUI
 
-From `/home/runner/work/Multitarget_HIL/Multitarget_HIL/Python`:
+From `Python/`:
 
 ```bash
 python HMI/rdma_gui.py
 ```
 
-The GUI can load or save `.dsf` and `.json` files. It defaults to the sample file at `/home/runner/work/Multitarget_HIL/Multitarget_HIL/Python/data/Simple_c1.dsf` when available.
+The GUI can load or save `.dsf` and `.json` files. It defaults to the sample file at `data/Simple_c1.dsf` when available.
 
 ## Running the examples
 
