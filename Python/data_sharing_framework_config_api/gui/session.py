@@ -72,6 +72,10 @@ class ConfigurationSession:
             protocol="RDMA",
             name="Transfer 1",
             channels=[],
+            local_address="local address",
+            local_port=0,
+            destination_address="destination address",
+            destination_port=0,
         )
         new_transfer.addChannel(rdma.Channel(name="Channel 1", protocol="RDMA"))
         new_group.addTransfer(new_transfer)

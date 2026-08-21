@@ -402,6 +402,7 @@ class TransferGroup:
 
     def __str__(self) -> str:
         result = self.getDict()
+        result["core"]["direction"] = str(self.direction.name)
         result["transfers"] = "[EMPTY]" if not self.transfers else f"[...{len(self.transfers)} transfers...]"
         return json.dumps(result, indent=4)
 

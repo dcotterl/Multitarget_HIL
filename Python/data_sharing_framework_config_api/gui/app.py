@@ -419,16 +419,11 @@ def add_transfer_to_group(selected_group, refresh):
     protocol = parent_component(selected_group)
     transfer_number = len(selected_group.transfers) + 1
     transfer = rdma.Transfer(protocol=protocol, name=f"Transfer {transfer_number}", channels=[])
-    if selected_group.direction == rdma.Direction.TX:
-        transfer.component_settings = [rdma.ComponentSettings(
-            component=protocol,
-            initial_elements=[
-                rdma.Element("local address", ""),
-                rdma.Element("local port", ""),
-                rdma.Element("destination address", ""),
-                rdma.Element("destination port", ""),
-            ],
-        )]
+    if selected_group.direction == rdma.Direction.RX:
+        transfer = rdma.Transfer(protocol=protocol, name=f"Transfer {transfer_number}", channels=[],local_address="local address", local_port=0)
+    elif selected_group.direction == rdma.Direction.TX:
+        transfer = rdma.Transfer(protocol=protocol, name=f"Transfer {transfer_number}", channels=[],local_address="local address", local_port=0,destination_address="destination address", destination_port=0)
+    
     selected_group.addTransfer(transfer)
     refresh(selected_group)
 
