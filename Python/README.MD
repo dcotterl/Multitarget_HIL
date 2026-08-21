@@ -6,10 +6,6 @@ This directory contains the Python package, GUI, examples, tests, and build asse
 
 - `data_sharing_framework_config_api/`
   - Packaged Python source for the RDMA model and GUI.
-- `HMI/rdma_gui.py`
-  - Compatibility launcher for the packaged GUI.
-- `RDMA_Definitions.py`
-  - Compatibility wrapper for the packaged model module.
 - `examples/`
   - Example scripts for configuration creation and import/export validation.
 - `tests/`
@@ -28,7 +24,6 @@ Provides:
 - the RDMA configuration object model
 - import/export helpers for DSF and JSON content
 - validation for nested object types and transfer-direction invariants
-- backwards-compatible aliases for the original class names
 
 ### `data_sharing_framework_config_api.gui`
 
@@ -69,7 +64,7 @@ The shared Ruff settings live in `pyproject.toml`.
 From `Python/`:
 
 ```bash
-python HMI/rdma_gui.py
+python data_sharing_framework_config_api/gui/app.py
 ```
 
 The GUI can load or save `.dsf` and `.json` files. It defaults to the sample file at `data/Simple_c1.dsf` when available.

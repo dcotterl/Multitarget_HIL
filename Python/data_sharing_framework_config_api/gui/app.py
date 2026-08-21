@@ -109,7 +109,7 @@ def apply_field_value(selected_object, attribute, field_type, value):
             if "=" not in line:
                 raise ValueError("Each value must use key=value format.")
             key, item_value = line.split("=", 1)
-            elements.append(rdma.element(key.strip(), item_value.strip()))
+            elements.append(rdma.Element(key.strip(), item_value.strip()))
         value = elements
     setattr(selected_object, attribute, value)
 

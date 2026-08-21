@@ -16,23 +16,23 @@ DATA_PATH = Path(__file__).resolve().parent.parent / "data" / "config_multidirec
 
 def round_trip_objects():
     logger.info("Creating and round-tripping RDMA objects")
-    element = rdma.element("key1", 3.14)
-    component_settings = rdma.component_settings("RDMA", [element, rdma.element("key2", "value")])
-    channel = rdma.channel(protocol="rdma", name="channel1", unit="V")
-    transfer = rdma.transfer(direction=rdma.Direction.TX, protocol="rdma", channels=[channel])
-    transfer_group = rdma.transferGroup(transfers=[transfer])
-    thread = rdma.thread(protocol="rdma", transfer_groups=[transfer_group])
-    plugin = rdma.plugin(name="plugin1", threads=[thread], protocol="rdma")
+    element = rdma.Element("key1", 3.14)
+    component_settings = rdma.ComponentSettings("RDMA", [element, rdma.Element("key2", "value")])
+    channel = rdma.Channel(protocol="rdma", name="channel1", unit="V")
+    transfer = rdma.Transfer(direction=rdma.Direction.TX, protocol="rdma", channels=[channel])
+    transfer_group = rdma.TransferGroup(transfers=[transfer])
+    thread = rdma.Thread(protocol="rdma", transfer_groups=[transfer_group])
+    plugin = rdma.Plugin(name="plugin1", threads=[thread], protocol="rdma")
     config = rdma.RDMA_Configuration(plugins=[plugin])
 
     clones = [
-        rdma.element.from_dict(element.getDict()),
-        rdma.component_settings.from_dict(component_settings.getDict()),
-        rdma.channel.from_dict(channel.getDict()),
-        rdma.transfer.from_dict(transfer.getDict()),
-        rdma.transferGroup.from_dict(transfer_group.getDict()),
-        rdma.thread.from_dict(thread.getDict()),
-        rdma.plugin.from_dict(plugin.getDict()),
+        rdma.Element.from_dict(element.getDict()),
+        rdma.ComponentSettings.from_dict(component_settings.getDict()),
+        rdma.Channel.from_dict(channel.getDict()),
+        rdma.Transfer.from_dict(transfer.getDict()),
+        rdma.TransferGroup.from_dict(transfer_group.getDict()),
+        rdma.Thread.from_dict(thread.getDict()),
+        rdma.Plugin.from_dict(plugin.getDict()),
         rdma.RDMA_Configuration.from_dict(config.getDict()),
     ]
     logger.info("Round-trip succeeded for %d object types", len(clones))

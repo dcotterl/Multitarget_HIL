@@ -44,7 +44,7 @@ From `Python/`:
 ```bash
 python -m unittest discover -s tests -v
 python -m compileall data_sharing_framework_config_api tests examples
-python HMI/rdma_gui.py
+python data_sharing_framework_config_api/gui/app.py
 python -m examples.import_config_example
 python -m examples.rdma_configuration_example
 ```

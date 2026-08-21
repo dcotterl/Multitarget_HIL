@@ -18,9 +18,6 @@ transfers, transfer groups, threads, and plugins. ``Direction`` identifies
 transfers and transfer groups as transmit (TX) or receive (RX); a transfer
 group rejects transfers with a different direction.
 
-Deprecated aliases ``element``, ``component_settings``, ``channel``,
-``transfer``, ``transferGroup``, ``thread``, ``plugin`` are provided for
-backwards compatibility and will be removed in a future release.
 """
 
 from __future__ import annotations
@@ -661,13 +658,6 @@ def get_version() -> dict:
     return {"major": 2, "minor": 0, "fix": 0, "build": ""}
 
 
-element = Element
-component_settings = ComponentSettings
-channel = Channel
-transfer = Transfer
-transferGroup = TransferGroup
-thread = Thread
-plugin = Plugin
 
 
 if __name__ == "__main__":

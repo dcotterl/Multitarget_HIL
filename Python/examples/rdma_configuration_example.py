@@ -17,10 +17,10 @@ OUTPUT_DIR = Path(__file__).resolve().parent / "output"
 
 def bottom_up():
     logger.info("Create channels")
-    channel = rdma.channel(name="Channel1", protocol="RDMA")
+    channel = rdma.Channel(name="Channel1", protocol="RDMA")
 
     logger.info("Create TX transfer")
-    transfer_tx = rdma.transfer(
+    transfer_tx = rdma.Transfer(
         name="Transfer_Callea_to_Cotterle_Tx",
         direction=rdma.Direction.TX,
         protocol="RDMA",
@@ -32,7 +32,7 @@ def bottom_up():
     )
 
     logger.info("Create RX transfer")
-    transfer_rx = rdma.transfer(
+    transfer_rx = rdma.Transfer(
         name="Transfer_Cotterle_to_Callea_Rx",
         direction=rdma.Direction.RX,
         protocol="RDMA",
@@ -42,13 +42,13 @@ def bottom_up():
     )
 
     logger.info("Create transfer groups")
-    transfer_group_tx = rdma.transferGroup(
+    transfer_group_tx = rdma.TransferGroup(
         name="TransferGroup_Callea_to_Cotterle_Tx",
         direction=rdma.Direction.TX,
         protocol="RDMA",
         transfers=[transfer_tx],
     )
-    transfer_group_rx = rdma.transferGroup(
+    transfer_group_rx = rdma.TransferGroup(
         name="TransferGroup_Cotterle_to_Callea_Rx",
         direction=rdma.Direction.RX,
         protocol="RDMA",
@@ -56,26 +56,26 @@ def bottom_up():
     )
 
     logger.info("Create bidirectional thread and plugin")
-    thread = rdma.thread(protocol="RDMA", transfer_groups=[transfer_group_tx, transfer_group_rx])
-    plugin = rdma.plugin(name="BidirectionalPlugin", protocol="RDMA", threads=[thread])
+    thread = rdma.Thread(protocol="RDMA", transfer_groups=[transfer_group_tx, transfer_group_rx])
+    plugin = rdma.Plugin(name="BidirectionalPlugin", protocol="RDMA", threads=[thread])
     return rdma.RDMA_Configuration(plugins=[plugin])
 
 
 def top_down():
     config = rdma.RDMA_Configuration()
-    plugin = rdma.plugin(name="BidirectionalPlugin", threads=[], protocol="RDMA")
-    thread = rdma.thread(protocol="RDMA")
-    transfer_group_tx = rdma.transferGroup(
+    plugin = rdma.Plugin(name="BidirectionalPlugin", threads=[], protocol="RDMA")
+    thread = rdma.Thread(protocol="RDMA")
+    transfer_group_tx = rdma.TransferGroup(
         name="TransferGroup_Callea_to_Cotterle_Tx",
         direction=rdma.Direction.TX,
         protocol="RDMA",
     )
-    transfer_group_rx = rdma.transferGroup(
+    transfer_group_rx = rdma.TransferGroup(
         name="TransferGroup_Cotterle_to_Callea_Rx",
         direction=rdma.Direction.RX,
         protocol="RDMA",
     )
-    transfer_tx = rdma.transfer(
+    transfer_tx = rdma.Transfer(
         name="Transfer_Callea_to_Cotterle_Tx",
         direction=rdma.Direction.TX,
         protocol="RDMA",
@@ -84,14 +84,14 @@ def top_down():
         destination_address="169.254.49.44",
         destination_port=5011,
     )
-    transfer_rx = rdma.transfer(
+    transfer_rx = rdma.Transfer(
         name="Transfer_Cotterle_to_Callea_Rx",
         direction=rdma.Direction.RX,
         protocol="RDMA",
         local_address="169.254.23.111",
         local_port=5010,
     )
-    channel = rdma.channel(name="Channel1", protocol="RDMA")
+    channel = rdma.Channel(name="Channel1", protocol="RDMA")
 
     transfer_rx.channels = [channel]
     transfer_tx.channels = [channel]

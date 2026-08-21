@@ -10,14 +10,7 @@ from .rdma_definitions import (
     Thread,
     Transfer,
     TransferGroup,
-    channel,
-    component_settings,
-    element,
     get_version,
-    plugin,
-    thread,
-    transfer,
-    transferGroup,
 )
 
 __all__ = [
@@ -30,12 +23,5 @@ __all__ = [
     "Thread",
     "Transfer",
     "TransferGroup",
-    "channel",
-    "component_settings",
-    "element",
     "get_version",
-    "plugin",
-    "thread",
-    "transfer",
-    "transferGroup",
 ]

@@ -6,7 +6,7 @@ project_root = os.path.dirname(os.path.abspath(SPECPATH))
 
 
 a = Analysis(
-    [os.path.join(project_root, 'HMI', 'rdma_gui.py')],
+    [os.path.join(project_root, 'data_sharing_framework_config_api', 'gui', 'app.py')],
     pathex=[project_root],
     binaries=[],
     datas=[(os.path.join(project_root, 'data', 'Simple_c1.dsf'), 'data')],
