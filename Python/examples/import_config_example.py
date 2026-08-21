@@ -19,7 +19,7 @@ def round_trip_objects():
     element = rdma.Element("key1", 3.14)
     component_settings = rdma.ComponentSettings("RDMA", [element, rdma.Element("key2", "value")])
     channel = rdma.Channel(protocol="rdma", name="channel1", unit="V")
-    transfer = rdma.Transfer(direction=rdma.Direction.TX, protocol="rdma", channels=[channel])
+    transfer = rdma.Transfer(protocol="rdma", channels=[channel])
     transfer_group = rdma.TransferGroup(transfers=[transfer])
     thread = rdma.Thread(protocol="rdma", transfer_groups=[transfer_group])
     plugin = rdma.Plugin(name="plugin1", threads=[thread], protocol="rdma")

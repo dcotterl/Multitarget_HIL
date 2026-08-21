@@ -65,7 +65,7 @@ def field_definitions(selected_object):
             ("Enable conversion", "enable_conversion", "bool"),
         ]
     if isinstance(selected_object, rdma.Transfer):
-        return [("Name", "name", "text"), ("Direction", "direction", "direction")]
+        return [("Name", "name", "text")]
     if isinstance(selected_object, rdma.Channel):
         return [
             ("Name", "name", "text"),
@@ -418,9 +418,13 @@ def remove_thread_from_plugin(configuration, selected_thread, refresh):
 def add_transfer_to_group(selected_group, refresh):
     protocol = parent_component(selected_group)
     transfer_number = len(selected_group.transfers) + 1
-    selected_group.addTransfer(
-        rdma.Transfer(direction=selected_group.direction, protocol=protocol, name=f"Transfer {transfer_number}", channels=[])
-    )
+    transfer = rdma.Transfer(protocol=protocol, name=f"Transfer {transfer_number}", channels=[])
+    if selected_group.direction == rdma.Direction.RX:
+        transfer = rdma.Transfer(protocol=protocol, name=f"Transfer {transfer_number}", channels=[],local_address="local address", local_port=0)
+    elif selected_group.direction == rdma.Direction.TX:
+        transfer = rdma.Transfer(protocol=protocol, name=f"Transfer {transfer_number}", channels=[],local_address="local address", local_port=0,destination_address="destination address", destination_port=0)
+    
+    selected_group.addTransfer(transfer)
     refresh(selected_group)
 
 
