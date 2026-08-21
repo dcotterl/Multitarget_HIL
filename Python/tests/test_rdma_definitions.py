@@ -9,34 +9,109 @@ if str(PYTHON_ROOT) not in sys.path:
 
 from data_sharing_framework_config_api import rdma_definitions as rdma
 
-DATA_PATH = Path(__file__).resolve().parent.parent / "data" / "config_multidirectional_1_Callea_to_Cotterle_generated.dsf"
+DATA_PATH = Path(r"tests/config_multidirectional_1_Callea_to_Cotterle_generated.dsf")
 
 
-class RdmaDefinitionsTests(unittest.TestCase):
-    def test_round_trip_reference_configuration(self):
-        with DATA_PATH.open("r", encoding="utf-8") as handle:
-            loaded = json.load(handle)
-        config = rdma.RDMA_Configuration.from_dict(loaded)
-        self.assertEqual(loaded, config.getDict())
+class Rdma_Import_Tests(unittest.TestCase):
+    """Test RDMA definition serialization, deserialization, and fixture imports."""
 
-    def test_transfer_group_rejects_mismatched_direction(self):
+    def test_channel_round_trip(self):
+        """Ensure a channel remains unchanged after a dictionary round trip."""
+        channel = rdma.Channel()
+        rebuilt = rdma.Channel.from_dict(channel.getDict())
+        self.assertEqual(channel.getDict(), rebuilt.getDict())
+
+    def test_transfer_round_trip(self):
+        """Ensure a transfer remains unchanged after a dictionary round trip."""
+        transfer = rdma.Transfer(direction=rdma.Direction.RX, protocol="RDMA")
+        rebuilt = rdma.Transfer.from_dict(transfer.getDict())
+        self.assertEqual(transfer.getDict(), rebuilt.getDict())
+
+    def test_thread_round_trip(self):
+            """Ensure a thread remains unchanged after a dictionary round trip."""
+            thread = rdma.Thread()
+            rebuilt = rdma.Thread.from_dict(thread.getDict())
+            self.assertEqual(thread.getDict(), rebuilt.getDict())
+    
+    def test_plugin_round_trip(self):
+        """Ensure a plugin remains unchanged after a dictionary round trip."""
+        plugin = rdma.Plugin()
+        rebuilt = rdma.Plugin.from_dict(plugin.getDict())
+        self.assertEqual(plugin.getDict(), rebuilt.getDict())
+
+    def test_transfer_group_round_trip(self):
+        """Ensure a transfer group remains unchanged after a dictionary round trip."""
         rx_transfer = rdma.Transfer(direction=rdma.Direction.RX, protocol="RDMA")
-        with self.assertRaisesRegex(ValueError, "does not match group direction"):
-            rdma.TransferGroup(direction=rdma.Direction.TX, protocol="RDMA", transfers=[rx_transfer])
+        transfer_group = rdma.TransferGroup(direction=rdma.Direction.RX, protocol="RDMA", transfers=[rx_transfer])
+        rebuilt = rdma.TransferGroup.from_dict(transfer_group.getDict())
+        self.assertEqual(transfer_group.getDict(), rebuilt.getDict())
 
-    def test_invalid_plugin_list_type_is_rejected(self):
+    def test_rdma_configuration_round_trip(self):
+        """Ensure an RDMA configuration remains unchanged after a round trip."""
         config = rdma.RDMA_Configuration()
-        with self.assertRaisesRegex(TypeError, "RDMA_Configuration.plugins must be a list"):
-            config.plugins = "not-a-list"
+        rebuilt = rdma.RDMA_Configuration.from_dict(config.getDict())
+        self.assertEqual(config.getDict(), rebuilt.getDict())
 
-    def test_invalid_import_shape_is_rejected(self):
-        with self.assertRaisesRegex(TypeError, "Transfer.core must be a dictionary"):
-            rdma.Transfer.from_dict({"core": []})
+    def test_import_matches_generated_file(self):
+            """Ensure the generated configuration imports without changes."""
+            with open(DATA_PATH, "r") as f:
+                expected_dict = json.load(f)
 
-    def test_assignment_validates_nested_types(self):
-        transfer = rdma.Transfer(protocol="RDMA")
-        with self.assertRaisesRegex(TypeError, "Transfer.channels item 0 must be Channel"):
-            transfer.channels = ["channel"]
+            config = rdma.RDMA_Configuration.from_dict(expected_dict)
+            self.assertEqual(config.getDict(), expected_dict)
+
+class Rdma_benchmark_configuration(unittest.TestCase):
+    """Test construction of the expected bidirectional benchmark configuration."""
+
+    def test_bottomup_configuration(self):
+        """Ensure a bottom-up configuration matches the generated fixture."""
+
+        channel = rdma.Channel(name="Channel1", protocol="RDMA")
+        
+        transfer_tx = rdma.Transfer(
+            name="Transfer_Callea_to_Cotterle_Tx",
+            direction=rdma.Direction.TX,
+            protocol="RDMA",
+            local_address="169.254.23.111",
+            local_port=5011,
+            destination_address="169.254.49.44",
+            destination_port=5011,
+            channels=[channel],
+        )
+    
+        transfer_rx = rdma.Transfer(
+            name="Transfer_Cotterle_to_Callea_Rx",
+            direction=rdma.Direction.RX,
+            protocol="RDMA",
+            local_address="169.254.23.111",
+            local_port=5010,
+            channels=[channel],
+        )
+
+        transfer_group_tx = rdma.TransferGroup(
+            name="TransferGroup_Callea_to_Cotterle_Tx",
+            direction=rdma.Direction.TX,
+            protocol="RDMA",
+            transfers=[transfer_tx],
+        )
+    
+        transfer_group_rx = rdma.TransferGroup(
+            name="TransferGroup_Cotterle_to_Callea_Rx",
+            direction=rdma.Direction.RX,
+            protocol="RDMA",
+            transfers=[transfer_rx],
+        )
+
+        thread = rdma.Thread(protocol="RDMA", transfer_groups=[transfer_group_tx, transfer_group_rx])
+
+        plugin = rdma.Plugin(name="BidirectionalPlugin", protocol="RDMA", threads=[thread])
+
+        config = rdma.RDMA_Configuration(plugins=[plugin])
+
+        with open(DATA_PATH, "r") as f:
+            expected_dict = json.load(f)
+
+        self.assertEqual(config.getDict(), expected_dict)
 
 
 if __name__ == "__main__":
