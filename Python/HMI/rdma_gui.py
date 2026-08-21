@@ -239,17 +239,20 @@ def show_selected_element(
             selected_item_id != edit_item_id
             and _has_unsaved_changes(details_text)
         ):
-            details_text.selection_guard = True
-            tree.selection_set(edit_item_id)
-            _prompt_unsaved_changes(
-                tree,
-                details_text,
-                object_map,
-                right_frame,
-                root,
-                selected_item_id,
-            )
-            return
+            if not edit_item_id or not tree.exists(edit_item_id):
+                _close_inline_editor(details_text)
+            else:
+                details_text.selection_guard = True
+                tree.selection_set(edit_item_id)
+                _prompt_unsaved_changes(
+                    tree,
+                    details_text,
+                    object_map,
+                    right_frame,
+                    root,
+                    selected_item_id,
+                )
+                return
         _close_inline_editor(details_text)
     if not details_text.winfo_manager():
         details_text.pack(fill="both", expand=True, padx=4, pady=4)
@@ -393,7 +396,8 @@ def _close_inline_editor(details_text):
 
 
 def _prompt_unsaved_changes(
-    tree, details_text, object_map, right_frame, root, pending_item_id
+    tree, details_text, object_map, right_frame, root, pending_item_id,
+    on_continue=None
 ):
     """Ask whether to save or discard changes before changing selection."""
     prompt = tk.Toplevel(root)
@@ -415,8 +419,12 @@ def _prompt_unsaved_changes(
                 return
         prompt.destroy()
         _close_inline_editor(details_text)
-        tree.selection_set(pending_item_id)
-        tree.see(pending_item_id)
+        if on_continue is not None:
+            on_continue()
+            return
+        if pending_item_id and tree.exists(pending_item_id):
+            tree.selection_set(pending_item_id)
+            tree.see(pending_item_id)
 
     ttk.Button(
         button_frame,
@@ -543,6 +551,27 @@ def modify_selected_element(tree, object_map, item_id, details_text, right_frame
     )
 
 
+def _run_tree_mutation_with_unsaved_changes(
+    tree, details_text, object_map, right_frame, root, mutate_action
+):
+    """Run a tree mutation after resolving unsaved inline editor changes."""
+    modify_panel = getattr(details_text, "modify_panel", None)
+    if modify_panel is not None and _has_unsaved_changes(details_text):
+        _prompt_unsaved_changes(
+            tree,
+            details_text,
+            object_map,
+            right_frame,
+            root,
+            None,
+            on_continue=mutate_action,
+        )
+        return
+    if modify_panel is not None:
+        _close_inline_editor(details_text)
+    mutate_action()
+
+
 def show_context_menu(event, tree, object_map, details_text, right_frame, root):
     """Show Modify and type-specific child-creation actions for a tree item."""
     item_id = tree.identify_row(event.y)
@@ -555,67 +584,77 @@ def show_context_menu(event, tree, object_map, details_text, right_frame, root):
     if isinstance(selected_object, rdma.transfer):
         context_menu.add_command(
             label="add channel",
-            command=lambda: add_channel_to_transfer(
-                tree, object_map, item_id
+            command=lambda: _run_tree_mutation_with_unsaved_changes(
+                tree, details_text, object_map, right_frame, root,
+                lambda: add_channel_to_transfer(tree, object_map, item_id)
             ),
         )
         context_menu.add_command(
             label="remove transfer",
-            command=lambda: remove_transfer_from_group(
-                tree, object_map, item_id
+            command=lambda: _run_tree_mutation_with_unsaved_changes(
+                tree, details_text, object_map, right_frame, root,
+                lambda: remove_transfer_from_group(tree, object_map, item_id)
             ),
         )
     if isinstance(selected_object, rdma.channel):
         context_menu.add_command(
             label="remove channel",
-            command=lambda: remove_channel_from_transfer(
-                tree, object_map, item_id
+            command=lambda: _run_tree_mutation_with_unsaved_changes(
+                tree, details_text, object_map, right_frame, root,
+                lambda: remove_channel_from_transfer(tree, object_map, item_id)
             ),
         )
     if isinstance(selected_object, rdma.transferGroup):
         context_menu.add_command(
             label="add transfer",
-            command=lambda: add_transfer_to_group(
-                tree, object_map, item_id
+            command=lambda: _run_tree_mutation_with_unsaved_changes(
+                tree, details_text, object_map, right_frame, root,
+                lambda: add_transfer_to_group(tree, object_map, item_id)
             ),
         )
         context_menu.add_command(
             label="remove transfer group",
-            command=lambda: remove_group_from_thread(
-                tree, object_map, item_id
+            command=lambda: _run_tree_mutation_with_unsaved_changes(
+                tree, details_text, object_map, right_frame, root,
+                lambda: remove_group_from_thread(tree, object_map, item_id)
             ),
         )
     if isinstance(selected_object, rdma.thread):
         context_menu.add_command(
             label="add group",
-            command=lambda: add_group_to_thread(
-                tree, object_map, item_id
+            command=lambda: _run_tree_mutation_with_unsaved_changes(
+                tree, details_text, object_map, right_frame, root,
+                lambda: add_group_to_thread(tree, object_map, item_id)
             ),
         )
         context_menu.add_command(
             label="remove thread",
-            command=lambda: remove_thread_from_plugin(
-                tree, object_map, item_id
+            command=lambda: _run_tree_mutation_with_unsaved_changes(
+                tree, details_text, object_map, right_frame, root,
+                lambda: remove_thread_from_plugin(tree, object_map, item_id)
             ),
         )
     if isinstance(selected_object, rdma.plugin):
         context_menu.add_command(
             label="add thread",
-            command=lambda: add_thread_to_plugin(
-                tree, object_map, item_id
+            command=lambda: _run_tree_mutation_with_unsaved_changes(
+                tree, details_text, object_map, right_frame, root,
+                lambda: add_thread_to_plugin(tree, object_map, item_id)
             ),
         )
         context_menu.add_command(
             label="remove plugin",
-            command=lambda: remove_plugin_from_configuration(
-                tree, object_map, item_id
+            command=lambda: _run_tree_mutation_with_unsaved_changes(
+                tree, details_text, object_map, right_frame, root,
+                lambda: remove_plugin_from_configuration(tree, object_map, item_id)
             ),
         )
     if isinstance(selected_object, rdma.RDMA_Configuration):
         context_menu.add_command(
             label="add plugin",
-            command=lambda: add_plugin_to_configuration(
-                tree, object_map, item_id
+            command=lambda: _run_tree_mutation_with_unsaved_changes(
+                tree, details_text, object_map, right_frame, root,
+                lambda: add_plugin_to_configuration(tree, object_map, item_id)
             ),
         )
     context_menu.tk_popup(event.x_root, event.y_root)
@@ -1023,11 +1062,17 @@ def main():
     file_menu = tk.Menu(menu_bar, tearoff=0)
     file_menu.add_command(
         label="New",
-        command=lambda: new_action(tree, file_path_label, object_map),
+        command=lambda: _run_tree_mutation_with_unsaved_changes(
+            tree, details_text, object_map, right_frame, root,
+            lambda: new_action(tree, file_path_label, object_map),
+        ),
     )
     file_menu.add_command(
         label="Load",
-        command=lambda: load_action(tree, file_path_label, object_map),
+        command=lambda: _run_tree_mutation_with_unsaved_changes(
+            tree, details_text, object_map, right_frame, root,
+            lambda: load_action(tree, file_path_label, object_map),
+        ),
     )
     file_menu.add_command(
         label="Save",
