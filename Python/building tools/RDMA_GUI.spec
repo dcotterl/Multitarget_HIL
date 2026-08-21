@@ -9,7 +9,7 @@ a = Analysis(
     [os.path.join(project_root, 'HMI', 'rdma_gui.py')],
     pathex=[project_root],
     binaries=[],
-    datas=[],
+    datas=[(os.path.join(project_root, 'data', 'Simple_c1.dsf'), 'data')],
     hiddenimports=[],
     hookspath=[],
     hooksconfig={},

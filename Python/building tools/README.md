@@ -39,10 +39,11 @@ powershell -ExecutionPolicy Bypass -File ".\building tools\build_release.ps1"
 
 The script will:
 
-1. Rebuild the executable with PyInstaller.
-2. Locate Inno Setup.
-3. Build the installer.
-4. Put both outputs in the root `dist` folder.
+1. Run `py -m unittest discover -s tests -v`.
+2. Rebuild the executable with PyInstaller.
+3. Locate Inno Setup.
+4. Build the installer.
+5. Put both outputs in the root `dist` folder.
 
 ## Build outputs
 
@@ -54,6 +55,8 @@ dist\RDMA_GUI_Setup.exe
 ```
 
 Send `RDMA_GUI_Setup.exe` to a colleague for testing. They do not need Python, PyInstaller, or Inno Setup installed.
+
+The PyInstaller spec also bundles `data\Simple_c1.dsf` so the packaged GUI keeps a local default sample configuration.
 
 ## Troubleshooting
 

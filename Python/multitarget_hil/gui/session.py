@@ -3,12 +3,20 @@
 from __future__ import annotations
 
 import json
+import sys
 from dataclasses import dataclass, field
 from pathlib import Path
 
 from multitarget_hil import rdma_definitions as rdma
 
-PACKAGE_ROOT = Path(__file__).resolve().parents[2]
+
+def _runtime_package_root() -> Path:
+    if getattr(sys, "frozen", False):
+        return Path(getattr(sys, "_MEIPASS"))
+    return Path(__file__).resolve().parents[2]
+
+
+PACKAGE_ROOT = _runtime_package_root()
 REPOSITORY_ROOT = PACKAGE_ROOT.parent
 DEFAULT_CONFIG_CANDIDATES = (
     PACKAGE_ROOT / "data" / "Simple_c1.dsf",
