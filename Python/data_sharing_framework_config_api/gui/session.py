@@ -7,7 +7,7 @@ import sys
 from dataclasses import dataclass, field
 from pathlib import Path
 
-from multitarget_hil import rdma_definitions as rdma
+from data_sharing_framework_config_api import rdma_definitions as rdma
 
 
 def _runtime_package_root() -> Path:

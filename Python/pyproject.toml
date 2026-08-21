@@ -12,7 +12,7 @@ requires-python = ">=3.10"
 package-dir = {"" = "."}
 
 [tool.setuptools.packages.find]
-include = ["multitarget_hil*"]
+include = ["data_sharing_framework_config_api*"]
 
 [tool.ruff]
 line-length = 100

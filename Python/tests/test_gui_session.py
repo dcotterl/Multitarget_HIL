@@ -7,9 +7,9 @@ PYTHON_ROOT = Path(__file__).resolve().parents[1]
 if str(PYTHON_ROOT) not in sys.path:
     sys.path.insert(0, str(PYTHON_ROOT))
 
-from multitarget_hil import rdma_definitions as rdma
-from multitarget_hil.gui.session import ConfigurationSession
-from multitarget_hil.gui.tree import populate_tree
+from data_sharing_framework_config_api import rdma_definitions as rdma
+from data_sharing_framework_config_api.gui.session import ConfigurationSession
+from data_sharing_framework_config_api.gui.tree import populate_tree
 
 
 class GuiSessionTests(unittest.TestCase):

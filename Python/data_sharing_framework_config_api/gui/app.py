@@ -7,10 +7,10 @@ import logging
 import tkinter as tk
 from tkinter import filedialog, messagebox, ttk
 
-from multitarget_hil import rdma_definitions as rdma
-from multitarget_hil.gui.session import ConfigurationSession
-from multitarget_hil.gui.state import editor_state
-from multitarget_hil.gui.tree import CONFIGURATION_OBJECT_TYPES, find_parent, object_label, refresh_tree_and_select
+from data_sharing_framework_config_api import rdma_definitions as rdma
+from data_sharing_framework_config_api.gui.session import ConfigurationSession
+from data_sharing_framework_config_api.gui.state import editor_state
+from data_sharing_framework_config_api.gui.tree import CONFIGURATION_OBJECT_TYPES, find_parent, object_label, refresh_tree_and_select
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
 logger = logging.getLogger(__name__)

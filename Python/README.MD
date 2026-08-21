@@ -4,7 +4,7 @@ This directory contains the Python package, GUI, examples, tests, and build asse
 
 ## Contents
 
-- `multitarget_hil/`
+- `data_sharing_framework_config_api/`
   - Packaged Python source for the RDMA model and GUI.
 - `HMI/rdma_gui.py`
   - Compatibility launcher for the packaged GUI.
@@ -21,7 +21,7 @@ This directory contains the Python package, GUI, examples, tests, and build asse
 
 ## Package structure
 
-### `multitarget_hil.rdma_definitions`
+### `data_sharing_framework_config_api.rdma_definitions`
 
 Provides:
 
@@ -30,7 +30,7 @@ Provides:
 - validation for nested object types and transfer-direction invariants
 - backwards-compatible aliases for the original class names
 
-### `multitarget_hil.gui`
+### `data_sharing_framework_config_api.gui`
 
 Provides:
 
@@ -52,7 +52,7 @@ python -m unittest discover -s tests -v
 Syntax validation:
 
 ```bash
-python -m compileall multitarget_hil tests examples
+python -m compileall data_sharing_framework_config_api tests examples
 ```
 
 Optional lint/format checks if Ruff is installed:

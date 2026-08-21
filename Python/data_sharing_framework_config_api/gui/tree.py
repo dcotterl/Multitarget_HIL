@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from multitarget_hil import rdma_definitions as rdma
+from data_sharing_framework_config_api import rdma_definitions as rdma
 
 CONFIGURATION_OBJECT_TYPES = (
     rdma.RDMA_Configuration,

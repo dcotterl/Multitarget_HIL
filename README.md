@@ -15,9 +15,9 @@ The Python tooling is responsible for authoring and validating RDMA configuratio
 
 Main Python components:
 
-- `multitarget_hil.rdma_definitions`
+- `data_sharing_framework_config_api.rdma_definitions`
   - Object model for plugins, threads, transfer groups, transfers, channels, and serialized component settings.
-- `multitarget_hil.gui`
+- `data_sharing_framework_config_api.gui`
   - Tkinter editor for creating, loading, validating, and saving DSF/JSON configurations.
 - `examples/`
   - Usage examples for building configurations and round-tripping serialized data.
@@ -43,7 +43,7 @@ From `Python/`:
 
 ```bash
 python -m unittest discover -s tests -v
-python -m compileall multitarget_hil tests examples
+python -m compileall data_sharing_framework_config_api tests examples
 python HMI/rdma_gui.py
 python -m examples.import_config_example
 python -m examples.rdma_configuration_example

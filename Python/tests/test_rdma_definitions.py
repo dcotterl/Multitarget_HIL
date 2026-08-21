@@ -7,7 +7,7 @@ PYTHON_ROOT = Path(__file__).resolve().parents[1]
 if str(PYTHON_ROOT) not in sys.path:
     sys.path.insert(0, str(PYTHON_ROOT))
 
-from multitarget_hil import rdma_definitions as rdma
+from data_sharing_framework_config_api import rdma_definitions as rdma
 
 DATA_PATH = Path(__file__).resolve().parent.parent / "data" / "config_multidirectional_1_Callea_to_Cotterle_generated.dsf"
 
