@@ -65,7 +65,7 @@ def field_definitions(selected_object):
             ("Enable conversion", "enable_conversion", "bool"),
         ]
     if isinstance(selected_object, rdma.Transfer):
-        return [("Name", "name", "text"), ("Direction", "direction", "direction")]
+        return [("Name", "name", "text")]
     if isinstance(selected_object, rdma.Channel):
         return [
             ("Name", "name", "text"),
@@ -419,7 +419,7 @@ def add_transfer_to_group(selected_group, refresh):
     protocol = parent_component(selected_group)
     transfer_number = len(selected_group.transfers) + 1
     selected_group.addTransfer(
-        rdma.Transfer(direction=selected_group.direction, protocol=protocol, name=f"Transfer {transfer_number}", channels=[])
+        rdma.Transfer(protocol=protocol, name=f"Transfer {transfer_number}", channels=[])
     )
     refresh(selected_group)
 

@@ -23,7 +23,7 @@ class Rdma_Import_Tests(unittest.TestCase):
 
     def test_transfer_round_trip(self):
         """Ensure a transfer remains unchanged after a dictionary round trip."""
-        transfer = rdma.Transfer(direction=rdma.Direction.RX, protocol="RDMA")
+        transfer = rdma.Transfer(protocol="RDMA")
         rebuilt = rdma.Transfer.from_dict(transfer.getDict())
         self.assertEqual(transfer.getDict(), rebuilt.getDict())
 
@@ -41,8 +41,8 @@ class Rdma_Import_Tests(unittest.TestCase):
 
     def test_transfer_group_round_trip(self):
         """Ensure a transfer group remains unchanged after a dictionary round trip."""
-        rx_transfer = rdma.Transfer(direction=rdma.Direction.RX, protocol="RDMA")
-        transfer_group = rdma.TransferGroup(direction=rdma.Direction.RX, protocol="RDMA", transfers=[rx_transfer])
+        rx_transfer = rdma.Transfer(protocol="RDMA")
+        transfer_group = rdma.TransferGroup(protocol="RDMA", transfers=[rx_transfer])
         rebuilt = rdma.TransferGroup.from_dict(transfer_group.getDict())
         self.assertEqual(transfer_group.getDict(), rebuilt.getDict())
 
@@ -70,7 +70,6 @@ class Rdma_benchmark_configuration(unittest.TestCase):
         
         transfer_tx = rdma.Transfer(
             name="Transfer_Callea_to_Cotterle_Tx",
-            direction=rdma.Direction.TX,
             protocol="RDMA",
             local_address="169.254.23.111",
             local_port=5011,
@@ -81,7 +80,6 @@ class Rdma_benchmark_configuration(unittest.TestCase):
     
         transfer_rx = rdma.Transfer(
             name="Transfer_Cotterle_to_Callea_Rx",
-            direction=rdma.Direction.RX,
             protocol="RDMA",
             local_address="169.254.23.111",
             local_port=5010,
@@ -114,7 +112,7 @@ class Rdma_benchmark_configuration(unittest.TestCase):
         self.assertEqual(config.getDict(), expected_dict)
 
     def test_topdown_configuration(self):
-
+         self.maxDiff = None  # Show full diff if test fails
          config = rdma.RDMA_Configuration()
 
          plugin = rdma.Plugin(name="BidirectionalPlugin", threads=[], protocol="RDMA")
@@ -133,7 +131,6 @@ class Rdma_benchmark_configuration(unittest.TestCase):
          
          transfer_tx = rdma.Transfer(
             name="Transfer_Callea_to_Cotterle_Tx",
-            direction=rdma.Direction.TX,
             protocol="RDMA",
             local_address="169.254.23.111",
             local_port=5011,
@@ -142,7 +139,6 @@ class Rdma_benchmark_configuration(unittest.TestCase):
          
          transfer_rx = rdma.Transfer(
             name="Transfer_Cotterle_to_Callea_Rx",
-            direction=rdma.Direction.RX,
             protocol="RDMA",
             local_address="169.254.23.111",
             local_port=5010)

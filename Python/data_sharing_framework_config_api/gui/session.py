@@ -69,7 +69,6 @@ class ConfigurationSession:
             transfers=[],
         )
         new_transfer = rdma.Transfer(
-            direction=rdma.Direction.TX,
             protocol="RDMA",
             name="Transfer 1",
             channels=[],

@@ -15,8 +15,7 @@ Each object stores its definition as a dictionary, exposes it through
 ``getDict()``, and can be rendered as formatted JSON with ``str()``.
 ``ComponentSettings`` stores component-specific settings used by channels,
 transfers, transfer groups, threads, and plugins. ``Direction`` identifies
-transfers and transfer groups as transmit (TX) or receive (RX); a transfer
-group rejects transfers with a different direction.
+transfer groups as transmit (TX) or receive (RX).
 
 """
 
@@ -215,11 +214,10 @@ class Channel:
 
 
 class Transfer:
-    """An RDMA data transfer configuration with direction-specific settings."""
+    """An RDMA data transfer configuration."""
 
     def __init__(
         self,
-        direction: Direction = Direction.TX,
         protocol: str = "",
         name: str = "",
         channels: list[Channel] | None = None,
@@ -228,25 +226,52 @@ class Transfer:
         destination_address: str = "",
         destination_port: int = 0,
     ) -> None:
-        self.direction = direction
         self.name = name
         self.channels = channels if channels is not None else []
+        self.local_address = local_address
+        self.local_port = local_port
+        self.destination_address = destination_address
+        self.destination_port = destination_port
         elements = [
-            Element("local address", str(local_address)),
-            Element("local port", str(local_port)),
+            Element("local address", str(self.local_address)),
+            Element("local port", str(self.local_port)),
         ]
+        if self.destination_address != "" :
+            elements.append(Element("destination address", str(self.destination_address)))
+            elements.append(Element("destination port", str(self.destination_port)))
         self.component_settings = [ComponentSettings(protocol, elements)]
-        if self.direction == Direction.TX:
-            self.component_settings[0].addElement("destination address", str(destination_address))
-            self.component_settings[0].addElement("destination port", str(destination_port))
 
     @property
-    def direction(self) -> Direction:
-        return self._direction
+    def local_address(self) -> str:
+        return self._local_address
 
-    @direction.setter
-    def direction(self, value) -> None:
-        self._direction = _coerce_direction(value, "Transfer.direction")
+    @local_address.setter
+    def local_address(self, value: str) -> None:
+        self._local_address = value
+
+    @property
+    def local_port(self) -> int:
+        return self._local_port
+
+    @local_port.setter
+    def local_port(self, value: int) -> None:
+        self._local_port = value
+
+    @property
+    def destination_address(self) -> str:
+        return self._destination_address
+
+    @destination_address.setter
+    def destination_address(self, value: str) -> None:
+        self._destination_address = value
+
+    @property
+    def destination_port(self) -> int:
+        return self._destination_port
+
+    @destination_port.setter
+    def destination_port(self, value: int) -> None:
+        self._destination_port = value
 
     @property
     def channels(self) -> list[Channel]:
@@ -288,9 +313,17 @@ class Transfer:
             ComponentSettings.from_dict(cs)
             for cs in _ensure_list(data.get("component settings", []), "Transfer.component settings")
         ]
+        endpoint_values = {
+            element.key: element.value
+            for element in self.component_settings[0].elements
+            if self.component_settings
+            and element.key in {"local address", "local port", "destination address", "destination port"}
+        }
+        self.local_address = endpoint_values.get("local address", "")
+        self.local_port = endpoint_values.get("local port", 0)
+        self.destination_address = endpoint_values.get("destination address", "")
+        self.destination_port = endpoint_values.get("destination port", 0)
         self.channels = [Channel.from_dict(ch) for ch in _ensure_list(data.get("channels", []), "Transfer.channels")]
-        elements = self.component_settings[0].elements if self.component_settings else []
-        self.direction = Direction.TX if any(e.key == "destination address" for e in elements) else Direction.RX
 
     @classmethod
     def from_dict(cls, data: dict) -> "Transfer":
@@ -343,12 +376,6 @@ class TransferGroup:
     @direction.setter
     def direction(self, value) -> None:
         direction = _coerce_direction(value, "TransferGroup.direction")
-        if hasattr(self, "_transfers"):
-            for transfer in self._transfers:
-                if transfer.direction != direction:
-                    raise ValueError(
-                        f"Transfer '{transfer.name}' direction {transfer.direction.name} does not match group direction {direction.name}."
-                    )
         self._direction = direction
 
     @property
@@ -369,13 +396,9 @@ class TransferGroup:
 
     @transfers.setter
     def transfers(self, values: list[Transfer]) -> None:
-        validated = _validate_items(_ensure_list(values, "TransferGroup.transfers"), Transfer, "TransferGroup.transfers")
-        for transfer in validated:
-            if transfer.direction != self.direction:
-                raise ValueError(
-                    f"Transfer '{transfer.name}' direction {transfer.direction.name} does not match group direction {self.direction.name}."
-                )
-        self._transfers = validated
+        self._transfers = _validate_items(
+            _ensure_list(values, "TransferGroup.transfers"), Transfer, "TransferGroup.transfers"
+        )
 
     def __str__(self) -> str:
         result = self.getDict()
