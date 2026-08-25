@@ -43,6 +43,23 @@ logger.addHandler(logging.NullHandler())
 
 T = TypeVar("T")
 
+class Channel(d.Channel):
+    """An RDMA channel configuration."""
+
+    def __init__(self,
+            name: str = "",
+            unit: str = "",
+            engine_data_type: int = 2,
+            string_data_type: int = 2,
+            string_offset: int = 0,
+        ) -> None:
+            self.name = name
+            self.unit = unit
+            self.engine_data_type = engine_data_type
+            self.string_data_type = string_data_type
+            self.string_offset = string_offset
+            self.component_settings = [d.ComponentSettings("RDMA")]
+
 
 class Transfer(d.Transfer):
     """An RDMA data transfer configuration."""
@@ -144,4 +161,4 @@ class Plugin(d.Plugin):
 
 
 if __name__ == "__main__":
-    print(f"RDMA definition format version: {get_version()}")
+    print(f"here is the module {__name__} for RDMA configuration definitions")
