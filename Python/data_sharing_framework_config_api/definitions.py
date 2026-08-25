@@ -10,8 +10,8 @@ logger.addHandler(logging.NullHandler())
 
 T = TypeVar("T")
 
-class Protocol(Enum):
-    """Protocol of a transfer or transfer group."""
+class Protocols(Enum):
+    """Protocols supported by the RDMA configuration."""
 
     RDMA = "RDMA"
     UDP = "UDP"

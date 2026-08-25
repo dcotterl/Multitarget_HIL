@@ -2,11 +2,9 @@
 
 from .rdma_definitions import (
     Plugin,
-    RDMA_Configuration,
     Thread,
     Transfer,
     TransferGroup,
-    get_version,
 )
 
 __all__ = [
@@ -15,9 +13,7 @@ __all__ = [
     "Direction",
     "Element",
     "Plugin",
-    "RDMA_Configuration",
     "Thread",
     "Transfer",
     "TransferGroup",
-    "get_version",
 ]
