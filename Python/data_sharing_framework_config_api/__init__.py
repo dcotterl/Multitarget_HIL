@@ -1,10 +1,6 @@
 """Public package for the Multitarget HIL Python tooling."""
 
 from .rdma_definitions import (
-    Channel,
-    ComponentSettings,
-    Direction,
-    Element,
     Plugin,
     RDMA_Configuration,
     Thread,
