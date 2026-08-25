@@ -106,40 +106,40 @@ class udp_benchmark_configuration(unittest.TestCase):
      def makeChannel(self):
         return udp.Channel(name="Channel", unit="V")
      def makeTransferTx(self):
-        return udp.Transfer( name = "Transfer",
-                                                protocol = "UDP",
-                                                destination_address = "127.0.0.1",
-                                                destination_port = 50001,
-                                                channels = [self.makeChannel()])
+        return udp.Transfer(name = "Transfer",
+                            protocol = "UDP",
+                            destination_address = "127.0.0.1",
+                            destination_port = 50001,
+                            channels = [self.makeChannel()])
      def makeTransferRx(self):
-        return udp.Transfer( name = "Transfer",
-                                            protocol = "UDP",
-                                            source_address = "127.0.0.1",
-                                            source_port = 50000,
-                                            channels = [self.makeChannel()])
+        return udp.Transfer(name = "Transfer",
+                            protocol = "UDP",
+                            source_address = "127.0.0.1",
+                            source_port = 50000,
+                            channels = [self.makeChannel()])
      def makeTransferGroupTx(self):
-        return udp.TransferGroup(   name = "Group",
-                                    direction = udp.Direction.TX,
-                                    transfers = [self.makeTransferTx()])
+        return udp.TransferGroup(name = "Group",
+                                 direction = udp.Direction.TX,
+                                 transfers = [self.makeTransferTx()])
      def makeTransferGroupRx(self):
-        return udp.TransferGroup(   name = "Group",
-                                    direction = udp.Direction.RX,
-                                    transfers = [self.makeTransferRx()])
+        return udp.TransferGroup(name = "Group",
+                                 direction = udp.Direction.RX,
+                                 transfers = [self.makeTransferRx()])
      def makeThreadTx(self):
-        return udp.Thread(  protocol = "UDP",
-                            local_address = "127.0.0.1",
-                            local_port = 50000,
-                            transfer_groups = [self.makeTransferGroupTx()])
+        return udp.Thread(protocol = "UDP",
+                          local_address = "127.0.0.1",
+                          local_port = 50000,
+                          transfer_groups = [self.makeTransferGroupTx()])
      def makeThreadRx(self):
-        return udp.Thread(  protocol = "UDP",
-                            local_address = "127.0.0.1",
-                            local_port = 50001,
-                            transfer_groups = [self.makeTransferGroupRx()])
+        return udp.Thread(protocol = "UDP",
+                          local_address = "127.0.0.1",
+                          local_port = 50001,
+                          transfer_groups = [self.makeTransferGroupRx()])
 
      def makePlugin(self):
-        return udp.Plugin(  name = "Plugin",
-                            protocol = "UDP",
-                            threads = [self.makeThreadTx(), self.makeThreadRx()])
+        return udp.Plugin(name = "Plugin",
+                          protocol = "UDP",
+                          threads = [self.makeThreadTx(), self.makeThreadRx()])
      
      def makeConfiguration(self):
         return udp.UDP_Configuration(plugins = [self.makePlugin()])
@@ -149,47 +149,40 @@ class udp_benchmark_configuration(unittest.TestCase):
 
         channel = udp.Channel(name="Channel", unit="V")
         
-        transfer_tx = udp.Transfer(
-                                    name="Transfer",
-                                    protocol="UDP",
-                                    destination_address= udp.string_to_ip("2130706433"),
-                                    destination_port=50001,
-                                    channels=[channel],
+        transfer_tx = udp.Transfer(name="Transfer",
+                                   protocol="UDP",
+                                   destination_address= udp.string_to_ip("2130706433"),
+                                   destination_port=50001,
+                                   channels=[channel],
                                   )
 
-        transfer_rx = udp.Transfer(
-                                    name="Transfer",
-                                    protocol="UDP",
-                                    source_address= udp.string_to_ip("2130706433"),
-                                    source_port=50000,
-                                    channels=[channel],
+        transfer_rx = udp.Transfer(name="Transfer",
+                                   protocol="UDP",
+                                   source_address= udp.string_to_ip("2130706433"),
+                                   source_port=50000,
+                                   channels=[channel],
                                   )
-        transfer_group_tx = udp.TransferGroup(
-                                                name="Group",
-                                                direction=udp.Direction.TX,
-                                                transfers=[transfer_tx],
+        transfer_group_tx = udp.TransferGroup(name="Group",
+                                              direction=udp.Direction.TX,
+                                              transfers=[transfer_tx],
                                              )   
-        transfer_group_rx = udp.TransferGroup(
-                                                name="Group",
-                                                direction=udp.Direction.RX,
-                                                transfers=[transfer_rx],
+        transfer_group_rx = udp.TransferGroup(name="Group",
+                                              direction=udp.Direction.RX,
+                                              transfers=[transfer_rx],
                                              )
-        thread_tx = udp.Thread(
-                                protocol="UDP",
-                                local_address= udp.string_to_ip("2130706433"),
-                                local_port=50000,
-                                transfer_groups=[transfer_group_tx],
+        thread_tx = udp.Thread(protocol="UDP",
+                               local_address= udp.string_to_ip("2130706433"),
+                               local_port=50000,
+                               transfer_groups=[transfer_group_tx],
                             )
 
-        thread_rx = udp.Thread(
-                                protocol="UDP",
-                                local_address= udp.string_to_ip("2130706433"),
-                                local_port=50001,
-                                transfer_groups=[transfer_group_rx],
+        thread_rx = udp.Thread(protocol="UDP",
+                               local_address= udp.string_to_ip("2130706433"),
+                               local_port=50001,
+                               transfer_groups=[transfer_group_rx],
                             )
 
-        plugin = udp.Plugin(
-                            name="Plugin",
+        plugin = udp.Plugin(name="Plugin",
                             protocol="UDP",
                             threads=[thread_tx, thread_rx],
                         )
@@ -224,7 +217,6 @@ class udp_benchmark_configuration(unittest.TestCase):
         transfer_group_tx = thread_tx.transfer_groups[0]
         transfer_tx = transfer_group_tx.transfers[0]
 
-        channel = udp.Channel(name="Channel", unit="V")
         transfer_test = self.makeTransferTx()
 
         self.assertEqual(transfer_tx.getDict(), transfer_test.getDict())
@@ -257,17 +249,17 @@ class udp_benchmark_configuration(unittest.TestCase):
         self.assertEqual(transfer_group_tx.getDict(), transfer_group_test.getDict())
 
      def test_import_transfer_group_rx(self):
-            with open(DATA_PATH, "r") as f:
-                expected_dict = json.load(f)
-    
-            config = udp.UDP_Configuration.from_dict(expected_dict)
-            plugin = config.plugins[0]
-            thread_rx = plugin.threads[1]
-            transfer_group_rx = thread_rx.transfer_groups[0]
+        with open(DATA_PATH, "r") as f:
+            expected_dict = json.load(f)
 
-            transfer_group_test = self.makeTransferGroupRx()
-    
-            self.assertEqual(transfer_group_rx.getDict(), transfer_group_test.getDict())
+        config = udp.UDP_Configuration.from_dict(expected_dict)
+        plugin = config.plugins[0]
+        thread_rx = plugin.threads[1]
+        transfer_group_rx = thread_rx.transfer_groups[0]
+
+        transfer_group_test = self.makeTransferGroupRx()
+
+        self.assertEqual(transfer_group_rx.getDict(), transfer_group_test.getDict())
 
      def test_import_thread_tx(self):
         with open(DATA_PATH, "r") as f:
