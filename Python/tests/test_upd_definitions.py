@@ -135,10 +135,12 @@ class udp_benchmark_configuration(unittest.TestCase):
                             local_address = "127.0.0.1",
                             local_port = 50001,
                             transfer_groups = [self.makeTransferGroupRx()])
+
      def makePlugin(self):
         return udp.Plugin(  name = "Plugin",
                             protocol = "UDP",
-                            threads = [self.makeThreadTx(), self.makeThreadRx()])     
+                            threads = [self.makeThreadTx(), self.makeThreadRx()])
+     
      def makeConfiguration(self):
         return udp.UDP_Configuration(plugins = [self.makePlugin()])
 
