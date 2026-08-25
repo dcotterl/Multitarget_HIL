@@ -27,7 +27,6 @@ def ensure_dict(data, context: str) -> dict:
         raise TypeError(f"{context} must be a dictionary.")
     return data
 
-
 def ensure_list(value, context: str) -> list:
     if value is None:
         return []
@@ -35,33 +34,6 @@ def ensure_list(value, context: str) -> list:
         raise TypeError(f"{context} must be a list.")
     return value
 
-
-def _coerce_direction(value, context: str = "direction") -> Direction:
-    if isinstance(value, Direction):
-        return value
-    if isinstance(value, str):
-        normalized = value.strip()
-        if normalized in Direction.__members__:
-            return Direction[normalized]
-        if normalized.isdigit() or (normalized.startswith("-") and normalized[1:].isdigit()):
-            value = int(normalized)
-        else:
-            raise ValueError(f"{context} must be one of {', '.join(Direction.__members__)}.")
-    try:
-        return Direction(value)
-    except ValueError as error:
-        raise ValueError(f"{context} must be one of {', '.join(Direction.__members__)}.") from error
-
-
-def _validate_items(values: Iterable, expected_type: type[T], context: str) -> list[T]:
-    validated = []
-    for index, item in enumerate(values):
-        if not isinstance(item, expected_type):
-            raise TypeError(
-                f"{context} item {index} must be {expected_type.__name__}, got {type(item).__name__}."
-            )
-        validated.append(item)
-    return validated
 
 class Element:
     """A key-value pair used inside :class:`ComponentSettings`."""
