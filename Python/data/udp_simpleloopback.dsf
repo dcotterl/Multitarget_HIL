@@ -1,0 +1,181 @@
+{
+    "configuration": {
+        "plugins": [
+            {
+                "component settings": [
+                ],
+                "core": {
+                    "components": [
+                        "UDP"
+                    ],
+                    "cycle timing": {
+                        "decimation": 1,
+                        "offset": 0,
+                        "priority": 10000
+                    },
+                    "name": "Plugin"
+                },
+                "threads": [
+                    {
+                        "component settings": [
+                            {
+                                "component": "UDP",
+                                "values": [
+                                    {
+                                        "key": "local port",
+                                        "value": "50000"
+                                    },
+                                    {
+                                        "key": "local address",
+                                        "value": "2130706433"
+                                    }
+                                ]
+                            }
+                        ],
+                        "core": {
+                            "priority offset": 0,
+                            "processor": -2
+                        },
+                        "transfer groups": [
+                            {
+                                "component settings": [
+                                ],
+                                "core": {
+                                    "cycle timing": {
+                                        "decimation": 1,
+                                        "offset": 0,
+                                        "priority": 100
+                                    },
+                                    "direction": 0,
+                                    "enable conversion": false,
+                                    "name": "Group",
+                                    "timeout behavior": 0
+                                },
+                                "transfers": [
+                                    {
+                                        "channels": [
+                                            {
+                                                "component settings": [
+                                                ],
+                                                "core": {
+                                                    "engine data type": 2,
+                                                    "name": "Channel",
+                                                    "string data type": 2,
+                                                    "string offset": 0,
+                                                    "units": "V"
+                                                }
+                                            }
+                                        ],
+                                        "component settings": [
+                                            {
+                                                "component": "UDP",
+                                                "values": [
+                                                    {
+                                                        "key": "destination address",
+                                                        "value": "2130706433"
+                                                    },
+                                                    {
+                                                        "key": "destination port",
+                                                        "value": "50001"
+                                                    }
+                                                ]
+                                            }
+                                        ],
+                                        "core": {
+                                            "name": "Transfer"
+                                        }
+                                    }
+                                ]
+                            }
+                        ]
+                    },
+                    {
+                        "component settings": [
+                            {
+                                "component": "UDP",
+                                "values": [
+                                    {
+                                        "key": "local port",
+                                        "value": "50001"
+                                    },
+                                    {
+                                        "key": "local address",
+                                        "value": "2130706433"
+                                    }
+                                ]
+                            }
+                        ],
+                        "core": {
+                            "priority offset": 0,
+                            "processor": -2
+                        },
+                        "transfer groups": [
+                            {
+                                "component settings": [
+                                ],
+                                "core": {
+                                    "cycle timing": {
+                                        "decimation": 1,
+                                        "offset": 0,
+                                        "priority": 100
+                                    },
+                                    "direction": 1,
+                                    "enable conversion": false,
+                                    "name": "Group",
+                                    "timeout behavior": 0
+                                },
+                                "transfers": [
+                                    {
+                                        "channels": [
+                                            {
+                                                "component settings": [
+                                                ],
+                                                "core": {
+                                                    "engine data type": 2,
+                                                    "name": "Channel",
+                                                    "string data type": 2,
+                                                    "string offset": 0,
+                                                    "units": "V"
+                                                }
+                                            }
+                                        ],
+                                        "component settings": [
+                                            {
+                                                "component": "UDP",
+                                                "values": [
+                                                    {
+                                                        "key": "source address",
+                                                        "value": "2130706433"
+                                                    },
+                                                    {
+                                                        "key": "source port",
+                                                        "value": "50000"
+                                                    }
+                                                ]
+                                            }
+                                        ],
+                                        "core": {
+                                            "name": "Transfer"
+                                        }
+                                    }
+                                ]
+                            }
+                        ]
+                    }
+                ]
+            }
+        ]
+    },
+    "dsfversion": {
+        "build": "",
+        "fix": 0,
+        "major": 1,
+        "minor": 4
+    },
+    "version": {
+        "build": "",
+        "fix": 0,
+        "major": 1,
+        "minor": 0
+    }
+}

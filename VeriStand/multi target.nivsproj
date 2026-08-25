@@ -32,7 +32,7 @@
 							<Version />
 							<RTDestination />
 							<SupportedTarget />
-							<MD5>9e1fb62b0995d4483fd5fe3b4dfab173</MD5>
+							<MD5>0be654372621598117933f8649cff418</MD5>
 						</DependentFile>
 					</Property>
 				</Properties>
@@ -228,7 +228,7 @@
 				</Properties>
 				<Errors />
 			</Section>
-			<Section Name="UDP_1chMultitarget.nivssdf" TypeGUID="369b9797-43bd-4cdf-8352-81032feed666" Identifier="7c112d51-b8b7-460f-852c-d753c375e77d">
+			<Section Name="UDP_1chMultitarget.nivssdf" TypeGUID="369b9797-43bd-4cdf-8352-81032feed666" Identifier="18927b1f-9e47-483d-accd-9ecdd837d576">
 				<Description />
 				<Properties>
 					<Property Name="Path">
