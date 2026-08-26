@@ -263,8 +263,7 @@ class TransferGroup:
             for cs in ensure_list(data.get("component settings", []), "TransferGroup.component settings")
         ]
         self.transfers = [Transfer.from_dict(t) for t in ensure_list(data.get("transfers", []), "TransferGroup.transfers")]
-
-    
+  
 class Thread:
     def __init__(
             self,

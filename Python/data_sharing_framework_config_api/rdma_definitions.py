@@ -66,7 +66,7 @@ class Transfer(d.Transfer):
     def __init__(
         self,
         name: str = "",
-        channels: list[d.Channel] | None = None,
+        channels: list[Channel] | None = None,
         local_address: str = "",
         local_port: int = 0,
         destination_address: str = "",
