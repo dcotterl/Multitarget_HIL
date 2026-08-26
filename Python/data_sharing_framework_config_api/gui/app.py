@@ -330,6 +330,80 @@ def run_tree_mutation_with_unsaved_changes(tree, details_text, root, mutate_acti
     mutate_action()
 
 
+def find_ancestor_plugin(configuration: definitions.Configuration, target) -> definitions.Plugin | None:
+    if isinstance(target, definitions.Plugin):
+        return target
+    if configuration is None:
+        return None
+    for plugin in getattr(configuration, "plugins", []):
+        if target is plugin:
+            return plugin
+        for thread in getattr(plugin, "threads", []):
+            if target is thread:
+                return plugin
+            for group in getattr(thread, "transfer_groups", []):
+                if target is group:
+                    return plugin
+                for transfer in getattr(group, "transfers", []):
+                    if target is transfer or any(ch is target for ch in getattr(transfer, "channels", [])):
+                        return plugin
+    return None
+
+
+def get_protocol_for_element(session, selected_object) -> str:
+    """Find the protocol of the ancestor plugin for selected_object."""
+    plugin = find_ancestor_plugin(session.configuration, selected_object)
+    if plugin is not None:
+        if getattr(plugin, "components", None) and plugin.components:
+            comp = plugin.components[0]
+            if comp in [p.value for p in definitions.Protocols]:
+                return comp
+        if getattr(plugin, "component_settings", None):
+            for cs in plugin.component_settings:
+                if cs.component in [p.value for p in definitions.Protocols]:
+                    return cs.component
+        if isinstance(plugin, udp_definitions.Plugin):
+            return "UDP"
+        if isinstance(plugin, rdma_definitions.Plugin):
+            return "RDMA"
+    return getattr(session, "protocol", "RDMA")
+
+
+def prompt_protocol_selection(root, title="Select Protocol", message="Select protocol:"):
+    """Show a dialog to select a protocol from available protocols in definitions.Protocols."""
+    dialog = tk.Toplevel(root)
+    dialog.title(title)
+    dialog.transient(root)
+    dialog.grab_set()
+
+    ttk.Label(dialog, text=message, padding=12).pack()
+
+    selected_protocol = None
+
+    def make_choice(proto_value):
+        nonlocal selected_protocol
+        selected_protocol = proto_value
+        dialog.destroy()
+
+    button_frame = ttk.Frame(dialog)
+    button_frame.pack(pady=12)
+
+    available_protocols = [p.value for p in definitions.Protocols]
+    for proto_value in available_protocols:
+        ttk.Button(button_frame, text=proto_value, command=lambda p=proto_value: make_choice(p)).pack(side="left", padx=4)
+
+    ttk.Button(button_frame, text="Cancel", command=dialog.destroy).pack(side="left", padx=4)
+
+    dialog.update_idletasks()
+    dialog.geometry(
+        f"+{(dialog.winfo_screenwidth() - dialog.winfo_reqwidth()) // 2}"
+        f"+{(dialog.winfo_screenheight() - dialog.winfo_reqheight()) // 2}"
+    )
+
+    root.wait_window(dialog)
+    return selected_protocol
+
+
 def remove_plugin_from_configuration(configuration, selected_plugin, refresh):
     if selected_plugin not in configuration.plugins:
         return
@@ -390,7 +464,7 @@ def show_context_menu(event, tree, object_map, details_text, right_frame, root, 
         ))
     if isinstance(selected_object, definitions.Configuration):
         context_menu.add_command(label="add plugin", command=lambda: run_tree_mutation_with_unsaved_changes(
-            tree, details_text, root, lambda: add_plugin_to_configuration(session, selected_object, refresh)
+            tree, details_text, root, lambda: add_plugin_to_configuration(session, selected_object, refresh, root)
         ))
     context_menu.tk_popup(event.x_root, event.y_root)
 
@@ -420,8 +494,9 @@ def load_action(tree, file_path_label, object_map, details_text, root, session):
 
 
 def add_channel_to_transfer(session, selected_transfer, refresh):
+    protocol = get_protocol_for_element(session, selected_transfer)
     channel_number = len(selected_transfer.channels) + 1
-    if session.protocol == "UDP":
+    if protocol == "UDP":
         selected_transfer.addChannel(udp_definitions.Channel(name=f"Channel {channel_number}"))
     else:
         selected_transfer.addChannel(rdma_definitions.Channel(name=f"Channel {channel_number}"))
@@ -461,16 +536,17 @@ def remove_thread_from_plugin(configuration, selected_thread, refresh):
 
 
 def add_transfer_to_group(session, selected_group, refresh):
+    protocol = get_protocol_for_element(session, selected_group)
     transfer_number = len(selected_group.transfers) + 1
     
-    if session.protocol == "UDP":
+    if protocol == "UDP":
         if selected_group.direction == definitions.Direction.RX:
             transfer = udp_definitions.Transfer(name=f"Transfer {transfer_number}", channels=[], local_address="127.0.0.1", local_port=5000)
         elif selected_group.direction == definitions.Direction.TX:
             transfer = udp_definitions.Transfer(
                 name=f"Transfer {transfer_number}", 
                 channels=[],
-                destination_address="127.0.0.2", 
+                destination_address="127.0.0.1", 
                 destination_port=5000
             )
         else:
@@ -482,7 +558,7 @@ def add_transfer_to_group(session, selected_group, refresh):
             transfer = rdma_definitions.Transfer(
                 name=f"Transfer {transfer_number}", 
                 channels=[],
-                destination_address="127.0.0.2", 
+                destination_address="127.0.0.1", 
                 destination_port=0
             )
         else:
@@ -493,8 +569,9 @@ def add_transfer_to_group(session, selected_group, refresh):
 
 
 def add_group_to_thread(session, selected_thread, refresh):
+    protocol = get_protocol_for_element(session, selected_thread)
     group_number = len(selected_thread.transfer_groups) + 1
-    if session.protocol == "UDP":
+    if protocol == "UDP":
         selected_thread.addTransferGroup(
             udp_definitions.TransferGroup(name=f"Transfer Group {group_number}", direction=definitions.Direction.TX, transfers=[])
         )
@@ -506,44 +583,31 @@ def add_group_to_thread(session, selected_thread, refresh):
 
 
 def add_thread_to_plugin(session, selected_plugin, refresh):
-    if session.protocol == "UDP":
+    protocol = get_protocol_for_element(session, selected_plugin)
+    if protocol == "UDP":
         selected_plugin.addThread(udp_definitions.Thread(processor=-2, transfer_groups=[]))
     else:
         selected_plugin.addThread(rdma_definitions.Thread(processor=-2, transfer_groups=[]))
     refresh(selected_plugin)
 
 
-def add_plugin_to_configuration(session, selected_configuration, refresh):
+def add_plugin_to_configuration(session, selected_configuration, refresh, root):
+    protocol = prompt_protocol_selection(root, title="Select Protocol", message="Select protocol for new plugin:")
+    if protocol is None:
+        return
+
     plugin_number = len(selected_configuration.plugins) + 1
-    if session.protocol == "UDP":
+    if protocol == "UDP":
         selected_configuration.addPlugin(udp_definitions.Plugin(name=f"Plugin {plugin_number}", threads=[]))
     else:
         selected_configuration.addPlugin(rdma_definitions.Plugin(name=f"Plugin {plugin_number}", threads=[]))
     refresh(selected_configuration)
 
 
-def remove_plugin_from_configuration(configuration, selected_plugin, refresh):
-    if selected_plugin not in configuration.plugins:
-        return
-    configuration.plugins = [plugin for plugin in configuration.plugins if plugin is not selected_plugin]
-    refresh(configuration)
-
-
-def load_action(tree, file_path_label, object_map, details_text, root, session):
-    default_path = session.default_config_path()
-    file_path = filedialog.askopenfilename(
-        title="Select configuration file",
-        filetypes=(("Configuration files", "*.dsf"), ("JSON files", "*.json"), ("All files", "*.*")),
-        initialdir=str(default_path.parent) if default_path is not None else None,
-    )
-    if not file_path:
-        return
-    try:
-        session.load_file(file_path)
-    except (OSError, ValueError, TypeError, json.JSONDecodeError) as error:
-        messagebox.showerror("Load Error", f"Could not load file:\n{error}", parent=root)
-        return
-    file_path_label.config(text=str(session.current_path))
+def new_action(tree, file_path_label, object_map, details_text, root, session):
+    """Create a new empty configuration."""
+    session.new_configuration()
+    file_path_label.config(text=session.label_text())
     refresh_tree_and_select(
         tree,
         object_map,
@@ -551,32 +615,6 @@ def load_action(tree, file_path_label, object_map, details_text, root, session):
         lambda: update_details_text(tree, details_text, object_map),
         lambda: close_inline_editor(details_text),
     )
-
-
-def new_action(tree, file_path_label, object_map, details_text, root, session):
-    """Create a new configuration after prompting for protocol selection."""
-    # Show protocol selection dialog
-    dialog = tk.Toplevel(root)
-    dialog.title("Select Protocol")
-    dialog.transient(root)
-    dialog.grab_set()
-    
-    ttk.Label(dialog, text="Select protocol for new configuration:", padding=12).pack()
-    
-    selected_protocol = None
-    
-    def on_rdma():
-        nonlocal selected_protocol
-        selected_protocol = "RDMA"
-        dialog.destroy()
-    
-    def on_udp():
-        nonlocal selected_protocol
-        selected_protocol = "UDP"
-        dialog.destroy()
-    
-    def on_cancel():
-        dialog.destroy()
     
     button_frame = ttk.Frame(dialog)
     button_frame.pack(pady=12)

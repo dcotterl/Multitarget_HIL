@@ -60,7 +60,7 @@ class ConfigurationSession:
 
     def __post_init__(self):
         if self.configuration is None:
-            self.configuration = create_configuration_for_protocol(self.protocol)
+            self.configuration = definitions.Configuration(plugins=[])
 
     def default_config_path(self) -> Path | None:
         for candidate in DEFAULT_CONFIG_CANDIDATES:
@@ -99,67 +99,10 @@ class ConfigurationSession:
         self.current_path = output_path.resolve()
         return self.current_path
 
-    def new_configuration(self, protocol: Literal["RDMA", "UDP"] = "RDMA") -> None:
-        """Create a new configuration for the specified protocol."""
-        self.protocol = protocol
-        
-        if protocol == "UDP":
-            self._create_new_udp_configuration()
-        else:
-            self._create_new_rdma_configuration()
-        
+    def new_configuration(self) -> None:
+        """Create a new empty configuration."""
+        self.configuration = definitions.Configuration(plugins=[])
         self.current_path = None
-
-    def _create_new_rdma_configuration(self) -> None:
-        """Create a new RDMA configuration with default structure."""
-        new_configuration = rdma.RDMA_Configuration(plugins=[])
-        new_plugin = rdma.Plugin(name="Plugin 1", threads=[])
-        new_thread = rdma.Thread(processor=-2, transfer_groups=[])
-        new_group = rdma.TransferGroup(
-            name="Transfer Group 1",
-            direction=definitions.Direction.TX,
-            transfers=[],
-        )
-        new_transfer = rdma.Transfer(
-            name="Transfer 1",
-            channels=[],
-            destination_address="127.0.0.2",
-            destination_port=5000,
-        )
-        new_transfer.addChannel(rdma.Channel(name="Channel 1"))
-        new_group.addTransfer(new_transfer)
-        new_thread.addTransferGroup(new_group)
-        new_plugin.addThread(new_thread)
-        new_configuration.addPlugin(new_plugin)
-        self.configuration = rdma.RDMA_Configuration.from_dict(new_configuration.getDict())
-
-    def _create_new_udp_configuration(self) -> None:
-        """Create a new UDP configuration with default structure."""
-        new_configuration = udp.UDP_Configuration(plugins=[])
-        new_plugin = udp.Plugin(name="Plugin 1", threads=[])
-        new_thread = udp.Thread(
-            processor=-2, 
-            transfer_groups=[],
-            local_address="127.0.0.1",
-            local_port=5000,
-        )
-        new_group = udp.TransferGroup(
-            name="Transfer Group 1",
-            direction=definitions.Direction.TX,
-            transfers=[],
-        )
-        new_transfer = udp.Transfer(
-            name="Transfer 1",
-            channels=[],
-            destination_address="127.0.0.2",
-            destination_port=5000,
-        )
-        new_transfer.addChannel(udp.Channel(name="Channel 1"))
-        new_group.addTransfer(new_transfer)
-        new_thread.addTransferGroup(new_group)
-        new_plugin.addThread(new_thread)
-        new_configuration.addPlugin(new_plugin)
-        self.configuration = udp.UDP_Configuration.from_dict(new_configuration.getDict())
 
     def label_text(self) -> str:
         return str(self.current_path) if self.current_path is not None else "New configuration"

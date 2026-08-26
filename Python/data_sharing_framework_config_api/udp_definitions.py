@@ -22,6 +22,8 @@ T = TypeVar("T")
 def ip_to_string(ip_address: str) -> str:
     """Convert an IPv4 address string (e.g. '127.0.0.1') into its integer
     representation as a string (e.g. '2130706433')."""
+    if ip_address == "":
+        ip_address="127.0.0.1"
     packed = socket.inet_aton(ip_address)
     return str(struct.unpack("!L", packed)[0])
 
