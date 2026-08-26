@@ -112,7 +112,7 @@ class Thread(d.Thread):
         processor: int = -2,
         priority_offset: int = 0,
         transfer_groups: list[TransferGroup] | None = None,
-        local_address: str = "",
+        local_address: str = "127.0.0.1",
         local_port: int = 0,
     ) -> None:
         super().__init__(
@@ -160,6 +160,27 @@ class Plugin(d.Plugin):
         )
         self.components = ["UDP"]
         self.component_settings = []
+
+class UDP_Configuration(d.Configuration):
+    """A UDP configuration containing one or more plugins."""
+
+    def __init__(
+        self,
+        plugins: list[Plugin] | None = None,
+        dsfversion: dict | None = None,
+        version: dict | None = None,
+    ) -> None:
+        super().__init__(
+            plugins=plugins if plugins is not None else [],
+            dsfversion=dsfversion if dsfversion is not None else {"major": 1, "minor": 4, "fix": 0, "build": ""},
+            version=version if version is not None else {"major": 1, "minor": 0, "fix": 0, "build": ""},
+        )
+
+    @classmethod
+    def from_dict(cls, data: dict) -> "UDP_Configuration":
+        obj = cls.__new__(cls)
+        obj.importFromDict(data)
+        return obj
 
 
 if __name__ == "__main__":

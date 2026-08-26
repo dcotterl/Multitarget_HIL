@@ -155,6 +155,27 @@ class Plugin(d.Plugin):
         self.components = ["RDMA"]
         self.component_settings = [d.ComponentSettings("RDMA")]
 
+class RDMA_Configuration(d.Configuration):
+    """An RDMA configuration containing one or more plugins."""
+
+    def __init__(
+        self,
+        plugins: list[Plugin] | None = None,
+        dsfversion: dict | None = None,
+        version: dict | None = None,
+    ) -> None:
+        super().__init__(
+            plugins=plugins if plugins is not None else [],
+            dsfversion=dsfversion if dsfversion is not None else {"major": 1, "minor": 4, "fix": 0, "build": ""},
+            version=version if version is not None else {"major": 1, "minor": 0, "fix": 0, "build": ""},
+        )
+
+    @classmethod
+    def from_dict(cls, data: dict) -> "RDMA_Configuration":
+        obj = cls.__new__(cls)
+        obj.importFromDict(data)
+        return obj
+
 
 if __name__ == "__main__":
     print(f"here is the module {__name__} for RDMA configuration definitions")

@@ -1,25 +1,25 @@
-"""Tree population and lookup helpers for the RDMA GUI."""
+"""Tree population and lookup helpers for the configuration GUI."""
 
 from __future__ import annotations
 
-from data_sharing_framework_config_api import rdma_definitions as rdma
+from data_sharing_framework_config_api import definitions
 
 CONFIGURATION_OBJECT_TYPES = (
-    rdma.RDMA_Configuration,
-    rdma.Plugin,
-    rdma.Thread,
-    rdma.TransferGroup,
-    rdma.Transfer,
-    rdma.Channel,
-    rdma.ComponentSettings,
+    definitions.Configuration,
+    definitions.Plugin,
+    definitions.Thread,
+    definitions.TransferGroup,
+    definitions.Transfer,
+    definitions.Channel,
+    definitions.ComponentSettings,
 )
 
 CHILD_ATTRIBUTES = {
-    rdma.RDMA_Configuration: ("plugins",),
-    rdma.Plugin: ("threads",),
-    rdma.Thread: ("transfer_groups",),
-    rdma.TransferGroup: ("transfers",),
-    rdma.Transfer: ("channels",),
+    definitions.Configuration: ("plugins",),
+    definitions.Plugin: ("threads",),
+    definitions.Thread: ("transfer_groups",),
+    definitions.TransferGroup: ("transfers",),
+    definitions.Transfer: ("channels",),
 }
 
 

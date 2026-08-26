@@ -192,6 +192,10 @@ class Transfer:
         obj.importFromDict(data)
         return obj
 
+    def addChannel(self, channel: Channel) -> None:
+        """Add a channel to this transfer."""
+        self.channels = [*self.channels, channel]
+
 class TransferGroup:
 
     def __init__(
@@ -263,6 +267,10 @@ class TransferGroup:
             for cs in ensure_list(data.get("component settings", []), "TransferGroup.component settings")
         ]
         self.transfers = [Transfer.from_dict(t) for t in ensure_list(data.get("transfers", []), "TransferGroup.transfers")]
+
+    def addTransfer(self, transfer: Transfer) -> None:
+        """Add a transfer to this transfer group."""
+        self.transfers = [*self.transfers, transfer]
   
 class Thread:
     def __init__(
@@ -313,6 +321,10 @@ class Thread:
         obj = cls.__new__(cls)
         obj.importFromDict(data)
         return obj
+
+    def addTransferGroup(self, transfer_group: TransferGroup) -> None:
+        """Add a transfer group to this thread."""
+        self.transfer_groups = [*self.transfer_groups, transfer_group]
 
 class Plugin:
     def __init__(
@@ -375,6 +387,10 @@ class Plugin:
         obj.importFromDict(data)
         return obj
 
+    def addThread(self, thread: Thread) -> None:
+        """Add a thread to this plugin."""
+        self.threads = [*self.threads, thread]
+
 class Configuration:
     def __init__(self,
                  plugins: list[Plugin] | None = None,
@@ -414,6 +430,10 @@ class Configuration:
         obj = cls.__new__(cls)
         obj.importFromDict(data)
         return obj
+
+    def addPlugin(self, plugin: Plugin) -> None:
+        """Add a plugin to this configuration."""
+        self.plugins = [*self.plugins, plugin]
 
 def get_version() -> dict:
     """Return the current RDMA definition format version."""
