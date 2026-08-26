@@ -104,6 +104,87 @@ def field_value(selected_object, attribute, field_type):
     return str(value)
 
 
+def adapt_transfers_to_direction(transfer_group: definitions.TransferGroup):
+    """Adapt child transfers when a TransferGroup direction changes."""
+    is_tx = (transfer_group.direction == definitions.Direction.TX)
+
+    for transfer in getattr(transfer_group, "transfers", []):
+        for cs in getattr(transfer, "component_settings", []):
+            if cs.component == "RDMA":
+                if is_tx:
+                    if not transfer.local_address:
+                        transfer.local_address = transfer.destination_address or "127.0.0.1"
+                    if transfer.local_port == 0:
+                        transfer.local_port = transfer.destination_port
+                    if not transfer.destination_address:
+                        transfer.destination_address = transfer.local_address or "127.0.0.1"
+                    if transfer.destination_port == 0:
+                        transfer.destination_port = transfer.local_port
+
+                    elements = [
+                        definitions.Element("local address", str(transfer.local_address)),
+                        definitions.Element("local port", str(transfer.local_port)),
+                        definitions.Element("destination address", str(transfer.destination_address)),
+                        definitions.Element("destination port", str(transfer.destination_port)),
+                    ]
+                    cs.elements = elements
+                else:
+                    if not transfer.local_address:
+                        transfer.local_address = transfer.destination_address or "127.0.0.1"
+                    if transfer.local_port == 0:
+                        transfer.local_port = transfer.destination_port
+                    transfer.destination_address = ""
+                    transfer.destination_port = 0
+
+                    elements = [
+                        definitions.Element("local address", str(transfer.local_address)),
+                        definitions.Element("local port", str(transfer.local_port)),
+                    ]
+                    cs.elements = elements
+
+            elif cs.component == "UDP":
+                if is_tx:
+                    if not transfer.destination_address:
+                        transfer.destination_address = transfer.local_address or "127.0.0.1"
+                    if transfer.destination_port == 0:
+                        transfer.destination_port = transfer.local_port or 5000
+                    transfer.local_address = ""
+                    transfer.local_port = 0
+
+                    addr_val = transfer.destination_address
+                    if "." in addr_val:
+                        try:
+                            addr_val = udp_definitions.ip_to_string(addr_val)
+                        except Exception:
+                            pass
+
+                    elements = [
+                        definitions.Element("destination address", addr_val),
+                        definitions.Element("destination port", str(transfer.destination_port)),
+                    ]
+                    cs.elements = elements
+                else:
+                    if not transfer.local_address:
+                        transfer.local_address = transfer.destination_address or "127.0.0.1"
+                    if transfer.local_port == 0:
+                        transfer.local_port = transfer.destination_port or 5000
+                    transfer.destination_address = ""
+                    transfer.destination_port = 0
+
+                    addr_val = transfer.local_address
+                    if "." in addr_val:
+                        try:
+                            addr_val = udp_definitions.ip_to_string(addr_val)
+                        except Exception:
+                            pass
+
+                    elements = [
+                        definitions.Element("source address", addr_val),
+                        definitions.Element("source port", str(transfer.local_port)),
+                    ]
+                    cs.elements = elements
+
+
 def apply_field_value(selected_object, attribute, field_type, value):
     value = value.strip()
     if field_type == "json":
@@ -258,6 +339,8 @@ def modify_selected_element(tree, object_map, item_id, details_text, right_frame
             for attribute, (widget, field_type) in fields.items():
                 value = widget.get("1.0", "end-1c") if field_type == "elements" else widget.get()
                 apply_field_value(selected_object, attribute, field_type, value)
+            if isinstance(selected_object, definitions.TransferGroup):
+                adapt_transfers_to_direction(selected_object)
         except (ValueError, TypeError, json.JSONDecodeError) as error:
             messagebox.showerror("Modify Error", str(error), parent=root)
             return False
@@ -558,6 +641,8 @@ def add_transfer_to_group(session, selected_group, refresh):
             transfer = rdma_definitions.Transfer(
                 name=f"Transfer {transfer_number}", 
                 channels=[],
+                local_address="127.0.0.1",
+                local_port=0,
                 destination_address="127.0.0.1", 
                 destination_port=0
             )
