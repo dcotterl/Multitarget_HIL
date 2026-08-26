@@ -26,8 +26,25 @@ class testIpConversion(unittest.TestCase):
 
         self.assertEqual(udp.ip_to_string(ip), "2130706433")
 
+    def test_empty_ip_to_string(self):
+        self.assertEqual(udp.ip_to_string(""), "2130706433")
+
 class udp_Import_Tests(unittest.TestCase):
     """Test udp definition serialization, deserialization, and fixture imports."""
+
+    def test_transfer_str_uses_string_to_ip(self):
+        """Ensure __str__ on Transfer converts the address using string_to_ip."""
+        transfer = udp.Transfer(name="Transfer1", destination_address="127.0.0.1", destination_port=5000)
+        str_repr = str(transfer)
+        self.assertIn("127.0.0.1", str_repr)
+        self.assertNotIn("2130706433", str_repr)
+
+    def test_thread_str_uses_string_to_ip(self):
+        """Ensure __str__ on Thread converts the address using string_to_ip."""
+        thread = udp.Thread(local_address="127.0.0.1", local_port=5000)
+        str_repr = str(thread)
+        self.assertIn("127.0.0.1", str_repr)
+        self.assertNotIn("2130706433", str_repr)
 
     def test_channel_round_trip(self):
         """Ensure a channel remains unchanged after a dictionary round trip."""
@@ -85,12 +102,10 @@ class udp_Import_Tests(unittest.TestCase):
         self.assertEqual(plugin.getDict(), rebuilt.getDict())
     
     def test_udp_configuration_round_trip(self):
-        """Ensure an udp configuration remains unchanged after a round trip."""
+        """Ensure a configuration remains unchanged after a round trip."""
         config = d.Configuration()
         rebuilt = d.Configuration.from_dict(config.getDict())
         self.assertEqual(config.getDict(), rebuilt.getDict())
-
-
 
 class udp_benchmark_configuration(unittest.TestCase):
      def makeChannel(self):

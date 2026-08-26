@@ -8,11 +8,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Literal
 
-from data_sharing_framework_config_api import (
-    definitions,
-    rdma_definitions as rdma,
-    udp_definitions as udp,
-)
+from data_sharing_framework_config_api import definitions
 
 
 def _runtime_package_root() -> Path:
@@ -29,34 +25,12 @@ DEFAULT_CONFIG_CANDIDATES = (
 )
 
 
-def detect_protocol(configuration: definitions.Configuration) -> Literal["RDMA", "UDP"]:
-    """Detect the protocol used in a configuration based on plugin components."""
-    if not configuration.plugins:
-        return "RDMA"  # Default to RDMA
-    
-    first_plugin = configuration.plugins[0]
-    if hasattr(first_plugin, 'components') and first_plugin.components:
-        protocol = first_plugin.components[0]
-        if protocol in ("RDMA", "UDP"):
-            return protocol
-    
-    return "RDMA"  # Default to RDMA
-
-
-def create_configuration_for_protocol(protocol: Literal["RDMA", "UDP"]) -> definitions.Configuration:
-    """Create a new configuration object for the specified protocol."""
-    if protocol == "UDP":
-        return udp.UDP_Configuration()
-    return rdma.RDMA_Configuration()
-
-
 @dataclass
 class ConfigurationSession:
     """Mutable application session for the GUI."""
 
     configuration: definitions.Configuration = None
     current_path: Path | None = None
-    protocol: Literal["RDMA", "UDP"] = "RDMA"
 
     def __post_init__(self):
         if self.configuration is None:
@@ -78,16 +52,7 @@ class ConfigurationSession:
         if not isinstance(file_content, dict):
             raise ValueError("Selected file content is not a dictionary.")
         
-        # Detect protocol from file content
-        detected_protocol = detect_protocol(definitions.Configuration.from_dict(file_content))
-        self.protocol = detected_protocol
-        
-        # Create appropriate configuration object for the protocol
-        if detected_protocol == "UDP":
-            self.configuration = udp.UDP_Configuration.from_dict(file_content)
-        else:
-            self.configuration = rdma.RDMA_Configuration.from_dict(file_content)
-        
+        self.configuration = definitions.Configuration.from_dict(file_content)
         self.current_path = path.resolve()
 
     def save_file(self, file_path: str | Path) -> Path:

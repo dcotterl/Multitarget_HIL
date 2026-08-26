@@ -47,9 +47,9 @@ class rdma_Import_Tests(unittest.TestCase):
         self.assertEqual(plugin.getDict(), rebuilt.getDict())
 
     def test_rdma_configuration_round_trip(self):
-        """Ensure an RDMA configuration remains unchanged after a round trip."""
+        """Ensure a configuration remains unchanged after a round trip."""
         config = d.Configuration()
-        rebuilt = d.Configuration().from_dict(config.getDict())
+        rebuilt = d.Configuration.from_dict(config.getDict())
         self.assertEqual(config.getDict(), rebuilt.getDict())
 
 class rdma_benchmark_configuration(unittest.TestCase):
