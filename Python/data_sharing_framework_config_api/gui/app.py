@@ -615,36 +615,6 @@ def new_action(tree, file_path_label, object_map, details_text, root, session):
         lambda: update_details_text(tree, details_text, object_map),
         lambda: close_inline_editor(details_text),
     )
-    
-    button_frame = ttk.Frame(dialog)
-    button_frame.pack(pady=12)
-    
-    ttk.Button(button_frame, text="RDMA", command=on_rdma).pack(side="left", padx=4)
-    ttk.Button(button_frame, text="UDP", command=on_udp).pack(side="left", padx=4)
-    ttk.Button(button_frame, text="Cancel", command=on_cancel).pack(side="left", padx=4)
-    
-    dialog.update_idletasks()
-    dialog.geometry(
-        f"+{(dialog.winfo_screenwidth() - dialog.winfo_reqwidth()) // 2}"
-        f"+{(dialog.winfo_screenheight() - dialog.winfo_reqheight()) // 2}"
-    )
-    
-    root.wait_window(dialog)
-    
-    # If user cancelled, do nothing
-    if selected_protocol is None:
-        return
-    
-    # Create configuration with selected protocol
-    session.new_configuration(selected_protocol)
-    file_path_label.config(text=session.label_text())
-    refresh_tree_and_select(
-        tree,
-        object_map,
-        session.configuration,
-        lambda: update_details_text(tree, details_text, object_map),
-        lambda: close_inline_editor(details_text),
-    )
 
 
 def save_action(file_path_label, root, details_text, session):
