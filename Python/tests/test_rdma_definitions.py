@@ -8,7 +8,7 @@ if str(PYTHON_ROOT) not in sys.path:
     sys.path.insert(0, str(PYTHON_ROOT))
 
 from data_sharing_framework_config_api import rdma_definitions as rdma
-
+from data_sharing_framework_config_api import definitions as d
 DATA_PATH = Path(r"tests/config_multidirectional_1_Callea_to_Cotterle_generated.dsf")
 
 
@@ -23,7 +23,7 @@ class Rdma_Import_Tests(unittest.TestCase):
 
     def test_transfer_round_trip(self):
         """Ensure a transfer remains unchanged after a dictionary round trip."""
-        transfer = rdma.Transfer(protocol="RDMA")
+        transfer = rdma.Transfer()
         rebuilt = rdma.Transfer.from_dict(transfer.getDict())
         self.assertEqual(transfer.getDict(), rebuilt.getDict())
 
@@ -41,8 +41,8 @@ class Rdma_Import_Tests(unittest.TestCase):
 
     def test_transfer_group_round_trip(self):
         """Ensure a transfer group remains unchanged after a dictionary round trip."""
-        rx_transfer = rdma.Transfer(protocol="RDMA")
-        transfer_group = rdma.TransferGroup(protocol="RDMA", transfers=[rx_transfer])
+        rx_transfer = rdma.Transfer()
+        transfer_group = rdma.TransferGroup(name="transfer", direction=d.Direction.TX, transfers=[rx_transfer])
         rebuilt = rdma.TransferGroup.from_dict(transfer_group.getDict())
         self.assertEqual(transfer_group.getDict(), rebuilt.getDict())
 

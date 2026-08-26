@@ -34,7 +34,6 @@ def ensure_list(value, context: str) -> list:
         raise TypeError(f"{context} must be a list.")
     return value
 
-
 class Element:
     """A key-value pair used inside :class:`ComponentSettings`."""
 
@@ -79,7 +78,7 @@ class ComponentSettings:
     def importFromDict(self, data: dict) -> None:
         data = ensure_dict(data, "ComponentSettings")
         self.component = data.get("component", "")
-        self.elements = [Element.from_dict(v) for v in _ensure_list(data.get("values", []), "ComponentSettings.values")]
+        self.elements = [Element.from_dict(v) for v in ensure_list(data.get("values", []), "ComponentSettings.values")]
 
     @classmethod
     def from_dict(cls, data: dict) -> "ComponentSettings":
@@ -135,7 +134,7 @@ class Channel:
         self.string_offset = core.get("string offset", 0)
         self.component_settings = [
             ComponentSettings.from_dict(cs)
-            for cs in _ensure_list(data.get("component settings", []), "Channel.component settings")
+            for cs in ensure_list(data.get("component settings", []), "Channel.component settings")
         ]
 
     @classmethod
@@ -183,9 +182,9 @@ class Transfer:
         self.name = core.get("name", "")
         self.component_settings = [
             ComponentSettings.from_dict(cs)
-            for cs in _ensure_list(data.get("component settings", []), "Transfer.component settings")
+            for cs in ensure_list(data.get("component settings", []), "Transfer.component settings")
         ]
-        self.channels = [Channel.from_dict(ch) for ch in _ensure_list(data.get("channels", []), "Transfer.channels")]
+        self.channels = [Channel.from_dict(ch) for ch in ensure_list(data.get("channels", []), "Transfer.channels")]
 
     @classmethod
     def from_dict(cls, data: dict) -> "Transfer":
@@ -247,6 +246,25 @@ class TransferGroup:
         obj.importFromDict(data)
         return obj
 
+    def importFromDict(self, data: dict) -> None:
+        data = ensure_dict(data, "TransferGroup")
+        core = ensure_dict(data.get("core", {}), "TransferGroup.core")
+        self.name = core.get("name", "")
+        self.direction = Direction.TX if core.get("direction", 0) == 0 else Direction.RX
+        
+        cycle_timing = ensure_dict(core.get("cycle timing", {}), "TransferGroup.core.cycle timing")
+        self.priority = cycle_timing.get("priority", 100)
+        self.decimation = cycle_timing.get("decimation", 1)
+        self.offset = cycle_timing.get("offset", 0)
+        self.timeout_behaviour = core.get("timeout behavior", 0)
+        self.enable_conversion = core.get("enable conversion", False)
+        self.component_settings = [
+            ComponentSettings.from_dict(cs)
+            for cs in ensure_list(data.get("component settings", []), "TransferGroup.component settings")
+        ]
+        self.transfers = [Transfer.from_dict(t) for t in ensure_list(data.get("transfers", []), "TransferGroup.transfers")]
+
+    
 class Thread:
     def __init__(
             self,
@@ -401,3 +419,8 @@ class Configuration:
 def get_version() -> dict:
     """Return the current RDMA definition format version."""
     return {"major": 3, "minor": 0, "fix": 0, "build": ""}
+
+
+if __name__ == "__main__":
+    direction = Direction.TX
+    print(direction.value)
