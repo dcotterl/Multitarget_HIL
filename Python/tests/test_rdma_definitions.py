@@ -27,6 +27,13 @@ class Rdma_Import_Tests(unittest.TestCase):
         rebuilt = rdma.Transfer.from_dict(transfer.getDict())
         self.assertEqual(transfer.getDict(), rebuilt.getDict())
 
+    def test_transfer_group_round_trip(self):
+        """Ensure a transfer group remains unchanged after a dictionary round trip."""
+        rx_transfer = rdma.Transfer()
+        transfer_group = rdma.TransferGroup(name="transfer", direction=d.Direction.TX, transfers=[rx_transfer])
+        rebuilt = rdma.TransferGroup.from_dict(transfer_group.getDict())
+        self.assertEqual(transfer_group.getDict(), rebuilt.getDict())
+
     def test_thread_round_trip(self):
             """Ensure a thread remains unchanged after a dictionary round trip."""
             thread = rdma.Thread()
@@ -39,38 +46,30 @@ class Rdma_Import_Tests(unittest.TestCase):
         rebuilt = rdma.Plugin.from_dict(plugin.getDict())
         self.assertEqual(plugin.getDict(), rebuilt.getDict())
 
-    def test_transfer_group_round_trip(self):
-        """Ensure a transfer group remains unchanged after a dictionary round trip."""
-        rx_transfer = rdma.Transfer()
-        transfer_group = rdma.TransferGroup(name="transfer", direction=d.Direction.TX, transfers=[rx_transfer])
-        rebuilt = rdma.TransferGroup.from_dict(transfer_group.getDict())
-        self.assertEqual(transfer_group.getDict(), rebuilt.getDict())
-
     def test_rdma_configuration_round_trip(self):
         """Ensure an RDMA configuration remains unchanged after a round trip."""
-        config = rdma.RDMA_Configuration()
-        rebuilt = rdma.RDMA_Configuration.from_dict(config.getDict())
+        config = d.Configuration()
+        rebuilt = d.Configuration().from_dict(config.getDict())
         self.assertEqual(config.getDict(), rebuilt.getDict())
 
+class Rdma_benchmark_configuration(unittest.TestCase):
+    """Test construction of the expected bidirectional benchmark configuration."""
+    
     def test_import_matches_generated_file(self):
             """Ensure the generated configuration imports without changes."""
             with open(DATA_PATH, "r") as f:
                 expected_dict = json.load(f)
 
-            config = rdma.RDMA_Configuration.from_dict(expected_dict)
+            config = d.Configuration.from_dict(expected_dict)
             self.assertEqual(config.getDict(), expected_dict)
-
-class Rdma_benchmark_configuration(unittest.TestCase):
-    """Test construction of the expected bidirectional benchmark configuration."""
 
     def test_bottomup_configuration(self):
         """Ensure a bottom-up configuration matches the generated fixture."""
 
-        channel = rdma.Channel(name="Channel1", protocol="RDMA")
+        channel = rdma.Channel(name="Channel1")
         
         transfer_tx = rdma.Transfer(
             name="Transfer_Callea_to_Cotterle_Tx",
-            protocol="RDMA",
             local_address="169.254.23.111",
             local_port=5011,
             destination_address="169.254.49.44",
@@ -80,7 +79,6 @@ class Rdma_benchmark_configuration(unittest.TestCase):
     
         transfer_rx = rdma.Transfer(
             name="Transfer_Cotterle_to_Callea_Rx",
-            protocol="RDMA",
             local_address="169.254.23.111",
             local_port=5010,
             channels=[channel],
@@ -88,23 +86,21 @@ class Rdma_benchmark_configuration(unittest.TestCase):
 
         transfer_group_tx = rdma.TransferGroup(
             name="TransferGroup_Callea_to_Cotterle_Tx",
-            direction=rdma.Direction.TX,
-            protocol="RDMA",
+            direction=d.Direction.TX,
             transfers=[transfer_tx],
         )
     
         transfer_group_rx = rdma.TransferGroup(
             name="TransferGroup_Cotterle_to_Callea_Rx",
-            direction=rdma.Direction.RX,
-            protocol="RDMA",
+            direction=d.Direction.RX,
             transfers=[transfer_rx],
         )
 
-        thread = rdma.Thread(protocol="RDMA", transfer_groups=[transfer_group_tx, transfer_group_rx])
+        thread = rdma.Thread(transfer_groups=[transfer_group_tx, transfer_group_rx])
 
-        plugin = rdma.Plugin(name="BidirectionalPlugin", protocol="RDMA", threads=[thread])
+        plugin = rdma.Plugin(name="BidirectionalPlugin", threads=[thread])
 
-        config = rdma.RDMA_Configuration(plugins=[plugin])
+        config = d.Configuration(plugins=[plugin])
 
         with open(DATA_PATH, "r") as f:
             expected_dict = json.load(f)
@@ -113,25 +109,22 @@ class Rdma_benchmark_configuration(unittest.TestCase):
 
     def test_topdown_configuration(self):
          self.maxDiff = None  # Show full diff if test fails
-         config = rdma.RDMA_Configuration()
+         config = d.Configuration()
 
-         plugin = rdma.Plugin(name="BidirectionalPlugin", threads=[], protocol="RDMA")
+         plugin = rdma.Plugin(name="BidirectionalPlugin", threads=[])
 
-         thread = rdma.Thread(protocol="RDMA")
+         thread = rdma.Thread()
 
          transfer_group_tx = rdma.TransferGroup(
             name="TransferGroup_Callea_to_Cotterle_Tx",
-            direction=rdma.Direction.TX,
-            protocol="RDMA")
+            direction=d.Direction.TX)
          
          transfer_group_rx = rdma.TransferGroup(
             name="TransferGroup_Cotterle_to_Callea_Rx",
-            direction=rdma.Direction.RX,
-            protocol="RDMA")
+            direction=d.Direction.RX)
          
          transfer_tx = rdma.Transfer(
             name="Transfer_Callea_to_Cotterle_Tx",
-            protocol="RDMA",
             local_address="169.254.23.111",
             local_port=5011,
             destination_address="169.254.49.44",
@@ -139,11 +132,10 @@ class Rdma_benchmark_configuration(unittest.TestCase):
          
          transfer_rx = rdma.Transfer(
             name="Transfer_Cotterle_to_Callea_Rx",
-            protocol="RDMA",
             local_address="169.254.23.111",
             local_port=5010)
 
-         channel = rdma.Channel(name="Channel1", protocol="RDMA")
+         channel = rdma.Channel(name="Channel1")
     
          transfer_rx.channels = [channel]
          transfer_tx.channels = [channel]
