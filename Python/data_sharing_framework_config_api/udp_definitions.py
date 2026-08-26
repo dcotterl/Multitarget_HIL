@@ -78,6 +78,22 @@ class Transfer(d.Transfer):
         ]
         self.component_settings = [d.ComponentSettings("UDP", elements)]
 
+    def __str__(self, collapse: bool = True) -> str:
+        result = self.getDict()
+        for setting in result.get("component settings", []):
+            if setting.get("component") == "UDP":
+                for val in setting.get("values", []):
+                    if val.get("key") in ("source address", "destination address", "local address"):
+                        try:
+                            val["value"] = string_to_ip(val["value"])
+                        except Exception:
+                            pass
+        if collapse:
+            result["channels"] = "[EMPTY]" if not self.channels else f"[...{len(self.channels)} channels...]"
+        else:
+            result["channels"] = [ch.getDict() for ch in self.channels]
+        return json.dumps(result, indent=4)
+
 class TransferGroup(d.TransferGroup):
     """A group of transfers sharing a common direction."""
 
@@ -126,6 +142,22 @@ class Thread(d.Thread):
         self.local_address = local_address
         self.local_port = local_port
         self.transfer_groups = transfer_groups if transfer_groups is not None else []
+
+    def __str__(self, collapse: bool = True) -> str:
+        result = self.getDict()
+        for setting in result.get("component settings", []):
+            if setting.get("component") == "UDP":
+                for val in setting.get("values", []):
+                    if val.get("key") in ("local address", "source address", "destination address"):
+                        try:
+                            val["value"] = string_to_ip(val["value"])
+                        except Exception:
+                            pass
+        if collapse:
+            result["transfer groups"] = "[EMPTY]" if not self.transfer_groups else f"[...{len(self.transfer_groups)} transfer groups...]"
+        else:
+            result["transfer groups"] = [tg.getDict() for tg in self.transfer_groups]
+        return json.dumps(result, indent=4)
 
     @classmethod
     def from_dict(cls, data: dict) -> Thread:

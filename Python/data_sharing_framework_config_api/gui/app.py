@@ -90,7 +90,17 @@ def field_value(selected_object, attribute, field_type):
     if field_type == "bool":
         return "True" if value else "False"
     if field_type == "elements":
-        return "\n".join(f"{item.key}={item.value}" for item in value)
+        lines = []
+        is_udp = getattr(selected_object, "component", "") == "UDP"
+        for item in value:
+            val_str = str(item.value)
+            if is_udp and item.key in ("source address", "destination address", "local address"):
+                try:
+                    val_str = definitions._format_udp_ip_value(item.key, val_str)
+                except Exception:
+                    pass
+            lines.append(f"{item.key}={val_str}")
+        return "\n".join(lines)
     return str(value)
 
 
@@ -110,13 +120,24 @@ def apply_field_value(selected_object, attribute, field_type, value):
         value = int(value)
     elif field_type == "elements":
         elements = []
+        is_udp = getattr(selected_object, "component", "") == "UDP"
         for line in value.splitlines():
             if not line.strip():
                 continue
             if "=" not in line:
                 raise ValueError("Each value must use key=value format.")
             key, item_value = line.split("=", 1)
-            elements.append(definitions.Element(key.strip(), item_value.strip()))
+            key = key.strip()
+            item_value = item_value.strip()
+            if is_udp and key in ("source address", "destination address", "local address"):
+                try:
+                    if "." in item_value:
+                        import socket, struct
+                        packed = socket.inet_aton(item_value)
+                        item_value = str(struct.unpack("!L", packed)[0])
+                except Exception as e:
+                    raise ValueError(f"Invalid IP address format '{item_value}': {e}") from e
+            elements.append(definitions.Element(key, item_value))
         value = elements
     setattr(selected_object, attribute, value)
 

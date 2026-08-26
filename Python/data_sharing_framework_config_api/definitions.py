@@ -34,6 +34,41 @@ def ensure_list(value, context: str) -> list:
         raise TypeError(f"{context} must be a list.")
     return value
 
+def _format_udp_ip_value(key: str, val):
+    if key in ("source address", "destination address", "local address"):
+        try:
+            val_str = str(val)
+            if val_str.isdigit() or (val_str.startswith("-") and val_str[1:].isdigit()):
+                import socket, struct
+                packed = struct.pack("!L", int(val_str))
+                return socket.inet_ntoa(packed)
+        except Exception:
+            pass
+    return val
+
+def _format_dict_for_str(d):
+    """Recursively copy dict d and convert UDP integer IP strings to IP format for human-readable display."""
+    if isinstance(d, dict):
+        new_d = {}
+        component = d.get("component")
+        for k, v in d.items():
+            if k == "values" and component == "UDP" and isinstance(v, list):
+                new_values = []
+                for item in v:
+                    if isinstance(item, dict) and item.get("key") in ("source address", "destination address", "local address"):
+                        item_copy = dict(item)
+                        item_copy["value"] = _format_udp_ip_value(item.get("key"), item.get("value"))
+                        new_values.append(item_copy)
+                    else:
+                        new_values.append(_format_dict_for_str(item))
+                new_d[k] = new_values
+            else:
+                new_d[k] = _format_dict_for_str(v)
+        return new_d
+    elif isinstance(d, list):
+        return [_format_dict_for_str(item) for item in d]
+    return d
+
 class Element:
     """A key-value pair used inside :class:`ComponentSettings`."""
 
@@ -45,7 +80,10 @@ class Element:
         return {"key": self.key, "value": self.value}
 
     def __str__(self) -> str:
-        return json.dumps(self.getDict(), indent=4)
+        d = self.getDict()
+        if self.key in ("source address", "destination address", "local address"):
+            d["value"] = _format_udp_ip_value(self.key, self.value)
+        return json.dumps(d, indent=4)
 
     def importFromDict(self, data: dict) -> None:
         data = ensure_dict(data, "Element")
@@ -68,8 +106,7 @@ class ComponentSettings:
         self.elements = initial_elements if initial_elements is not None else []
 
     def __str__(self) -> str:
-        result = self.getDict()
-        result["values"] = "[EMPTY]" if not self.elements else f"[{len(self.elements)} elements]"
+        result = _format_dict_for_str(self.getDict())
         return json.dumps(result, indent=4)
 
     def getDict(self) -> dict:
@@ -108,9 +145,8 @@ class Channel:
         self.component_settings = [ComponentSettings()]
 
     def __str__(self) -> str:
-        result = self.getDict()
-        result["component settings"] = "[EMPTY]" if not self.component_settings else f"[{len(self.component_settings)} component settings]"
-        return json.dumps(self.getDict(), indent=4)
+        result = _format_dict_for_str(self.getDict())
+        return json.dumps(result, indent=4)
 
     def getDict(self) -> dict:
         return {
@@ -167,6 +203,7 @@ class Transfer:
             result["channels"] = "[EMPTY]" if not self.channels else f"[...{len(self.channels)} channels...]"
         else:
             result["channels"] = [ch.getDict() for ch in self.channels]
+        result = _format_dict_for_str(result)
         return json.dumps(result, indent=4)
 
     def getDict(self) -> dict:
@@ -225,6 +262,7 @@ class TransferGroup:
             result["transfers"] = "[EMPTY]" if not self.transfers else f"[...{len(self.transfers)} transfers...]"
         else:
             result["transfers"] = [tr.getDict() for tr in self.transfers]
+        result = _format_dict_for_str(result)
         return json.dumps(result, indent=4)
 
     def getDict(self) -> dict:
@@ -290,6 +328,7 @@ class Thread:
             result["transfer groups"] = "[EMPTY]" if not self.transfer_groups else f"[...{len(self.transfer_groups)} transfer groups...]"
         else:
             result["transfer groups"] = [tg.getDict() for tg in self.transfer_groups]
+        result = _format_dict_for_str(result)
         return json.dumps(result, indent=4)
 
     def getDict(self) -> dict:
@@ -349,6 +388,7 @@ class Plugin:
             result["threads"] = "[EMPTY]" if not self.threads else f"[...{len(self.threads)} threads...]"
         else:
             result["threads"] = [th.getDict() for th in self.threads]
+        result = _format_dict_for_str(result)
         return json.dumps(result, indent=4)
 
     def getDict(self) -> dict:
@@ -407,6 +447,7 @@ class Configuration:
                 result["configuration"]["plugins"] = "[EMPTY]" if not self.plugins else f"[...{len(self.plugins)} plugins...]"
             else:
                 result["configuration"]["plugins"] = [pl.getDict() for pl in self.plugins]
+            result = _format_dict_for_str(result)
             return json.dumps(result, indent=4)
 
     def getDict(self) -> dict:
