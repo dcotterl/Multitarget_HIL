@@ -12,7 +12,7 @@ from data_sharing_framework_config_api import definitions as d
 DATA_PATH = Path(r"tests/config_multidirectional_1_Callea_to_Cotterle_generated.dsf")
 
 
-class Rdma_Import_Tests(unittest.TestCase):
+class rdma_Import_Tests(unittest.TestCase):
     """Test RDMA definition serialization, deserialization, and fixture imports."""
 
     def test_channel_round_trip(self):
@@ -52,7 +52,7 @@ class Rdma_Import_Tests(unittest.TestCase):
         rebuilt = d.Configuration().from_dict(config.getDict())
         self.assertEqual(config.getDict(), rebuilt.getDict())
 
-class Rdma_benchmark_configuration(unittest.TestCase):
+class rdma_benchmark_configuration(unittest.TestCase):
     """Test construction of the expected bidirectional benchmark configuration."""
     
     def test_import_matches_generated_file(self):

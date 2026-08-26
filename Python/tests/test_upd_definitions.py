@@ -15,7 +15,7 @@ from data_sharing_framework_config_api import definitions as d
 DATA_PATH = Path(r"tests/udp_simpleloopback.dsf")
 
 
-class TestIpConversion(unittest.TestCase):
+class testIpConversion(unittest.TestCase):
     """Tests for IP address conversion helpers."""
 
     def test_string_to_ip(self):
@@ -90,13 +90,6 @@ class udp_Import_Tests(unittest.TestCase):
         rebuilt = d.Configuration.from_dict(config.getDict())
         self.assertEqual(config.getDict(), rebuilt.getDict())
 
-    def test_import_matches_generated_file(self):
-            """Ensure the generated configuration imports without changes."""
-            with open(DATA_PATH, "r") as f:
-                expected_dict = json.load(f)
-
-            config = d.Configuration.from_dict(expected_dict)
-            self.assertEqual(config.getDict(), expected_dict)
 
 
 class udp_benchmark_configuration(unittest.TestCase):
@@ -133,6 +126,14 @@ class udp_benchmark_configuration(unittest.TestCase):
                           threads = [self.makeThreadTx(), self.makeThreadRx()])
      def makeConfiguration(self):
         return d.Configuration(plugins = [self.makePlugin()])
+
+     def test_import_matches_generated_file(self):
+            """Ensure the generated configuration imports without changes."""
+            with open(DATA_PATH, "r") as f:
+                expected_dict = json.load(f)
+
+            config = d.Configuration.from_dict(expected_dict)
+            self.assertEqual(config.getDict(), expected_dict)
 
      def test_bottomup_configuration(self):
         """Ensure a bottom-up configuration matches the generated fixture."""

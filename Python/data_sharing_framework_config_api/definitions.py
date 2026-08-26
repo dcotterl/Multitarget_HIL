@@ -421,5 +421,4 @@ def get_version() -> dict:
 
 
 if __name__ == "__main__":
-    direction = Direction.TX
-    print(direction.value)
+    print(json.dumps(get_version(), indent=4))
