@@ -60,7 +60,6 @@ class Channel(d.Channel):
             self.string_offset = string_offset
             self.component_settings = [d.ComponentSettings("RDMA")]
 
-
 class Transfer(d.Transfer):
     """An RDMA data transfer configuration."""
 
@@ -92,7 +91,6 @@ class Transfer(d.Transfer):
             elements.append(d.Element("destination port", str(self.destination_port)))
         self.component_settings = [d.ComponentSettings("RDMA", elements)]
 
-
 class TransferGroup(d.TransferGroup):
     """A group of transfers sharing a common direction."""
 
@@ -120,7 +118,6 @@ class TransferGroup(d.TransferGroup):
 
         self.component_settings = [d.ComponentSettings("RDMA")]
 
-
 class Thread(d.Thread):
     """A thread configuration for RDMA operations."""
 
@@ -136,7 +133,6 @@ class Thread(d.Thread):
             transfer_groups=transfer_groups if transfer_groups is not None else [],
         )
         self.component_settings = [d.ComponentSettings("RDMA")]
-
 
 class Plugin(d.Plugin):
     """An RDMA plugin containing one or more threads."""
