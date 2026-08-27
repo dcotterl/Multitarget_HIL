@@ -43,11 +43,11 @@ Each level in the tree can also contain **`ComponentSettings`**, which hold prot
 | **`rdma_definitions.py`** | Root Package | RDMA-specific subclasses extending base definitions with RDMA default `ComponentSettings`. |
 | **`udp_definitions.py`** | Root Package | UDP-specific subclasses, IP address conversion utilities (`ip_to_string`, `string_to_ip`), and UDP default `ComponentSettings`. |
 | **`protocol_factory.py`** | Root Package | Protocol Registry & Factory pattern (`ProtocolFactory`, `ProtocolHandler`) for decoupled creation of protocol objects. |
-| **`logger_config.py`** | Root Package | Configures system logging from `logging_config.json` (console, file output, in-memory log buffer for GUI). Automatically generates `logging_config.json` with default values (`INFO`, `log_to_file: true`, `app.log`) if missing at runtime. |
+| **`logger_config.py`** | Root Package | Configures system logging from `logging_config.json` (console, file output, in-memory log buffer for GUI). In frozen executable builds it prefers a config next to the executable, and if missing it creates one there. It also auto-generates default settings (`INFO`, `log_to_file: true`, `app.log`) for regular Python runs. |
 | **`gui/session.py`** | `gui/` Package | Handles loading `.dsf` / `.json` files from disk, saving files, and maintaining active application state (`ConfigurationSession`). |
 | **`gui/tree.py`** | `gui/` Package | Populates, selects, and looks up nodes in the Tkinter `Treeview` control. |
 | **`gui/state.py`** | `gui/` Package | Shared inline editor state container (`EditorState`) tracking dirty/modified form fields. |
-| **`gui/dialogs.py`** | `gui/` Package | Modal dialog windows (Protocol selection picker, unsaved changes prompts, real-time Debug Log viewer, Configure Logger window). |
+| **`gui/dialogs.py`** | `gui/` Package | Modal dialog windows (Protocol selection picker, unsaved changes prompts, auto-refreshing Debug Log viewer, Configure Logger window). |
 | **`gui/editor_panel.py`** | `gui/` Package | Generates form fields for selected tree nodes, formats values (including IP address conversion), and applies direction adaptation. |
 | **`gui/mutations.py`** | `gui/` Package | Tree node mutation functions (add/remove plugins, threads, groups, transfers, channels) and right-click context menu wiring. |
 | **`gui/app.py`** | `gui/` Package | Main application window, menu bar, and entry point execution (`main()`). |
