@@ -18,6 +18,9 @@ python -m unittest discover -s tests -v
 
 ## File Overview
 
+- **`test_gui.py`**
+  - Unit and integration tests for the GUI: session initialization, building multi-protocol configurations from scratch (RDMA + UDP), add/remove tree mutations, field value edits, direction parameter adaptation, and save/load file round trips.
+
 - **`test_rdma_definitions.py`**
   - Unit tests covering RDMA model objects, round-trip serialization (`getDict()` / `from_dict()`), and fixture import validation against benchmark files.
 
