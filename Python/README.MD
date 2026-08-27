@@ -10,7 +10,7 @@ This directory contains the Python package, GUI, examples, tests, and build asse
 ## Contents
 
 - `data_sharing_framework_config_api/`
-  - Packaged Python source for the RDMA model and GUI.
+  - Packaged Python source for the multi-protocol model and GUI.
 - `examples/`
   - Example scripts for configuration creation and import/export validation.
 - `tests/`
@@ -82,6 +82,7 @@ The GUI can load or save `.dsf` and `.json` files. File dialogs open in the last
 ```bash
 python -m examples.import_config_example
 python -m examples.rdma_configuration_example
+python -m examples.udp_configuration_example
 ```
 
 ## Building the Windows application

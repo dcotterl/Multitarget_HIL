@@ -15,7 +15,7 @@ This directory contains standalone Python example scripts demonstrating how to u
   - Demonstrates programmatic construction of a UDP configuration, configuring IP addresses, ports, and channel metadata.
 
 - **`import_config_example.py`**
-  - Demonstrates loading an existing `.dsf` file from disk (`definitions.Configuration.from_dict()`), inspecting its object hierarchy, and re-exporting it.
+  - Demonstrates loading an existing `.dsf` file from disk (`definitions.Configuration.from_dict()`), validating its object hierarchy, and comparing the round-tripped data.
 
 ---
 

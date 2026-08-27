@@ -171,6 +171,27 @@ def _validate_component_settings(value, context: str) -> None:
                 raise ValueError(f"{element_context}.key must be a string.")
 
 
+def _protocol_from_plugin_dict(plugin_data: dict) -> str:
+    """Find a protocol marker in a plugin or its nested component settings."""
+    core = ensure_dict(plugin_data.get("core", {}), "Plugin.core")
+    components = ensure_list(core.get("components", []), "Plugin.core.components")
+    if components:
+        return str(components[0]).strip().upper()
+
+    def nested_settings(value):
+        if isinstance(value, dict):
+            if value.get("component"):
+                yield str(value["component"]).strip().upper()
+            for child in value.values():
+                yield from nested_settings(child)
+        elif isinstance(value, list):
+            for child in value:
+                yield from nested_settings(child)
+
+    candidates = list(nested_settings(plugin_data))
+    return candidates[0] if candidates else ""
+
+
 def _format_udp_ip_value(key: str, val):
     if key in ("source address", "destination address", "local address"):
         try:
@@ -652,9 +673,7 @@ class Configuration:
             from data_sharing_framework_config_api.protocol_factory import ProtocolFactory
 
             for index, plugin_data in enumerate(plugin_data_list):
-                core = ensure_dict(plugin_data.get("core", {}), f"Configuration.plugins[{index}].core")
-                components = ensure_list(core.get("components", []), f"Configuration.plugins[{index}].components")
-                protocol = str(components[0]).strip().upper() if components else ""
+                protocol = _protocol_from_plugin_dict(plugin_data)
                 if not protocol:
                     self.plugins.append(Plugin.from_dict(plugin_data))
                     continue
@@ -662,7 +681,10 @@ class Configuration:
                     handler = ProtocolFactory.get_handler(protocol)
                 except ValueError as error:
                     raise ValueError(f"Unsupported protocol '{protocol}' in plugin {index}.") from error
-                self.plugins.append(handler.plugin_cls.from_dict(plugin_data))
+                plugin = handler.plugin_cls.from_dict(plugin_data)
+                if not getattr(plugin, "components", None):
+                    plugin.components = [protocol]
+                self.plugins.append(plugin)
         logger.info("Imported Configuration from dict containing %d plugins", len(self.plugins))
 
     @classmethod

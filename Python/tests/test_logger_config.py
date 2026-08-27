@@ -61,6 +61,26 @@ class TestLoggingConfigPaths(unittest.TestCase):
             self.assertEqual(config["level"], "INFO")
             self.assertEqual(logger_config.json.loads(config_path.read_text(encoding="utf-8"))["level"], "INFO")
 
+    def test_load_logging_config_repairs_non_utf8_file(self):
+        with TemporaryDirectory() as temp_dir:
+            config_path = Path(temp_dir) / "logging_config.json"
+            config_path.write_bytes(b"\xff\xfe\xfd")
+            with patch.object(logger_config, "find_logging_config_path", return_value=config_path):
+                config, _ = logger_config.load_logging_config()
+            self.assertEqual(config["level"], "INFO")
+            self.assertEqual(logger_config.json.loads(config_path.read_text(encoding="utf-8"))["level"], "INFO")
+
+    def test_load_logging_config_repairs_non_object_json(self):
+        for invalid_json in ("7", "[]"):
+            with self.subTest(invalid_json=invalid_json), TemporaryDirectory() as temp_dir:
+                config_path = Path(temp_dir) / "logging_config.json"
+                config_path.write_text(invalid_json, encoding="utf-8")
+                with patch.object(logger_config, "find_logging_config_path", return_value=config_path):
+                    config, _ = logger_config.load_logging_config()
+                self.assertEqual(config["level"], "INFO")
+                repaired = logger_config.json.loads(config_path.read_text(encoding="utf-8"))
+                self.assertIsInstance(repaired, dict)
+
     def test_resolve_log_file_path_rejects_paths_outside_config_directory(self):
         with TemporaryDirectory() as temp_dir:
             config_path = Path(temp_dir) / "logging_config.json"

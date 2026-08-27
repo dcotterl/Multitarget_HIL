@@ -6,7 +6,7 @@ import logging
 import tkinter as tk
 from tkinter import messagebox, ttk
 
-from data_sharing_framework_config_api import definitions, logger_config
+from data_sharing_framework_config_api import logger_config
 from data_sharing_framework_config_api.protocol_factory import ProtocolFactory
 from data_sharing_framework_config_api.gui.state import editor_state
 
@@ -37,7 +37,7 @@ def start_live_refresh(window: tk.Misc, refresh_callback, interval_ms: int = 100
 
 
 def prompt_protocol_selection(root: tk.Tk, title: str = "Select Protocol", message: str = "Select protocol:") -> str | None:
-    """Show a dialog to select a protocol from available protocols defined in definitions.Protocols."""
+    """Show a dialog to select a protocol from registered protocol handlers."""
     dialog = tk.Toplevel(root)
     dialog.title(title)
     dialog.transient(root)

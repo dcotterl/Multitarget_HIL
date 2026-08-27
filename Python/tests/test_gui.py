@@ -18,7 +18,7 @@ from data_sharing_framework_config_api import definitions as d
 from data_sharing_framework_config_api import rdma_definitions as rdma
 from data_sharing_framework_config_api import udp_definitions as udp
 from data_sharing_framework_config_api.protocol_factory import ProtocolFactory
-from data_sharing_framework_config_api.gui import editor_panel, mutations, tree
+from data_sharing_framework_config_api.gui import editor_panel, mutations
 from data_sharing_framework_config_api.gui.session import ConfigurationSession
 
 
@@ -58,6 +58,33 @@ class TestGUISessionAndMutations(unittest.TestCase):
         ])
         session = ConfigurationSession(configuration=configuration)
         self.assertEqual(session.protocol, "MIXED")
+
+    def test_public_deserialization_infers_protocol_from_nested_settings(self) -> None:
+        plugin = ProtocolFactory.get_handler("UDP").create_plugin()
+        plugin.add_thread(udp.Thread())
+        plugin_data = plugin.to_dict()
+        plugin_data["core"]["components"] = []
+        configuration = d.Configuration.from_dict({"configuration": {"plugins": [plugin_data]}})
+        self.assertIsInstance(configuration.plugins[0], udp.Plugin)
+
+    def test_public_deserialization_infers_protocol_from_channel_settings(self) -> None:
+        plugin_data = {
+            "core": {"components": []},
+            "threads": [{
+                "transfer groups": [{
+                    "transfers": [{
+                        "channels": [{
+                            "core": {},
+                            "component settings": [{"component": "UDP", "values": []}],
+                        }],
+                    }],
+                }],
+            }],
+        }
+        configuration = d.Configuration.from_dict({"configuration": {"plugins": [plugin_data]}})
+        self.assertIsInstance(configuration.plugins[0], udp.Plugin)
+        session = ConfigurationSession(configuration=configuration)
+        self.assertEqual(mutations.get_protocol_for_element(session, configuration.plugins[0]), "UDP")
 
     def test_02_multi_protocol_tree_construction_and_mutations(self) -> None:
         """Test building a multi-protocol configuration (RDMA + UDP) from scratch.

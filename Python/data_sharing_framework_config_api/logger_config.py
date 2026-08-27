@@ -78,6 +78,7 @@ def load_logging_config() -> Tuple[dict[str, Any], Path]:
     config_path = find_logging_config_path()
     config = dict(DEFAULT_CONFIG)
     source_path = config_path
+    repair_required = False
     if not source_path.exists() and getattr(sys, "frozen", False):
         bundled_path = Path(getattr(sys, "_MEIPASS", "")) / "logging_config.json"
         if bundled_path.exists():
@@ -89,13 +90,17 @@ def load_logging_config() -> Tuple[dict[str, Any], Path]:
                 loaded = json.load(f)
                 if isinstance(loaded, dict):
                     config.update(loaded)
-        except (OSError, json.JSONDecodeError) as err:
+                else:
+                    print(f"[Logging] Configuration at {source_path} is not an object; using defaults.", file=sys.stderr)
+                    repair_required = source_path == config_path
+        except (OSError, UnicodeDecodeError, json.JSONDecodeError) as err:
             print(f"[Logging] Error reading {source_path}: {err}", file=sys.stderr)
-            if source_path == config_path:
-                try:
-                    _write_logging_config(config, config_path)
-                except OSError as write_error:
-                    print(f"[Logging] Could not repair {config_path}: {write_error}", file=sys.stderr)
+            repair_required = source_path == config_path
+        if source_path == config_path and repair_required:
+            try:
+                _write_logging_config(config, config_path)
+            except OSError as write_error:
+                print(f"[Logging] Could not repair {config_path}: {write_error}", file=sys.stderr)
     else:
         try:
             _write_logging_config(config, config_path)

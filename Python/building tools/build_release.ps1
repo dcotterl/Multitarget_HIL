@@ -5,17 +5,23 @@ $projectRoot = Split-Path -Parent $buildTools
 Set-Location $projectRoot
 
 $python = "py"
-& $python -3.10 --version *> $null
+& $python -3 --version *> $null
 if ($LASTEXITCODE -ne 0) {
-    throw "Python 3.10 is required for the release build. Install it and ensure the Python launcher can find it."
+    throw "Python 3.10 or newer is required for the release build. Install it and ensure the Python launcher can find it."
+}
+
+$pythonVersion = & $python -3 -c "import sys; print(f'{sys.version_info.major}.{sys.version_info.minor}')"
+$versionParts = $pythonVersion.Trim().Split('.')
+if ([int]$versionParts[0] -lt 3 -or ([int]$versionParts[0] -eq 3 -and [int]$versionParts[1] -lt 10)) {
+    throw "Python 3.10 or newer is required for the release build. Found $pythonVersion."
 }
 
 Write-Host "Running unit tests..."
-& $python -3.10 -m unittest discover -s tests -v
+& $python -3 -m unittest discover -s tests -v
 if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
 Write-Host "Building DSF GUI executable..."
-& $python -3.10 -m PyInstaller --noconfirm --clean (Join-Path $buildTools "DSF_GUI.spec")
+& $python -3 -m PyInstaller --noconfirm --clean (Join-Path $buildTools "DSF_GUI.spec")
 if ($LASTEXITCODE -ne 0) { throw "PyInstaller failed with exit code $LASTEXITCODE. Installer creation was skipped." }
 
 $isccCandidates = @(

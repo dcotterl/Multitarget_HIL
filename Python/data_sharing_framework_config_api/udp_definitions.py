@@ -21,16 +21,12 @@ import socket
 import struct
 
 import json
-import logging
 
 try:
     from . import definitions as d
 except ImportError:  # pragma: no cover
     import definitions as d 
 
-
-logger = logging.getLogger(__name__)
-logger.addHandler(logging.NullHandler())
 
 def ip_to_string(ip_address: str) -> str:
     """Convert an IPv4 address string (e.g. '127.0.0.1') into its integer

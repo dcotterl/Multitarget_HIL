@@ -29,15 +29,10 @@ configuration metadata.
 from __future__ import annotations
 
 
-import logging
-
 try:
     from . import definitions as d
 except ImportError:  # pragma: no cover
     import definitions as d 
-
-logger = logging.getLogger(__name__)
-logger.addHandler(logging.NullHandler())
 
 class Channel(d.Channel):
     """An RDMA channel configuration."""
