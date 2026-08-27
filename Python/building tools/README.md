@@ -9,11 +9,8 @@ This folder contains the files needed to rebuild the Windows executable and inst
 
 ## One-time setup
 
-Install Python for Windows with the `py` launcher. Then install PyInstaller:
-
-```powershell
-py -m pip install pyinstaller
-```
+Install Python 3.10 or newer for Windows with the `py` launcher. The release script
+automatically creates the project `.venv` and installs the declared `[build]` extra.
 
 Install Inno Setup 6. The build script searches for `ISCC.exe` in these locations:
 
@@ -35,11 +32,12 @@ powershell -ExecutionPolicy Bypass -File ".\building tools\build_release.ps1"
 
 The build script will:
 
-1. Run all unit tests (`py -m unittest discover -s tests -v`).
-2. Rebuild the executable with PyInstaller (`dist\DSF_GUI.exe`).
-3. Locate Inno Setup.
-4. Build the installer (`dist\DSF_GUI_Setup.exe`).
-5. Put both outputs in the root `dist\` folder.
+1. Create `.venv` if it does not exist and install the project `[build]` extra.
+2. Run all unit tests with the project interpreter.
+3. Rebuild the executable with PyInstaller (`dist\DSF_GUI.exe`).
+4. Locate Inno Setup.
+5. Build the installer (`dist\DSF_GUI_Setup.exe`).
+6. Put both outputs in the root `dist\` folder.
 
 ## Build outputs
 
@@ -61,6 +59,6 @@ from stale executable output.
 ## Troubleshooting
 
 - If `py` is not recognized, install Python and enable the Python launcher.
-- If PyInstaller is missing, install the build extra with `py -3 -m pip install -e ".[build]"`.
+- If dependency installation fails, verify Python 3.10 or newer and network/package-index access.
 - If Inno Setup is not found, install Inno Setup 6 and run the script again.
 - If PowerShell blocks the script, use the command shown above with `-ExecutionPolicy Bypass`.
