@@ -22,22 +22,25 @@ This directory contains the Python package, GUI, examples, tests, and build asse
 
 ## Package structure
 
-### `data_sharing_framework_config_api.rdma_definitions`
+### `data_sharing_framework_config_api`
 
 Provides:
 
-- the RDMA configuration object model
-- import/export helpers for DSF and JSON content
-- validation for nested object types and transfer-direction invariants
+- Base model definitions (`definitions.py`) for multi-protocol HIL configurations
+- Protocol-specific extensions (`rdma_definitions.py` and `udp_definitions.py`)
+- Extensible protocol creation factory (`protocol_factory.py`)
+- Configurable logging system (`logger_config.py` and `logging_config.json`)
+- Import/export helpers for DSF and JSON files
 
 ### `data_sharing_framework_config_api.gui`
 
 Provides:
 
-- a Tkinter editor for configuration trees
-- centralized session and file handling
-- inline editing with unsaved-change prompts
-- a default sample DSF lookup for local source and packaged builds
+- A Tkinter editor supporting multi-protocol configurations
+- Centralized session state management (`ConfigurationSession`)
+- Inline attribute editing with unsaved-change prompts and TX/RX direction adaptation
+- Dynamic protocol selection and context menus
+- A real-time Debug Log viewer window and Logger Config window
 
 ## Running the tests
 

@@ -47,7 +47,7 @@ Each level in the tree can also contain **`ComponentSettings`**, which hold prot
 | **`gui/session.py`** | `gui/` Package | Handles loading `.dsf` / `.json` files from disk, saving files, and maintaining active application state (`ConfigurationSession`). |
 | **`gui/tree.py`** | `gui/` Package | Populates, selects, and looks up nodes in the Tkinter `Treeview` control. |
 | **`gui/state.py`** | `gui/` Package | Shared inline editor state container (`EditorState`) tracking dirty/modified form fields. |
-| **`gui/dialogs.py`** | `gui/` Package | Modal dialog windows (Protocol selection picker, unsaved changes prompts). |
+| **`gui/dialogs.py`** | `gui/` Package | Modal dialog windows (Protocol selection picker, unsaved changes prompts, real-time Debug Log viewer, Configure Logger window). |
 | **`gui/editor_panel.py`** | `gui/` Package | Generates form fields for selected tree nodes, formats values (including IP address conversion), and applies direction adaptation. |
 | **`gui/mutations.py`** | `gui/` Package | Tree node mutation functions (add/remove plugins, threads, groups, transfers, channels) and right-click context menu wiring. |
 | **`gui/app.py`** | `gui/` Package | Main application window, menu bar, and entry point execution (`main()`). |
@@ -88,8 +88,6 @@ All data model classes inherit the standard framework pattern for serialization:
 #### `Channel`
 *Metadata for a signal channel (e.g. voltage, temperature).*
 - `__init__(name: str, unit: str, engine_data_type: int, string_data_type: int, string_offset: int)`
-- `setComponentSettings(component: str) -> None`: Assigns component name to all settings.
-- `addComponentSetting(component_setting: ComponentSettings) -> None`: Appends settings container.
 
 #### `Transfer`
 *Data transfer unit representing a single packet payload.*
