@@ -6,14 +6,38 @@ import logging
 import tkinter as tk
 from tkinter import messagebox, ttk
 
-from data_sharing_framework_config_api import definitions, logger_config
+from data_sharing_framework_config_api import logger_config
+from data_sharing_framework_config_api.protocol_factory import ProtocolFactory
 from data_sharing_framework_config_api.gui.state import editor_state
 
 logger = logging.getLogger(__name__)
 
 
+def start_live_refresh(window: tk.Misc, refresh_callback, interval_ms: int = 1000):
+    """Schedule a periodic refresh callback for a Tk window until it is closed."""
+    if not hasattr(window, "after") or not hasattr(window, "winfo_exists"):
+        return None
+
+    job_id = getattr(window, "_live_refresh_job", None)
+    if job_id is not None:
+        try:
+            window.after_cancel(job_id)
+        except Exception:
+            pass
+
+    def refresh_loop():
+        if not window.winfo_exists():
+            return
+        refresh_callback()
+        window._live_refresh_job = window.after(interval_ms, refresh_loop)
+
+    refresh_callback()
+    window._live_refresh_job = window.after(interval_ms, refresh_loop)
+    return window._live_refresh_job
+
+
 def prompt_protocol_selection(root: tk.Tk, title: str = "Select Protocol", message: str = "Select protocol:") -> str | None:
-    """Show a dialog to select a protocol from available protocols defined in definitions.Protocols."""
+    """Show a dialog to select a protocol from registered protocol handlers."""
     dialog = tk.Toplevel(root)
     dialog.title(title)
     dialog.transient(root)
@@ -31,7 +55,7 @@ def prompt_protocol_selection(root: tk.Tk, title: str = "Select Protocol", messa
     button_frame = ttk.Frame(dialog)
     button_frame.pack(pady=12)
 
-    available_protocols = [p.value for p in definitions.Protocols]
+    available_protocols = ProtocolFactory.get_available_protocols()
     for proto_value in available_protocols:
         ttk.Button(button_frame, text=proto_value, command=lambda p=proto_value: make_choice(p)).pack(side="left", padx=4)
 
@@ -134,15 +158,25 @@ def show_debug_logs_window(root: tk.Tk) -> None:
         win.clipboard_append("\n".join(logs))
         messagebox.showinfo("Clipboard", "Logs copied to clipboard!", parent=win)
 
+    def on_close():
+        job_id = getattr(win, "_live_refresh_job", None)
+        if job_id is not None:
+            try:
+                win.after_cancel(job_id)
+            except Exception:
+                pass
+        win.destroy()
+
     btn_frame = ttk.Frame(win, padding=8)
     btn_frame.pack(fill="x")
 
     ttk.Button(btn_frame, text="Refresh", command=refresh_logs).pack(side="left", padx=4)
     ttk.Button(btn_frame, text="Clear Buffer", command=clear_logs).pack(side="left", padx=4)
     ttk.Button(btn_frame, text="Copy Logs", command=copy_logs).pack(side="left", padx=4)
-    ttk.Button(btn_frame, text="Close", command=win.destroy).pack(side="right", padx=4)
+    ttk.Button(btn_frame, text="Close", command=on_close).pack(side="right", padx=4)
 
-    refresh_logs()
+    win.protocol("WM_DELETE_WINDOW", on_close)
+    start_live_refresh(win, refresh_logs, interval_ms=1000)
 
 
 def show_configure_logger_window(root: tk.Tk) -> None:

@@ -9,18 +9,18 @@ This document describes the design architecture, directory layout, and extension
 ## 1. Directory & Package Structure
 
 ```
-logging_config.json      # Configurable logging settings (auto-generated with defaults if missing)
+logging_config.json      # Configurable logging settings (created beside the executable for packaged runs; otherwise auto-generated if missing)
 data_sharing_framework_config_api/
 ├── __init__.py           # Package root exports
 ├── definitions.py        # Core base data model (Configuration, Plugin, Thread, TransferGroup, Transfer, Channel, ComponentSettings, Element)
 ├── rdma_definitions.py   # RDMA-specific subclasses & default ComponentSettings
 ├── udp_definitions.py    # UDP-specific subclasses & IP address conversion utilities
 ├── protocol_factory.py   # Protocol Registry & Factory pattern for extensible object creation
-├── logger_config.py      # Logging setup manager (auto-creates default logging_config.json if missing)
+├── logger_config.py      # Logging setup manager (prefers executable-directory config for frozen apps and auto-creates defaults if missing)
 └── gui/
     ├── __init__.py
     ├── app.py            # GUI Entry point, window layout, menu bar & Tkinter mainloop
-    ├── dialogs.py        # Modal dialogs (Protocol picker, unsaved changes, real-time Debug Log viewer, Configure Logger window)
+    ├── dialogs.py        # Modal dialogs (Protocol picker, unsaved changes, auto-refreshing Debug Log viewer, Configure Logger window)
     ├── editor_panel.py   # Details text view, form field generation, IP formatting, & direction adaptation
     ├── mutations.py      # Tree mutation actions (add/remove plugins, threads, groups, transfers, channels)
     ├── session.py        # Session file loading/saving state
@@ -45,6 +45,10 @@ Configuration
 
 - Base definitions reside in [definitions.py](data_sharing_framework_config_api/definitions.py).
 - Protocol extensions (`rdma_definitions.py`, `udp_definitions.py`) inherit from base classes (`d.Transfer`, `d.Plugin`, etc.) to attach protocol-specific `ComponentSettings` (such as `"local address"`, `"destination port"`, or `"source address"`).
+- Deserialization uses the protocol registry and overridable nested model types, preserving RDMA/UDP behavior throughout a loaded configuration.
+- Session saves use a same-directory temporary file followed by atomic replacement, protecting existing files from interrupted or failed writes.
+- Inline GUI edits are parsed before assignment and rolled back if a field or direction adaptation fails.
+- Logging configuration is intentionally environment-aware: when packaged as a frozen executable, the app prefers `logging_config.json` next to the executable, uses the bundled file as a read-only fallback, and repairs malformed or invalid persisted settings with defaults. The installer uses a per-user writable location so executable-local configuration can persist. The Debug Log window auto-refreshes to show the latest in-memory records without manual re-opening.
 
 ---
 
@@ -74,4 +78,4 @@ To add support for a new protocol (e.g. `TCP`, `CAN`, or `SharedMemory`):
    ))
    ```
 
-*(The GUI will automatically include the new protocol in selection dialogs and inherit its protocol types when adding child elements!)*
+*(The GUI selects protocols when adding plugins and inherits each plugin's protocol for child elements. New configurations remain protocol-neutral, and unknown protocols are rejected instead of silently falling back to RDMA.)*

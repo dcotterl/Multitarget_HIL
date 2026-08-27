@@ -63,7 +63,7 @@ class udp_Import_Tests(unittest.TestCase):
         self.assertEqual(len(thread.component_settings), 1)
 
         # Round-trip deserialization restores local_address and local_port
-        serialized = thread.getDict()
+        serialized = thread.to_dict()
         rebuilt = udp.Thread.from_dict(serialized)
         self.assertEqual(rebuilt.local_address, "192.168.1.100")
         self.assertEqual(rebuilt.local_port, 7000)
@@ -91,8 +91,8 @@ class udp_Import_Tests(unittest.TestCase):
     def test_channel_round_trip(self):
         """Ensure a channel remains unchanged after a dictionary round trip."""
         channel = udp.Channel("Channel1", "V")
-        rebuilt = udp.Channel.from_dict(channel.getDict())
-        self.assertEqual(channel.getDict(), rebuilt.getDict())
+        rebuilt = udp.Channel.from_dict(channel.to_dict())
+        self.assertEqual(channel.to_dict(), rebuilt.to_dict())
 
     def test_transfer_tx_round_trip(self):
         """Ensure a transfer remains unchanged after a dictionary round trip."""
@@ -101,8 +101,10 @@ class udp_Import_Tests(unittest.TestCase):
                                 destination_port=50001,
                                 channels=[udp.Channel("Channel1", "V")])
         
-        rebuilt = udp.Transfer.from_dict(transfer.getDict())
-        self.assertEqual(transfer.getDict(), rebuilt.getDict())
+        rebuilt = udp.Transfer.from_dict(transfer.to_dict())
+        self.assertEqual(transfer.to_dict(), rebuilt.to_dict())
+        self.assertEqual(rebuilt.destination_address, "127.0.0.1")
+        self.assertEqual(rebuilt.destination_port, 50001)
 
     def test_transfer_rx_round_trip(self):
             """Ensure a transfer remains unchanged after a dictionary round trip."""
@@ -111,43 +113,45 @@ class udp_Import_Tests(unittest.TestCase):
                                     local_port=50001,
                                     channels=[udp.Channel("Channel1", "V")])
             
-            rebuilt = udp.Transfer.from_dict(transfer.getDict())
-            self.assertEqual(transfer.getDict(), rebuilt.getDict())
+            rebuilt = udp.Transfer.from_dict(transfer.to_dict())
+            self.assertEqual(transfer.to_dict(), rebuilt.to_dict())
+            self.assertEqual(rebuilt.local_address, "127.0.0.1")
+            self.assertEqual(rebuilt.local_port, 50001)
 
     def test_transfer_group_tx_round_trip(self):
             """Ensure a transfer group remains unchanged after a dictionary round trip."""
             transfer_group_tx = udp.TransferGroup( name = "TransferGroup_tx",
                                                    direction = d.Direction.TX)
             
-            rebuilt = udp.TransferGroup.from_dict(transfer_group_tx.getDict())
-            self.assertEqual(transfer_group_tx.getDict(), rebuilt.getDict())
+            rebuilt = udp.TransferGroup.from_dict(transfer_group_tx.to_dict())
+            self.assertEqual(transfer_group_tx.to_dict(), rebuilt.to_dict())
 
     def test_transfer_group_rx_round_trip(self):
             """Ensure a transfer group remains unchanged after a dictionary round trip."""
             transfer_group_rx = udp.TransferGroup( name = "TransferGroup_rx",
                                                    direction = d.Direction.RX)
             
-            rebuilt = udp.TransferGroup.from_dict(transfer_group_rx.getDict())
-            self.assertEqual(transfer_group_rx.getDict(), rebuilt.getDict())
+            rebuilt = udp.TransferGroup.from_dict(transfer_group_rx.to_dict())
+            self.assertEqual(transfer_group_rx.to_dict(), rebuilt.to_dict())
 
     def test_thread_round_trip(self):
             """Ensure a thread remains unchanged after a dictionary round trip."""
             thread = udp.Thread(local_address = "127.0.0.1",
                                 local_port = 50001)
-            rebuilt = udp.Thread.from_dict(thread.getDict())
-            self.assertEqual(thread.getDict(), rebuilt.getDict())
+            rebuilt = udp.Thread.from_dict(thread.to_dict())
+            self.assertEqual(thread.to_dict(), rebuilt.to_dict())
 
     def test_plugin_round_trip(self):
         """Ensure a plugin remains unchanged after a dictionary round trip."""
         plugin = udp.Plugin(name = "Plugin")
-        rebuilt = udp.Plugin.from_dict(plugin.getDict())
-        self.assertEqual(plugin.getDict(), rebuilt.getDict())
+        rebuilt = udp.Plugin.from_dict(plugin.to_dict())
+        self.assertEqual(plugin.to_dict(), rebuilt.to_dict())
     
     def test_udp_configuration_round_trip(self):
         """Ensure a configuration remains unchanged after a round trip."""
         config = d.Configuration()
-        rebuilt = d.Configuration.from_dict(config.getDict())
-        self.assertEqual(config.getDict(), rebuilt.getDict())
+        rebuilt = d.Configuration.from_dict(config.to_dict())
+        self.assertEqual(config.to_dict(), rebuilt.to_dict())
 
 class udp_benchmark_configuration(unittest.TestCase):
      def makeChannel(self):
@@ -190,7 +194,7 @@ class udp_benchmark_configuration(unittest.TestCase):
                 expected_dict = json.load(f)
 
             config = d.Configuration.from_dict(expected_dict)
-            self.assertEqual(config.getDict(), expected_dict)
+            self.assertEqual(config.to_dict(), expected_dict)
 
      def test_bottomup_configuration(self):
         """Ensure a bottom-up configuration matches the generated fixture."""
@@ -235,7 +239,7 @@ class udp_benchmark_configuration(unittest.TestCase):
         with open(DATA_PATH, "r") as f:
             expected_dict = json.load(f)
 
-        self.assertEqual(config.getDict(), expected_dict)
+        self.assertEqual(config.to_dict(), expected_dict)
 
      def test_import_channel(self):
         with open(DATA_PATH, "r") as f:
@@ -248,7 +252,7 @@ class udp_benchmark_configuration(unittest.TestCase):
         transfer_tx = transfer_group_tx.transfers[0]
         channel = transfer_tx.channels[0]
 
-        self.assertEqual(channel.getDict(), self.makeChannel().getDict())
+        self.assertEqual(channel.to_dict(), self.makeChannel().to_dict())
 
      def test_import_transfer_tx(self):
         with open(DATA_PATH, "r") as f:
@@ -262,7 +266,7 @@ class udp_benchmark_configuration(unittest.TestCase):
 
         transfer_test = self.makeTransferTx()
 
-        self.assertEqual(transfer_tx.getDict(), transfer_test.getDict())
+        self.assertEqual(transfer_tx.to_dict(), transfer_test.to_dict())
 
      def test_import_transfer_rx(self):
             with open(DATA_PATH, "r") as f:
@@ -276,7 +280,7 @@ class udp_benchmark_configuration(unittest.TestCase):
     
             transfer_test = self.makeTransferRx()
     
-            self.assertEqual(transfer_rx.getDict(), transfer_test.getDict())
+            self.assertEqual(transfer_rx.to_dict(), transfer_test.to_dict())
 
      def test_import_transfer_group_tx(self):
         with open(DATA_PATH, "r") as f:
@@ -289,7 +293,7 @@ class udp_benchmark_configuration(unittest.TestCase):
 
         transfer_group_test = self.makeTransferGroupTx()
 
-        self.assertEqual(transfer_group_tx.getDict(), transfer_group_test.getDict())
+        self.assertEqual(transfer_group_tx.to_dict(), transfer_group_test.to_dict())
 
      def test_import_transfer_group_rx(self):
         with open(DATA_PATH, "r") as f:
@@ -302,7 +306,7 @@ class udp_benchmark_configuration(unittest.TestCase):
 
         transfer_group_test = self.makeTransferGroupRx()
 
-        self.assertEqual(transfer_group_rx.getDict(), transfer_group_test.getDict())
+        self.assertEqual(transfer_group_rx.to_dict(), transfer_group_test.to_dict())
 
      def test_import_thread_tx(self):
         with open(DATA_PATH, "r") as f:
@@ -314,7 +318,7 @@ class udp_benchmark_configuration(unittest.TestCase):
 
         thread_test = self.makeThreadTx()
 
-        self.assertEqual(thread_tx.getDict(), thread_test.getDict())
+        self.assertEqual(thread_tx.to_dict(), thread_test.to_dict())
 
      def test_import_thread_rx(self):
         with open(DATA_PATH, "r") as f:
@@ -326,7 +330,7 @@ class udp_benchmark_configuration(unittest.TestCase):
 
         thread_test = self.makeThreadRx()
 
-        self.assertEqual(thread_rx.getDict(), thread_test.getDict())
+        self.assertEqual(thread_rx.to_dict(), thread_test.to_dict())
 
      def test_import_plugin(self):
         with open(DATA_PATH, "r") as f:
@@ -337,7 +341,7 @@ class udp_benchmark_configuration(unittest.TestCase):
 
         plugin_test = self.makePlugin()
 
-        self.assertEqual(plugin.getDict(), plugin_test.getDict())
+        self.assertEqual(plugin.to_dict(), plugin_test.to_dict())
     
      def test_import_configuration(self):
         with open(DATA_PATH, "r") as f:
@@ -347,4 +351,4 @@ class udp_benchmark_configuration(unittest.TestCase):
 
         config_test = self.makeConfiguration()
 
-        self.assertEqual(config.getDict(), config_test.getDict())
+        self.assertEqual(config.to_dict(), config_test.to_dict())

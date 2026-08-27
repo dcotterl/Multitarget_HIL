@@ -10,7 +10,7 @@ This directory contains the Python package, GUI, examples, tests, and build asse
 ## Contents
 
 - `data_sharing_framework_config_api/`
-  - Packaged Python source for the RDMA model and GUI.
+  - Packaged Python source for the multi-protocol model and GUI.
 - `examples/`
   - Example scripts for configuration creation and import/export validation.
 - `tests/`
@@ -29,7 +29,7 @@ Provides:
 - Base model definitions (`definitions.py`) for multi-protocol HIL configurations
 - Protocol-specific extensions (`rdma_definitions.py` and `udp_definitions.py`)
 - Extensible protocol creation factory (`protocol_factory.py`)
-- Configurable logging system (`logger_config.py` and `logging_config.json`); if `logging_config.json` is missing at runtime, it is automatically generated with default settings (`INFO` level, file logging enabled to `app.log`)
+- Configurable logging system (`logger_config.py` and `logging_config.json`); if `logging_config.json` is missing at runtime, it is automatically generated with default settings (`INFO` level, file logging enabled to `app.log`). In packaged/executable runs, a user configuration beside the executable takes precedence, while the bundled configuration is used as a read-only fallback. Malformed or invalid persisted settings are repaired with defaults at startup.
 - Import/export helpers for DSF and JSON files
 
 ### `data_sharing_framework_config_api.gui`
@@ -40,7 +40,7 @@ Provides:
 - Centralized session state management (`ConfigurationSession`)
 - Inline attribute editing with unsaved-change prompts and TX/RX direction adaptation
 - Dynamic protocol selection and context menus
-- A real-time Debug Log viewer window and Logger Config window
+- A real-time Debug Log viewer window with automatic refresh and a Logger Config window
 
 ## Running the tests
 
@@ -75,13 +75,14 @@ From `Python/`:
 python -m data_sharing_framework_config_api.gui.app
 ```
 
-The GUI can load or save `.dsf` and `.json` files. It defaults to the sample file at `data/Simple_c1.dsf` when available.
+The GUI can load or save `.dsf` and `.json` files. File dialogs open in the last directory used by the session; before a file is loaded or saved, they open beside the executable.
 
 ## Running the examples
 
 ```bash
 python -m examples.import_config_example
 python -m examples.rdma_configuration_example
+python -m examples.udp_configuration_example
 ```
 
 ## Building the Windows application
@@ -98,7 +99,7 @@ Or via PowerShell:
 powershell -ExecutionPolicy Bypass -File ".\building tools\build_release.ps1"
 ```
 
-The build script runs all 61 unit tests before packaging. After a successful build, the expected outputs are:
+The build script runs the complete unit test suite before packaging. After a successful build, the expected outputs are:
 
 - `dist\DSF_GUI.exe`
 - `dist\DSF_GUI_Setup.exe`

@@ -8,6 +8,9 @@ version = "0.1.0"
 description = "Python tooling for Data Sharing Framework multitarget HIL configuration workflows"
 requires-python = ">=3.10"
 
+[project.optional-dependencies]
+build = ["pyinstaller>=6,<7"]
+
 [tool.setuptools]
 package-dir = {"" = "."}
 

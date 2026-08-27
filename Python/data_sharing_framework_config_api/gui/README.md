@@ -24,7 +24,7 @@ This subpackage contains the Graphical User Interface (GUI) components built wit
   - Reusable modal dialog popups:
     - Protocol selection dialog (`prompt_protocol_selection`).
     - Unsaved changes confirmation dialog (`prompt_unsaved_changes`).
-    - Real-time debug log viewer (`show_debug_logs_window`).
+    - Auto-refreshing debug log viewer (`show_debug_logs_window`) that polls the in-memory logger buffer while open.
     - Logger settings configuration window (`show_configure_logger_window`).
 
 - **`mutations.py`**

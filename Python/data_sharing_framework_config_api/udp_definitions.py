@@ -21,20 +21,12 @@ import socket
 import struct
 
 import json
-import logging
-from enum import Enum
-from typing import Iterable, TypeVar
 
 try:
     from . import definitions as d
 except ImportError:  # pragma: no cover
     import definitions as d 
 
-
-logger = logging.getLogger(__name__)
-logger.addHandler(logging.NullHandler())
-
-T = TypeVar("T")
 
 def ip_to_string(ip_address: str) -> str:
     """Convert an IPv4 address string (e.g. '127.0.0.1') into its integer
@@ -72,6 +64,19 @@ class Channel(d.Channel):
 class Transfer(d.Transfer):
     """A UDP data transfer configuration."""
 
+    _channel_type = Channel
+
+    def import_from_dict(self, data: dict) -> None:
+        super().import_from_dict(data)
+        for setting in self.component_settings:
+            if setting.component != "UDP":
+                continue
+            for element in setting.elements:
+                if element.key in ("source address", "local address"):
+                    self.local_address = string_to_ip(str(element.value))
+                elif element.key == "destination address":
+                    self.destination_address = string_to_ip(str(element.value))
+
     def __init__(
         self,
         name: str = "",
@@ -98,7 +103,7 @@ class Transfer(d.Transfer):
         self.component_settings = [d.ComponentSettings("UDP", elements)]
 
     def __str__(self, collapse: bool = True) -> str:
-        result = self.getDict()
+        result = self.to_dict()
         for setting in result.get("component settings", []):
             if setting.get("component") == "UDP":
                 for val in setting.get("values", []):
@@ -110,11 +115,13 @@ class Transfer(d.Transfer):
         if collapse:
             result["channels"] = "[EMPTY]" if not self.channels else f"[...{len(self.channels)} channels...]"
         else:
-            result["channels"] = [ch.getDict() for ch in self.channels]
+            result["channels"] = [ch.to_dict() for ch in self.channels]
         return json.dumps(result, indent=4)
 
 class TransferGroup(d.TransferGroup):
     """A group of UDP transfers sharing a common direction (TX/RX)."""
+
+    _transfer_type = Transfer
 
     def __init__(
         self,
@@ -142,6 +149,8 @@ class TransferGroup(d.TransferGroup):
 class Thread(d.Thread):
     """A thread configuration for UDP operations."""
 
+    _transfer_group_type = TransferGroup
+
     def __init__(
         self,
         processor: int = -2,
@@ -163,7 +172,7 @@ class Thread(d.Thread):
         self.transfer_groups = transfer_groups if transfer_groups is not None else []
 
     def __str__(self, collapse: bool = True) -> str:
-        result = self.getDict()
+        result = self.to_dict()
         for setting in result.get("component settings", []):
             if setting.get("component") == "UDP":
                 for val in setting.get("values", []):
@@ -175,7 +184,7 @@ class Thread(d.Thread):
         if collapse:
             result["transfer groups"] = "[EMPTY]" if not self.transfer_groups else f"[...{len(self.transfer_groups)} transfer groups...]"
         else:
-            result["transfer groups"] = [tg.getDict() for tg in self.transfer_groups]
+            result["transfer groups"] = [tg.to_dict() for tg in self.transfer_groups]
         return json.dumps(result, indent=4)
 
     @classmethod
@@ -193,6 +202,8 @@ class Thread(d.Thread):
 
 class Plugin(d.Plugin):
     """A UDP plugin containing one or more threads."""
+
+    _thread_type = Thread
 
     def __init__(
         self,

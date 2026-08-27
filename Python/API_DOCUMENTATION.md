@@ -39,15 +39,15 @@ Each level in the tree can also contain **`ComponentSettings`**, which hold prot
 
 | Module | Location | Primary Responsibility |
 | :--- | :--- | :--- |
-| **`definitions.py`** | Root Package | Core data model classes (`Configuration`, `Plugin`, `Thread`, `TransferGroup`, `Transfer`, `Channel`, `ComponentSettings`, `Element`) and basic serialization methods (`getDict()`, `importFromDict()`, `from_dict()`). |
+| **`definitions.py`** | Root Package | Core data model classes (`Configuration`, `Plugin`, `Thread`, `TransferGroup`, `Transfer`, `Channel`, `ComponentSettings`, `Element`) and basic serialization methods (`to_dict()`, `import_from_dict()`, `from_dict()`). |
 | **`rdma_definitions.py`** | Root Package | RDMA-specific subclasses extending base definitions with RDMA default `ComponentSettings`. |
 | **`udp_definitions.py`** | Root Package | UDP-specific subclasses, IP address conversion utilities (`ip_to_string`, `string_to_ip`), and UDP default `ComponentSettings`. |
 | **`protocol_factory.py`** | Root Package | Protocol Registry & Factory pattern (`ProtocolFactory`, `ProtocolHandler`) for decoupled creation of protocol objects. |
-| **`logger_config.py`** | Root Package | Configures system logging from `logging_config.json` (console, file output, in-memory log buffer for GUI). Automatically generates `logging_config.json` with default values (`INFO`, `log_to_file: true`, `app.log`) if missing at runtime. |
+| **`logger_config.py`** | Root Package | Configures system logging from `logging_config.json` (console, file output, in-memory log buffer for GUI). Frozen executable builds prefer a user config next to the executable and use the bundled config as a read-only fallback. Missing, malformed, or invalid user settings are repaired with defaults when possible. |
 | **`gui/session.py`** | `gui/` Package | Handles loading `.dsf` / `.json` files from disk, saving files, and maintaining active application state (`ConfigurationSession`). |
 | **`gui/tree.py`** | `gui/` Package | Populates, selects, and looks up nodes in the Tkinter `Treeview` control. |
 | **`gui/state.py`** | `gui/` Package | Shared inline editor state container (`EditorState`) tracking dirty/modified form fields. |
-| **`gui/dialogs.py`** | `gui/` Package | Modal dialog windows (Protocol selection picker, unsaved changes prompts, real-time Debug Log viewer, Configure Logger window). |
+| **`gui/dialogs.py`** | `gui/` Package | Modal dialog windows (Protocol selection picker, unsaved changes prompts, auto-refreshing Debug Log viewer, Configure Logger window). |
 | **`gui/editor_panel.py`** | `gui/` Package | Generates form fields for selected tree nodes, formats values (including IP address conversion), and applies direction adaptation. |
 | **`gui/mutations.py`** | `gui/` Package | Tree node mutation functions (add/remove plugins, threads, groups, transfers, channels) and right-click context menu wiring. |
 | **`gui/app.py`** | `gui/` Package | Main application window, menu bar, and entry point execution (`main()`). |
@@ -71,19 +71,31 @@ Each level in the tree can also contain **`ComponentSettings`**, which hold prot
 ### Key Model Classes & Methods
 
 All data model classes inherit the standard framework pattern for serialization:
-- **`getDict() -> dict`**: Serializes the object and its children into a JSON-compatible dictionary.
-- **`importFromDict(data: dict) -> None`**: Deserializes a dictionary to populate object properties.
+- **`to_dict() -> dict`**: Serializes the object and its children into a JSON-compatible dictionary.
+- **`import_from_dict(data: dict) -> None`**: Deserializes a dictionary to populate object properties.
 - **`from_dict(data: dict) -> ClassInstance`** (Classmethod): Factory constructor creating a new instance from a dictionary.
+
+The Python API uses `to_dict()`, `import_from_dict()`, and snake_case mutation methods
+(`add_plugin`, `add_thread`, `add_transfer_group`, `add_transfer`, `add_channel`, and
+`add_element`).
+
+Configuration imports validate nested containers and leaf scalar types before model
+objects are created. Invalid configuration data is rejected with a path identifying
+the malformed field.
+
+`Configuration.from_dict()` detects each plugin's registered protocol and restores
+the matching protocol-specific object hierarchy. A configuration can contain multiple
+protocol plugins without requiring callers to use the GUI session.
 
 #### `Element`
 *Represents a single key-value setting pair.*
-- `__init__(key: str = "", value: Any = None)`
+- `__init__(key: str, value: Any)`
 - Properties: `.key`, `.value`
 
 #### `ComponentSettings`
 *Container for protocol-specific setting pairs (`Element` objects).*
 - `__init__(component: str = "", initial_elements: list[Element] | None = None)`
-- `addElement(key: str, value: Any) -> None`: Appends a new key-value `Element`.
+- `add_element(key: str, value: Any) -> None`: Appends a new key-value `Element`.
 
 #### `Channel`
 *Metadata for a signal channel (e.g. voltage, temperature).*
@@ -92,27 +104,27 @@ All data model classes inherit the standard framework pattern for serialization:
 #### `Transfer`
 *Data transfer unit representing a single packet payload.*
 - `__init__(name: str, channels: list[Channel], local_address: str, local_port: int, destination_address: str, destination_port: int)`
-- `addChannel(channel: Channel) -> None`: Appends a channel to this transfer.
+- `add_channel(channel: Channel) -> None`: Appends a channel to this transfer.
 
 #### `TransferGroup`
 *Group of transfers sharing execution timing and direction.*
 - `__init__(name: str, direction: Direction, priority: int, decimation: int, offset: int, timeout_behaviour: int, enable_conversion: bool, transfers: list[Transfer])`
-- `addTransfer(transfer: Transfer) -> None`: Appends a transfer to this group.
+- `add_transfer(transfer: Transfer) -> None`: Appends a transfer to this group.
 
 #### `Thread`
 *Binds transfer groups to a target CPU core.*
 - `__init__(processor: int, priority_offset: int, transfer_groups: list[TransferGroup])`
-- `addTransferGroup(transfer_group: TransferGroup) -> None`: Appends a transfer group to this thread.
+- `add_transfer_group(transfer_group: TransferGroup) -> None`: Appends a transfer group to this thread.
 
 #### `Plugin`
 *Transport plugin container holding threads for a specific protocol.*
 - `__init__(name: str, priority: int, decimation: int, offset: int, threads: list[Thread])`
-- `addThread(thread: Thread) -> None`: Appends a thread to this plugin.
+- `add_thread(thread: Thread) -> None`: Appends a thread to this plugin.
 
 #### `Configuration`
 *Top-level configuration object representing an entire `.dsf` file.*
 - `__init__(plugins: list[Plugin], dsfversion: dict, version: dict)`
-- `addPlugin(plugin: Plugin) -> None`: Appends a plugin to this configuration.
+- `add_plugin(plugin: Plugin) -> None`: Appends a plugin to this configuration.
 
 ---
 
@@ -166,9 +178,16 @@ class ProtocolFactory:
 
 ### `gui.session.ConfigurationSession`
 Manages application session state:
-- `load_file(file_path)`: Opens and parses `.dsf` or `.json` file into `session.configuration`.
-- `save_file(file_path)`: Serializes `session.configuration.getDict()` to disk.
-- `new_configuration()`: Resets `session.configuration` to an empty `Configuration()`.
+- `load_file(file_path)`: Opens and parses `.dsf` or `.json` files while preserving concrete protocol types.
+- `save_file(file_path)`: Serializes to a temporary file and atomically replaces the destination.
+- `new_configuration()`: Resets the session to an empty, protocol-neutral configuration. Protocol selection occurs when adding a plugin.
+
+The session protocol is the registered protocol for a single-protocol configuration,
+or `MIXED` when multiple plugin protocols are present. Child mutations use the
+containing plugin protocol rather than this summary value.
+
+File dialogs use the last successful load/save directory, or the executable directory
+when the session has not used a file yet.
 
 ### `gui.tree`
 Treeview control population:
@@ -179,6 +198,7 @@ Treeview control population:
 Form field editor panel:
 - `field_definitions(selected_object)`: Returns list of editable attributes for selected node type.
 - `adapt_transfers_to_direction(transfer_group)`: Updates child transfer parameters when a group's direction changes (TX vs RX).
+- Inline form saves parse all fields before mutating the model and roll back if a field or direction adaptation fails.
 
 ### `gui.mutations`
 Tree context menu and node mutations:
@@ -223,7 +243,7 @@ plugin = udp.Plugin(name="UDP_Plugin", threads=[thread])
 config = d.Configuration(plugins=[plugin])
 
 # 7. Convert to Dictionary / JSON
-config_json = config.getDict()
+config_json = config.to_dict()
 print(config)
 ```
 
@@ -246,5 +266,5 @@ print(f"Loaded plugin: {first_plugin.name}")
 
 # Save changes back to file
 with open("my_config_modified.dsf", "w") as f:
-    json.dump(config.getDict(), f, indent=4)
+    json.dump(config.to_dict(), f, indent=4)
 ```

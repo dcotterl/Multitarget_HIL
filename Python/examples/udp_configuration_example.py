@@ -1,5 +1,3 @@
-import json
-import logging
 import sys
 from pathlib import Path
 
@@ -10,13 +8,7 @@ if str(PYTHON_ROOT) not in sys.path:
 from data_sharing_framework_config_api import udp_definitions as udp
 from data_sharing_framework_config_api import definitions as d
 
-logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
-logger = logging.getLogger(__name__)
-DATA_DIR = Path(__file__).resolve().parent.parent / "data"
-OUTPUT_DIR = Path(__file__).resolve().parent / "output"
-
-
-def bottomUp():
+def bottom_up():
     channel = udp.Channel(name="Channel1", unit="V")
     #print(f"Channel: {channel}")
 
@@ -66,4 +58,4 @@ def bottomUp():
     #print(f"Config: {config}")
 
 if __name__ == "__main__":
-    bottomUp()
+    bottom_up()

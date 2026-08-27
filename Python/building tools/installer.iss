@@ -1,12 +1,12 @@
 #define MyAppName "DSF GUI"
-#define MyAppVersion "1.0.0"
+#define MyAppVersion "0.1.0"
 #define MyAppExeName "DSF_GUI.exe"
 
 [Setup]
 AppId={{A5A5C7DB-7C30-4B9B-9FC8-0A18D7B3A7F1}
 AppName={#MyAppName}
 AppVersion={#MyAppVersion}
-DefaultDirName={autopf}\DSF GUI
+DefaultDirName={localappdata}\DSF GUI
 DefaultGroupName={#MyAppName}
 OutputDir=..\dist
 OutputBaseFilename=DSF_GUI_Setup

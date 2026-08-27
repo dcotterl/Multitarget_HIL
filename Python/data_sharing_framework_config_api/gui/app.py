@@ -30,16 +30,15 @@ from data_sharing_framework_config_api.gui.state import editor_state
 from data_sharing_framework_config_api.gui.tree import refresh_tree_and_select
 
 logger = logging.getLogger(__name__)
-GUI_VERSION = "v2.0"
+GUI_VERSION = "0.1.0"
 
 
 def load_action(tree, file_path_label, object_map, details_text, root, session):
     logger.info("User requested file load action")
-    default_path = session.default_config_path()
     file_path = filedialog.askopenfilename(
         title="Select configuration file",
         filetypes=(("Configuration files", "*.dsf"), ("JSON files", "*.json"), ("All files", "*.*")),
-        initialdir=str(default_path.parent) if default_path is not None else None,
+        initialdir=str(session.file_dialog_directory()),
     )
     if not file_path:
         logger.info("File load dialog cancelled by user")
@@ -61,7 +60,7 @@ def load_action(tree, file_path_label, object_map, details_text, root, session):
 
 
 def new_action(tree, file_path_label, object_map, details_text, root, session):
-    """Create a new empty configuration."""
+    """Create a new protocol-neutral configuration."""
     logger.info("User requested new configuration action")
     session.new_configuration()
     file_path_label.config(text=session.label_text())
@@ -82,13 +81,11 @@ def save_action(file_path_label, root, details_text, session):
             logger.warning("Save action aborted due to form validation error")
             return
 
-    default_path = session.current_path or session.default_config_path()
     file_path = filedialog.asksaveasfilename(
         title="Save configuration file",
         defaultextension=".dsf",
         filetypes=(("Configuration files", "*.dsf"), ("JSON files", "*.json"), ("All files", "*.*")),
-        initialdir=str(default_path.parent) if default_path is not None else None,
-        initialfile=default_path.name if default_path is not None else "configuration.dsf",
+        initialdir=str(session.file_dialog_directory()),
     )
     if not file_path:
         logger.info("Save file dialog cancelled by user")
@@ -178,9 +175,6 @@ def main():
     help_menu.add_command(label="About", command=lambda: show_about(root))
     menu_bar.add_cascade(label="Help", menu=help_menu)
     root.config(menu=menu_bar)
-
-    if session.default_config_path() is not None:
-        file_path_label.config(text="No file loaded")
 
     root.mainloop()
 

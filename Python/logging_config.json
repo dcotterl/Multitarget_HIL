@@ -1,5 +1,5 @@
 {
-    "level": "INFO",
+    "level": "DEBUG",
     "log_to_file": false,
     "log_file_path": "app.log",
     "format": "%(asctime)s [%(levelname)s] [%(module)s.%(funcName)s:%(lineno)d] %(message)s"

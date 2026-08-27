@@ -7,7 +7,7 @@ This module decouples protocol-specific object creation from GUI code, allowing 
 from __future__ import annotations
 
 import logging
-from typing import Any, Type
+from typing import Type
 
 from data_sharing_framework_config_api import definitions, rdma_definitions, udp_definitions
 
@@ -28,7 +28,7 @@ class ProtocolHandler:
         default_rx_port: int = 0,
         default_tx_port: int = 5000,
     ) -> None:
-        self.protocol_name = protocol_name
+        self.protocol_name = protocol_name.strip().upper()
         self.plugin_cls = plugin_cls
         self.thread_cls = thread_cls
         self.transfer_group_cls = transfer_group_cls
@@ -115,18 +115,17 @@ class ProtocolFactory:
     @classmethod
     def register(cls, handler: ProtocolHandler) -> None:
         """Register a new protocol handler."""
-        cls._registry[handler.protocol_name.upper()] = handler
+        cls._registry[handler.protocol_name] = handler
         logger.info("Registered ProtocolHandler for protocol '%s'", handler.protocol_name)
 
     @classmethod
     def get_handler(cls, protocol_name: str) -> ProtocolHandler:
-        """Retrieve the handler for a protocol name, falling back to RDMA."""
-        name_upper = (protocol_name or "RDMA").upper()
+        """Retrieve a registered handler, rejecting unknown protocols."""
+        name_upper = (protocol_name or "RDMA").strip().upper()
         if name_upper in cls._registry:
             logger.debug("Fetched ProtocolHandler for '%s'", name_upper)
             return cls._registry[name_upper]
-        logger.warning("Protocol '%s' not registered, falling back to RDMA", name_upper)
-        return cls._registry.get("RDMA", _DEFAULT_RDMA_HANDLER)
+        raise ValueError(f"Protocol '{name_upper}' is not registered.")
 
     @classmethod
     def get_available_protocols(cls) -> list[str]:

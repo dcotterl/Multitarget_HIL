@@ -26,8 +26,8 @@ class rdma_Import_Tests(unittest.TestCase):
     def test_channel_round_trip(self):
         """Ensure a channel remains unchanged after a dictionary round trip."""
         channel = rdma.Channel()
-        rebuilt = rdma.Channel.from_dict(channel.getDict())
-        self.assertEqual(channel.getDict(), rebuilt.getDict())
+        rebuilt = rdma.Channel.from_dict(channel.to_dict())
+        self.assertEqual(channel.to_dict(), rebuilt.to_dict())
 
     def test_transfer_tx_construction(self):
         """Ensure RDMA Transfer TX initializes component settings with local and destination addresses/ports."""
@@ -64,9 +64,19 @@ class rdma_Import_Tests(unittest.TestCase):
 
     def test_transfer_round_trip(self):
         """Ensure a transfer remains unchanged after a dictionary round trip."""
-        transfer = rdma.Transfer()
-        rebuilt = rdma.Transfer.from_dict(transfer.getDict())
-        self.assertEqual(transfer.getDict(), rebuilt.getDict())
+        transfer = rdma.Transfer(
+            name="RDMA_TX",
+            local_address="10.0.0.1",
+            local_port=5000,
+            destination_address="10.0.0.2",
+            destination_port=5001,
+        )
+        rebuilt = rdma.Transfer.from_dict(transfer.to_dict())
+        self.assertEqual(transfer.to_dict(), rebuilt.to_dict())
+        self.assertEqual(rebuilt.local_address, "10.0.0.1")
+        self.assertEqual(rebuilt.local_port, 5000)
+        self.assertEqual(rebuilt.destination_address, "10.0.0.2")
+        self.assertEqual(rebuilt.destination_port, 5001)
 
     def test_transfer_group_construction(self):
         """Ensure RDMA TransferGroup initializes with default RDMA component settings."""
@@ -89,8 +99,8 @@ class rdma_Import_Tests(unittest.TestCase):
         """Ensure a transfer group remains unchanged after a dictionary round trip."""
         rx_transfer = rdma.Transfer()
         transfer_group = rdma.TransferGroup(name="transfer", direction=d.Direction.TX, transfers=[rx_transfer])
-        rebuilt = rdma.TransferGroup.from_dict(transfer_group.getDict())
-        self.assertEqual(transfer_group.getDict(), rebuilt.getDict())
+        rebuilt = rdma.TransferGroup.from_dict(transfer_group.to_dict())
+        self.assertEqual(transfer_group.to_dict(), rebuilt.to_dict())
 
     def test_thread_construction(self):
         """Ensure RDMA Thread initializes with processor binding and RDMA component settings."""
@@ -103,8 +113,8 @@ class rdma_Import_Tests(unittest.TestCase):
     def test_thread_round_trip(self):
         """Ensure a thread remains unchanged after a dictionary round trip."""
         thread = rdma.Thread()
-        rebuilt = rdma.Thread.from_dict(thread.getDict())
-        self.assertEqual(thread.getDict(), rebuilt.getDict())
+        rebuilt = rdma.Thread.from_dict(thread.to_dict())
+        self.assertEqual(thread.to_dict(), rebuilt.to_dict())
 
     def test_plugin_construction(self):
         """Ensure RDMA Plugin initializes components list with ['RDMA']."""
@@ -117,14 +127,14 @@ class rdma_Import_Tests(unittest.TestCase):
     def test_plugin_round_trip(self):
         """Ensure a plugin remains unchanged after a dictionary round trip."""
         plugin = rdma.Plugin()
-        rebuilt = rdma.Plugin.from_dict(plugin.getDict())
-        self.assertEqual(plugin.getDict(), rebuilt.getDict())
+        rebuilt = rdma.Plugin.from_dict(plugin.to_dict())
+        self.assertEqual(plugin.to_dict(), rebuilt.to_dict())
 
     def test_rdma_configuration_round_trip(self):
         """Ensure a configuration remains unchanged after a round trip."""
         config = d.Configuration()
-        rebuilt = d.Configuration.from_dict(config.getDict())
-        self.assertEqual(config.getDict(), rebuilt.getDict())
+        rebuilt = d.Configuration.from_dict(config.to_dict())
+        self.assertEqual(config.to_dict(), rebuilt.to_dict())
 
 class rdma_benchmark_configuration(unittest.TestCase):
     """Test construction of the expected bidirectional benchmark configuration."""
@@ -135,7 +145,7 @@ class rdma_benchmark_configuration(unittest.TestCase):
                 expected_dict = json.load(f)
 
             config = d.Configuration.from_dict(expected_dict)
-            self.assertEqual(config.getDict(), expected_dict)
+            self.assertEqual(config.to_dict(), expected_dict)
 
     def test_bottomup_configuration(self):
         """Ensure a bottom-up configuration matches the generated fixture."""
@@ -179,7 +189,7 @@ class rdma_benchmark_configuration(unittest.TestCase):
         with open(DATA_PATH, "r") as f:
             expected_dict = json.load(f)
 
-        self.assertEqual(config.getDict(), expected_dict)
+        self.assertEqual(config.to_dict(), expected_dict)
 
     def test_topdown_configuration(self):
          self.maxDiff = None  # Show full diff if test fails
@@ -222,7 +232,7 @@ class rdma_benchmark_configuration(unittest.TestCase):
          with open(DATA_PATH, "r") as f:
                      expected_dict = json.load(f)
          
-         self.assertEqual(config.getDict(), expected_dict)
+         self.assertEqual(config.to_dict(), expected_dict)
 
 if __name__ == "__main__":
     unittest.main()

@@ -4,11 +4,10 @@ protocol tree mutations (add/remove), and direction adaptation.
 
 from __future__ import annotations
 
-import json
-import os
 import sys
 import tempfile
 import unittest
+from unittest.mock import patch
 from pathlib import Path
 
 PYTHON_ROOT = Path(__file__).resolve().parents[1]
@@ -19,7 +18,7 @@ from data_sharing_framework_config_api import definitions as d
 from data_sharing_framework_config_api import rdma_definitions as rdma
 from data_sharing_framework_config_api import udp_definitions as udp
 from data_sharing_framework_config_api.protocol_factory import ProtocolFactory
-from data_sharing_framework_config_api.gui import editor_panel, mutations, tree
+from data_sharing_framework_config_api.gui import editor_panel, mutations
 from data_sharing_framework_config_api.gui.session import ConfigurationSession
 
 
@@ -36,6 +35,56 @@ class TestGUISessionAndMutations(unittest.TestCase):
         self.assertEqual(len(self.session.configuration.plugins), 0)
         self.assertIsNone(self.session.current_path)
         self.assertEqual(self.session.label_text(), "New configuration")
+
+    def test_file_dialog_directory_uses_executable_then_last_used_location(self) -> None:
+        """File dialogs fall back to the executable directory until a file is used."""
+        executable_path = Path("C:/application/DSF_GUI.exe")
+        with patch("data_sharing_framework_config_api.gui.session.sys.executable", str(executable_path)):
+            self.assertEqual(self.session.file_dialog_directory(), executable_path.parent)
+
+        self.session.current_path = Path("C:/configs/used/configuration.dsf")
+        self.assertEqual(self.session.file_dialog_directory(), self.session.current_path.parent)
+
+    def test_protocol_lookup_ignores_case_and_whitespace(self) -> None:
+        self.session.new_configuration()
+        plugin = ProtocolFactory.get_handler(" udp ").create_plugin(name="UDP")
+        self.session.configuration.add_plugin(plugin)
+        self.assertEqual(mutations.get_protocol_for_element(self.session, plugin), "UDP")
+
+    def test_mixed_configuration_reports_mixed_protocol_state(self) -> None:
+        configuration = d.Configuration(plugins=[
+            ProtocolFactory.get_handler("RDMA").create_plugin(),
+            ProtocolFactory.get_handler("UDP").create_plugin(),
+        ])
+        session = ConfigurationSession(configuration=configuration)
+        self.assertEqual(session.protocol, "MIXED")
+
+    def test_public_deserialization_infers_protocol_from_nested_settings(self) -> None:
+        plugin = ProtocolFactory.get_handler("UDP").create_plugin()
+        plugin.add_thread(udp.Thread())
+        plugin_data = plugin.to_dict()
+        plugin_data["core"]["components"] = []
+        configuration = d.Configuration.from_dict({"configuration": {"plugins": [plugin_data]}})
+        self.assertIsInstance(configuration.plugins[0], udp.Plugin)
+
+    def test_public_deserialization_infers_protocol_from_channel_settings(self) -> None:
+        plugin_data = {
+            "core": {"components": []},
+            "threads": [{
+                "transfer groups": [{
+                    "transfers": [{
+                        "channels": [{
+                            "core": {},
+                            "component settings": [{"component": "UDP", "values": []}],
+                        }],
+                    }],
+                }],
+            }],
+        }
+        configuration = d.Configuration.from_dict({"configuration": {"plugins": [plugin_data]}})
+        self.assertIsInstance(configuration.plugins[0], udp.Plugin)
+        session = ConfigurationSession(configuration=configuration)
+        self.assertEqual(mutations.get_protocol_for_element(session, configuration.plugins[0]), "UDP")
 
     def test_02_multi_protocol_tree_construction_and_mutations(self) -> None:
         """Test building a multi-protocol configuration (RDMA + UDP) from scratch.
@@ -59,7 +108,7 @@ class TestGUISessionAndMutations(unittest.TestCase):
         # 1. Add RDMA Plugin
         rdma_handler = ProtocolFactory.get_handler("RDMA")
         rdma_plugin = rdma_handler.create_plugin(name="RDMA_Plugin_1")
-        config.addPlugin(rdma_plugin)
+        config.add_plugin(rdma_plugin)
         self.assertEqual(len(config.plugins), 1)
 
         # Add RDMA Thread, Group, Transfers (TX & RX), Channel
@@ -84,7 +133,7 @@ class TestGUISessionAndMutations(unittest.TestCase):
         # 2. Add UDP Plugin
         udp_handler = ProtocolFactory.get_handler("UDP")
         udp_plugin = udp_handler.create_plugin(name="UDP_Plugin_1")
-        config.addPlugin(udp_plugin)
+        config.add_plugin(udp_plugin)
         self.assertEqual(len(config.plugins), 2)
 
         # Add UDP Thread, Group, Transfers, Channel
@@ -145,7 +194,7 @@ class TestGUISessionAndMutations(unittest.TestCase):
         # Test TransferGroup direction adaptation (RX -> TX -> RX)
         group = d.TransferGroup(name="Group1", direction=d.Direction.RX)
         transfer = rdma.Transfer(name="Tr1", local_address="192.168.1.50", local_port=6000)
-        group.addTransfer(transfer)
+        group.add_transfer(transfer)
 
         # Adapt to TX
         group.direction = d.Direction.TX
@@ -170,9 +219,11 @@ class TestGUISessionAndMutations(unittest.TestCase):
 
         rdma_plugin = rdma_handler.create_plugin(name="RDMA_Plugin")
         udp_plugin = udp_handler.create_plugin(name="UDP_Plugin")
+        rdma_plugin.add_thread(rdma.Thread())
+        udp_plugin.add_thread(udp.Thread())
 
-        config.addPlugin(rdma_plugin)
-        config.addPlugin(udp_plugin)
+        config.add_plugin(rdma_plugin)
+        config.add_plugin(udp_plugin)
 
         with tempfile.TemporaryDirectory() as tmpdir:
             file_path = Path(tmpdir) / "test_config.dsf"
@@ -189,6 +240,10 @@ class TestGUISessionAndMutations(unittest.TestCase):
             self.assertEqual(len(new_session.configuration.plugins), 2)
             self.assertEqual(new_session.configuration.plugins[0].name, "RDMA_Plugin")
             self.assertEqual(new_session.configuration.plugins[1].name, "UDP_Plugin")
+            self.assertIsInstance(new_session.configuration.plugins[0], rdma.Plugin)
+            self.assertIsInstance(new_session.configuration.plugins[1], udp.Plugin)
+            self.assertIsInstance(new_session.configuration.plugins[0].threads[0], rdma.Thread)
+            self.assertIsInstance(new_session.configuration.plugins[1].threads[0], udp.Thread)
 
     def test_05_gui_app_launch_headless(self) -> None:
         """Test GUI window launch and menu construction in headless mode."""
@@ -208,12 +263,32 @@ class TestGUISessionAndMutations(unittest.TestCase):
             tree_view = ttk.Treeview(root)
 
             # Test launching actions programmatically without errors
-            app.new_action(tree_view, file_path_label, {}, details_text, root, session)
+            with patch.object(app.dialogs, "prompt_protocol_selection") as prompt_protocol:
+                app.new_action(tree_view, file_path_label, {}, details_text, root, session)
             self.assertEqual(session.label_text(), "New configuration")
+            self.assertEqual(len(session.configuration.plugins), 0)
+            prompt_protocol.assert_not_called()
 
             root.destroy()
         except tk.TclError:
             self.skipTest("Tkinter GUI launch skipped (headless environment without DISPLAY).")
+
+    def test_save_failure_preserves_existing_file(self) -> None:
+        """A serialization failure must not truncate an existing configuration."""
+        self.session.new_configuration()
+        with tempfile.TemporaryDirectory() as tmpdir:
+            file_path = Path(tmpdir) / "existing.dsf"
+            original = '{"original": true}'
+            file_path.write_text(original, encoding="utf-8")
+
+            class BrokenConfiguration:
+                def to_dict(self):
+                    raise TypeError("cannot serialize")
+
+            self.session.configuration = BrokenConfiguration()
+            with self.assertRaises(TypeError):
+                self.session.save_file(file_path)
+            self.assertEqual(file_path.read_text(encoding="utf-8"), original)
 
 
 if __name__ == "__main__":

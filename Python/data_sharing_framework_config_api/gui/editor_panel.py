@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import logging
+from copy import deepcopy
 import tkinter as tk
 from tkinter import messagebox, ttk
 
@@ -182,9 +183,16 @@ def adapt_transfers_to_direction(transfer_group: definitions.TransferGroup):
 
 
 def apply_field_value(selected_object, attribute, field_type, value):
-    """Parse string value from editor widget and update attribute on selected_object."""
-    value = value.strip()
+    """Parse and apply a string value from an editor widget."""
+    parsed_value = parse_field_value(selected_object, field_type, value)
     old_val = getattr(selected_object, attribute, None)
+    setattr(selected_object, attribute, parsed_value)
+    logger.info("Updated attribute '%s' on %s (old='%s' -> new='%s')", attribute, type(selected_object).__name__, old_val, parsed_value)
+
+
+def parse_field_value(selected_object, field_type, value):
+    """Parse an editor value without mutating the model."""
+    value = value.strip()
     if field_type == "json":
         value = json.loads(value)
     elif field_type == "list":
@@ -218,8 +226,7 @@ def apply_field_value(selected_object, attribute, field_type, value):
                     raise ValueError(f"Invalid IP address format '{item_value}': {e}") from e
             elements.append(definitions.Element(key, item_value))
         value = elements
-    setattr(selected_object, attribute, value)
-    logger.info("Updated attribute '%s' on %s (old='%s' -> new='%s')", attribute, type(selected_object).__name__, old_val, value)
+    return value
 
 
 def editor_value(widget, field_type):
@@ -299,13 +306,18 @@ def modify_selected_element(tree, object_map, item_id, details_text, right_frame
             )
 
     def save_changes():
+        original_state = deepcopy(selected_object.__dict__)
         try:
+            parsed_values = {}
             for attribute, (widget, field_type) in fields.items():
                 value = widget.get("1.0", "end-1c") if field_type == "elements" else widget.get()
-                apply_field_value(selected_object, attribute, field_type, value)
+                parsed_values[attribute] = parse_field_value(selected_object, field_type, value)
+            for attribute, value in parsed_values.items():
+                setattr(selected_object, attribute, value)
             if isinstance(selected_object, definitions.TransferGroup):
                 adapt_transfers_to_direction(selected_object)
         except (ValueError, TypeError, json.JSONDecodeError) as error:
+            selected_object.__dict__ = original_state
             messagebox.showerror("Modify Error", str(error), parent=root)
             return False
 

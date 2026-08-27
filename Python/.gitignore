@@ -4,3 +4,7 @@ __pycache__/
 dist/
 build/
 app.log
+.venv/
+.datasharingFramework/
+data_sharing_framework_config_api.egg-info/
+.pytest_cache/
