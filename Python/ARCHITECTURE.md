@@ -9,16 +9,18 @@ This document describes the design architecture, directory layout, and extension
 ## 1. Directory & Package Structure
 
 ```
+logging_config.json      # JSON file for configurable logging settings (level, file output, format)
 data_sharing_framework_config_api/
 ├── __init__.py           # Package root exports
 ├── definitions.py        # Core base data model (Configuration, Plugin, Thread, TransferGroup, Transfer, Channel, ComponentSettings, Element)
 ├── rdma_definitions.py   # RDMA-specific subclasses & default ComponentSettings
 ├── udp_definitions.py    # UDP-specific subclasses & IP address conversion utilities
 ├── protocol_factory.py   # Protocol Registry & Factory pattern for extensible object creation
+├── logger_config.py      # Logging setup manager (JSON config reader, console/file/memory handlers)
 └── gui/
     ├── __init__.py
-    ├── app.py            # GUI Entry point, window layout & Tkinter mainloop
-    ├── dialogs.py        # Modal dialogs (Protocol selection picker, unsaved changes prompts)
+    ├── app.py            # GUI Entry point, window layout, menu bar & Tkinter mainloop
+    ├── dialogs.py        # Modal dialogs (Protocol picker, unsaved changes, real-time Debug Log viewer)
     ├── editor_panel.py   # Details text view, form field generation, IP formatting, & direction adaptation
     ├── mutations.py      # Tree mutation actions (add/remove plugins, threads, groups, transfers, channels)
     ├── session.py        # Session file loading/saving state
