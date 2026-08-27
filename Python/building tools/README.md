@@ -1,9 +1,10 @@
-# RDMA GUI Build Tools
+# DSF GUI Build Tools
 
 This folder contains the files needed to rebuild the Windows executable and installer:
 
-- `build_release.ps1`: rebuilds the executable and installer.
-- `RDMA_GUI.spec`: PyInstaller configuration for the executable.
+- `build_release.bat`: one-click batch launcher to build the executable and installer.
+- `build_release.ps1`: PowerShell build script.
+- `DSF_GUI.spec`: PyInstaller configuration for the executable.
 - `installer.iss`: Inno Setup configuration for the installer.
 
 ## One-time setup
@@ -24,37 +25,32 @@ C:\Program Files (x86)\Inno Setup 6\ISCC.exe
 
 ## Rebuild the executable and installer
 
-1. Open PowerShell.
-2. Change to the project root, not this folder:
+Simply double-click `build_release.bat` in File Explorer inside this `building tools/` folder.
 
-```powershell
-cd "C:\Users\xxx\Documents\Multitarget_HIL\Python"
-```
-
-3. Run the build script:
+Alternatively, run from PowerShell at the repository root:
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File ".\building tools\build_release.ps1"
 ```
 
-The script will:
+The build script will:
 
-1. Run `py -m unittest discover -s tests -v`.
-2. Rebuild the executable with PyInstaller.
+1. Run all unit tests (`py -m unittest discover -s tests -v`).
+2. Rebuild the executable with PyInstaller (`dist\DSF_GUI.exe`).
 3. Locate Inno Setup.
-4. Build the installer.
-5. Put both outputs in the root `dist` folder.
+4. Build the installer (`dist\DSF_GUI_Setup.exe`).
+5. Put both outputs in the root `dist\` folder.
 
 ## Build outputs
 
 After a successful build, the files are:
 
 ```text
-dist\RDMA_GUI.exe
-dist\RDMA_GUI_Setup.exe
+dist\DSF_GUI.exe
+dist\DSF_GUI_Setup.exe
 ```
 
-Send `RDMA_GUI_Setup.exe` to a colleague for testing. They do not need Python, PyInstaller, or Inno Setup installed.
+Send `DSF_GUI_Setup.exe` to a colleague for testing. They do not need Python, PyInstaller, or Inno Setup installed.
 
 The PyInstaller spec also bundles `data\Simple_c1.dsf` so the packaged GUI keeps a local default sample configuration.
 

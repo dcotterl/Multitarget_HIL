@@ -86,12 +86,19 @@ python -m examples.rdma_configuration_example
 
 ## Building the Windows application
 
-```powershell
-py -m pip install pyinstaller
-powershell -ExecutionPolicy Bypass -File ".\\building tools\\build_release.ps1"
+Simply double-click `build_release.bat` inside the `building tools/` folder in File Explorer, or run from terminal:
+
+```cmd
+".\building tools\build_release.bat"
 ```
 
-The build script now runs the unit tests before packaging. After a successful build, the expected outputs are:
+Or via PowerShell:
 
-- `dist\\RDMA_GUI.exe`
-- `dist\\RDMA_GUI_Setup.exe`
+```powershell
+powershell -ExecutionPolicy Bypass -File ".\building tools\build_release.ps1"
+```
+
+The build script runs all 61 unit tests before packaging. After a successful build, the expected outputs are:
+
+- `dist\DSF_GUI.exe`
+- `dist\DSF_GUI_Setup.exe`

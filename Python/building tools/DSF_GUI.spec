@@ -29,7 +29,7 @@ exe = EXE(
     a.binaries,
     a.datas,
     [],
-    name='RDMA_GUI',
+    name='DSF_GUI',
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,
