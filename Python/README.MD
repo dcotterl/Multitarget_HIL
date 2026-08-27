@@ -29,7 +29,7 @@ Provides:
 - Base model definitions (`definitions.py`) for multi-protocol HIL configurations
 - Protocol-specific extensions (`rdma_definitions.py` and `udp_definitions.py`)
 - Extensible protocol creation factory (`protocol_factory.py`)
-- Configurable logging system (`logger_config.py` and `logging_config.json`); if `logging_config.json` is missing at runtime, it is automatically generated with default settings (`INFO` level, file logging enabled to `app.log`). In packaged/executable runs, the config is created next to the executable so it is reused on subsequent launches.
+- Configurable logging system (`logger_config.py` and `logging_config.json`); if `logging_config.json` is missing at runtime, it is automatically generated with default settings (`INFO` level, file logging enabled to `app.log`). In packaged/executable runs, a user configuration beside the executable takes precedence, while the bundled configuration is used as a read-only fallback. Malformed or invalid persisted settings are repaired with defaults at startup.
 - Import/export helpers for DSF and JSON files
 
 ### `data_sharing_framework_config_api.gui`

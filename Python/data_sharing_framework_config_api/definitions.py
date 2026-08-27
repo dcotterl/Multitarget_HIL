@@ -19,12 +19,9 @@ from __future__ import annotations
 import json
 import logging
 from enum import Enum
-from typing import TypeVar
 
 logger = logging.getLogger(__name__)
 logger.addHandler(logging.NullHandler())
-
-T = TypeVar("T")
 
 class Protocols(Enum):
     """Protocols supported by the Data Sharing Framework configuration."""
@@ -85,6 +82,9 @@ def validate_configuration_dict(data: dict) -> dict:
     for version_key in ("dsfversion", "version"):
         if version_key in data and not isinstance(data[version_key], dict):
             raise ValueError(f"Configuration.{version_key} must be a dictionary.")
+        if version_key in data:
+            _validate_optional_scalars(data[version_key], ("major", "minor", "fix"), int, f"Configuration.{version_key}")
+            _validate_optional_scalars(data[version_key], ("build",), str, f"Configuration.{version_key}")
     configuration = ensure_dict(data.get("configuration", {}), "Configuration.configuration")
     plugin_list = configuration.get("plugins", [])
     if not isinstance(plugin_list, list):
@@ -104,6 +104,7 @@ def validate_configuration_dict(data: dict) -> dict:
         threads = plugin.get("threads", [])
         if not isinstance(threads, list):
             raise ValueError(f"Plugin[{index}].threads must be a list.")
+        _validate_component_settings(plugin.get("component settings", []), f"Plugin[{index}].component settings")
         for thread_index, thread in enumerate(threads):
             _validate_thread_dict(thread, f"Plugin[{index}].threads[{thread_index}]")
     return data
@@ -119,6 +120,7 @@ def _validate_thread_dict(data: dict, context: str) -> None:
     data = ensure_dict(data, context)
     core = ensure_dict(data.get("core", {}), f"{context}.core")
     _validate_optional_scalars(core, ("processor", "priority offset"), int, f"{context}.core")
+    _validate_component_settings(data.get("component settings", []), f"{context}.component settings")
     groups = data.get("transfer groups", [])
     if not isinstance(groups, list):
         raise ValueError(f"{context}.transfer groups must be a list.")
@@ -133,20 +135,40 @@ def _validate_thread_dict(data: dict, context: str) -> None:
         timing = ensure_dict(group_core.get("cycle timing", {}), f"{group_context}.core.cycle timing")
         _validate_optional_scalars(timing, ("priority", "decimation", "offset"), int, f"{group_context}.core.cycle timing")
         _validate_optional_scalars(group_core, ("enable conversion",), bool, f"{group_context}.core")
+        _validate_component_settings(group.get("component settings", []), f"{group_context}.component settings")
         transfers = group.get("transfers", [])
         if not isinstance(transfers, list):
             raise ValueError(f"{group_context}.transfers must be a list.")
         for transfer_index, transfer in enumerate(transfers):
             transfer_context = f"{group_context}.transfers[{transfer_index}]"
             transfer = ensure_dict(transfer, transfer_context)
-            ensure_dict(transfer.get("core", {}), f"{transfer_context}.core")
+            transfer_core = ensure_dict(transfer.get("core", {}), f"{transfer_context}.core")
+            _validate_optional_scalars(transfer_core, ("name",), str, f"{transfer_context}.core")
+            _validate_component_settings(transfer.get("component settings", []), f"{transfer_context}.component settings")
             channels = transfer.get("channels", [])
             if not isinstance(channels, list):
                 raise ValueError(f"{transfer_context}.channels must be a list.")
             for channel_index, channel in enumerate(channels):
                 channel_context = f"{transfer_context}.channels[{channel_index}]"
                 channel = ensure_dict(channel, channel_context)
-                ensure_dict(channel.get("core", {}), f"{channel_context}.core")
+                channel_core = ensure_dict(channel.get("core", {}), f"{channel_context}.core")
+                _validate_optional_scalars(channel_core, ("name", "units"), str, f"{channel_context}.core")
+                _validate_optional_scalars(channel_core, ("engine data type", "string data type", "string offset"), int, f"{channel_context}.core")
+                _validate_component_settings(channel.get("component settings", []), f"{channel_context}.component settings")
+
+
+def _validate_component_settings(value, context: str) -> None:
+    settings = ensure_list(value, context)
+    for index, setting in enumerate(settings):
+        setting_context = f"{context}[{index}]"
+        setting = ensure_dict(setting, setting_context)
+        _validate_optional_scalars(setting, ("component",), str, setting_context)
+        values = ensure_list(setting.get("values", []), f"{setting_context}.values")
+        for value_index, element in enumerate(values):
+            element_context = f"{setting_context}.values[{value_index}]"
+            element = ensure_dict(element, element_context)
+            if "key" not in element or not isinstance(element["key"], str):
+                raise ValueError(f"{element_context}.key must be a string.")
 
 
 def _format_udp_ip_value(key: str, val):
@@ -622,7 +644,25 @@ class Configuration:
         self.version = data.get("version", {"major": 1, "minor": 0, "fix": 0, "build": ""})
         configuration = ensure_dict(data.get("configuration", {}), "Configuration.configuration")
         plugin_type = getattr(self, "_plugin_type", Plugin)
-        self.plugins = [plugin_type.from_dict(pl) for pl in ensure_list(configuration.get("plugins", []), "Configuration.plugins")]
+        plugin_data_list = ensure_list(configuration.get("plugins", []), "Configuration.plugins")
+        self.plugins = []
+        if plugin_type is not Plugin:
+            self.plugins = [plugin_type.from_dict(plugin_data) for plugin_data in plugin_data_list]
+        else:
+            from data_sharing_framework_config_api.protocol_factory import ProtocolFactory
+
+            for index, plugin_data in enumerate(plugin_data_list):
+                core = ensure_dict(plugin_data.get("core", {}), f"Configuration.plugins[{index}].core")
+                components = ensure_list(core.get("components", []), f"Configuration.plugins[{index}].components")
+                protocol = str(components[0]).strip().upper() if components else ""
+                if not protocol:
+                    self.plugins.append(Plugin.from_dict(plugin_data))
+                    continue
+                try:
+                    handler = ProtocolFactory.get_handler(protocol)
+                except ValueError as error:
+                    raise ValueError(f"Unsupported protocol '{protocol}' in plugin {index}.") from error
+                self.plugins.append(handler.plugin_cls.from_dict(plugin_data))
         logger.info("Imported Configuration from dict containing %d plugins", len(self.plugins))
 
     @classmethod

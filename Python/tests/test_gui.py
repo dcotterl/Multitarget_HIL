@@ -4,8 +4,6 @@ protocol tree mutations (add/remove), and direction adaptation.
 
 from __future__ import annotations
 
-import json
-import os
 import sys
 import tempfile
 import unittest
@@ -46,6 +44,20 @@ class TestGUISessionAndMutations(unittest.TestCase):
 
         self.session.current_path = Path("C:/configs/used/configuration.dsf")
         self.assertEqual(self.session.file_dialog_directory(), self.session.current_path.parent)
+
+    def test_protocol_lookup_ignores_case_and_whitespace(self) -> None:
+        self.session.new_configuration()
+        plugin = ProtocolFactory.get_handler(" udp ").create_plugin(name="UDP")
+        self.session.configuration.add_plugin(plugin)
+        self.assertEqual(mutations.get_protocol_for_element(self.session, plugin), "UDP")
+
+    def test_mixed_configuration_reports_mixed_protocol_state(self) -> None:
+        configuration = d.Configuration(plugins=[
+            ProtocolFactory.get_handler("RDMA").create_plugin(),
+            ProtocolFactory.get_handler("UDP").create_plugin(),
+        ])
+        session = ConfigurationSession(configuration=configuration)
+        self.assertEqual(session.protocol, "MIXED")
 
     def test_02_multi_protocol_tree_construction_and_mutations(self) -> None:
         """Test building a multi-protocol configuration (RDMA + UDP) from scratch.

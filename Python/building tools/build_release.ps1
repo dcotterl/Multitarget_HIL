@@ -16,6 +16,7 @@ if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
 Write-Host "Building DSF GUI executable..."
 & $python -3.10 -m PyInstaller --noconfirm --clean (Join-Path $buildTools "DSF_GUI.spec")
+if ($LASTEXITCODE -ne 0) { throw "PyInstaller failed with exit code $LASTEXITCODE. Installer creation was skipped." }
 
 $isccCandidates = @(
     (Join-Path ${env:LOCALAPPDATA} "Programs\Inno Setup 6\ISCC.exe"),
@@ -30,6 +31,7 @@ if (-not $iscc) {
 
 Write-Host "Building DSF GUI installer..."
 & $iscc (Join-Path $buildTools "installer.iss")
+if ($LASTEXITCODE -ne 0) { throw "Inno Setup failed with exit code $LASTEXITCODE." }
 
 Write-Host ""
 Write-Host "Build complete:"

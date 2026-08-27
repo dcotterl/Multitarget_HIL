@@ -79,6 +79,14 @@ The Python API uses `to_dict()`, `import_from_dict()`, and snake_case mutation m
 (`add_plugin`, `add_thread`, `add_transfer_group`, `add_transfer`, `add_channel`, and
 `add_element`).
 
+Configuration imports validate nested containers and leaf scalar types before model
+objects are created. Invalid configuration data is rejected with a path identifying
+the malformed field.
+
+`Configuration.from_dict()` detects each plugin's registered protocol and restores
+the matching protocol-specific object hierarchy. A configuration can contain multiple
+protocol plugins without requiring callers to use the GUI session.
+
 #### `Element`
 *Represents a single key-value setting pair.*
 - `__init__(key: str = "", value: Any = None)`
@@ -173,6 +181,13 @@ Manages application session state:
 - `load_file(file_path)`: Opens and parses `.dsf` or `.json` files while preserving concrete protocol types.
 - `save_file(file_path)`: Serializes to a temporary file and atomically replaces the destination.
 - `new_configuration()`: Resets the session to an empty, protocol-neutral configuration. Protocol selection occurs when adding a plugin.
+
+The session protocol is the registered protocol for a single-protocol configuration,
+or `MIXED` when multiple plugin protocols are present. Child mutations use the
+containing plugin protocol rather than this summary value.
+
+File dialogs use the last successful load/save directory, or the executable directory
+when the session has not used a file yet.
 
 ### `gui.tree`
 Treeview control population:

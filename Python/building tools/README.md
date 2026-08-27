@@ -52,7 +52,11 @@ dist\DSF_GUI_Setup.exe
 
 Send `DSF_GUI_Setup.exe` to a colleague for testing. They do not need Python, PyInstaller, or Inno Setup installed.
 
-The PyInstaller spec also bundles `data\Simple_c1.dsf` as a local reference sample. It is not selected automatically by the file dialogs.
+The PyInstaller spec also bundles `data\Simple_c1.dsf` as a local reference sample. It is not selected automatically by the file dialogs. The installer uses a per-user install directory so executable-local logging configuration can be written without administrator permissions.
+
+The release script stops immediately when Python 3.10 is unavailable, unit tests fail,
+PyInstaller fails, or Inno Setup fails. This prevents an installer from being created
+from stale executable output.
 
 ## Troubleshooting
 

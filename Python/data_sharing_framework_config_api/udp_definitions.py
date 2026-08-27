@@ -22,8 +22,6 @@ import struct
 
 import json
 import logging
-from enum import Enum
-from typing import Iterable, TypeVar
 
 try:
     from . import definitions as d
@@ -33,8 +31,6 @@ except ImportError:  # pragma: no cover
 
 logger = logging.getLogger(__name__)
 logger.addHandler(logging.NullHandler())
-
-T = TypeVar("T")
 
 def ip_to_string(ip_address: str) -> str:
     """Convert an IPv4 address string (e.g. '127.0.0.1') into its integer

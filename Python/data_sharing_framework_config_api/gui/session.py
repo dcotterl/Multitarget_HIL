@@ -36,8 +36,11 @@ class ConfigurationSession:
     def __post_init__(self):
         if self.configuration is None:
             self.configuration = definitions.Configuration(plugins=[])
-        self.protocol = self.protocol.upper()
-        ProtocolFactory.get_handler(self.protocol)
+        self.protocol = self.protocol.strip().upper()
+        if self.configuration.plugins:
+            self.protocol = self._configuration_protocol()
+        if self.protocol != "MIXED":
+            ProtocolFactory.get_handler(self.protocol)
 
     def file_dialog_directory(self) -> Path:
         """Return the last-used directory or the executable directory."""
@@ -58,24 +61,7 @@ class ConfigurationSession:
             logger.error("Failed to load file '%s': content is not a dictionary", path)
             raise ValueError("Selected file content is not a dictionary.")
         
-        definitions.validate_configuration_dict(file_content)
-        configuration_data = file_content.get("configuration", {})
-        plugins = []
-        for index, plugin_data in enumerate(configuration_data.get("plugins", [])):
-            core = definitions.ensure_dict(plugin_data.get("core", {}), f"Plugin[{index}].core")
-            components = definitions.ensure_list(core.get("components", []), f"Plugin[{index}].components")
-            protocol = str(components[0] if components else "RDMA").upper()
-            try:
-                handler = ProtocolFactory.get_handler(protocol)
-            except ValueError as error:
-                raise ValueError(f"Unsupported protocol '{protocol}' in plugin {index}.") from error
-            plugins.append(handler.plugin_cls.from_dict(plugin_data))
-
-        self.configuration = definitions.Configuration(
-            plugins=plugins,
-            dsfversion=file_content.get("dsfversion"),
-            version=file_content.get("version"),
-        )
+        self.configuration = definitions.Configuration.from_dict(file_content)
         self.protocol = self._configuration_protocol()
         self.current_path = path.resolve()
         logger.info("Successfully loaded configuration '%s' (%d plugins)", self.current_path, len(self.configuration.plugins))
@@ -113,8 +99,15 @@ class ConfigurationSession:
         self.protocol = "RDMA"
 
     def _configuration_protocol(self) -> str:
-        if self.configuration.plugins and self.configuration.plugins[0].components:
-            return str(self.configuration.plugins[0].components[0]).upper()
+        protocols = {
+            str(plugin.components[0]).strip().upper()
+            for plugin in self.configuration.plugins
+            if getattr(plugin, "components", None)
+        }
+        if len(protocols) > 1:
+            return "MIXED"
+        if protocols:
+            return protocols.pop()
         return self.protocol
 
     def label_text(self) -> str:

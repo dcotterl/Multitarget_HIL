@@ -6,7 +6,6 @@ Transfer, TransferGroup, Thread, Plugin, Configuration, and Protocol methods.
 
 from __future__ import annotations
 
-import json
 import sys
 import unittest
 from pathlib import Path
@@ -77,6 +76,20 @@ class TestDefinitionsCore(unittest.TestCase):
             d.TransferGroup.from_dict({"core": {"direction": 99}})
         with self.assertRaises(ValueError):
             d.Configuration.from_dict({"configuration": {"plugins": [{"core": {"cycle timing": {"priority": "high"}}}]}})
+        with self.assertRaises(ValueError):
+            d.Configuration.from_dict({
+                "configuration": {
+                    "plugins": [{
+                        "threads": [{
+                            "transfer groups": [{
+                                "transfers": [{
+                                    "channels": [{"core": {"engine data type": "invalid"}}]
+                                }]
+                            }]
+                        }]
+                    }]
+                }
+            })
 
 
 class TestDefinitionsModel(unittest.TestCase):

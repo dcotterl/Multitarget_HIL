@@ -74,22 +74,31 @@ def find_logging_config_path() -> Path:
 
 
 def load_logging_config() -> Tuple[dict[str, Any], Path]:
-    """Load logging config from logging_config.json or create default file if missing."""
+    """Load user logging config, using the bundled config as a frozen fallback."""
     config_path = find_logging_config_path()
     config = dict(DEFAULT_CONFIG)
+    source_path = config_path
+    if not source_path.exists() and getattr(sys, "frozen", False):
+        bundled_path = Path(getattr(sys, "_MEIPASS", "")) / "logging_config.json"
+        if bundled_path.exists():
+            source_path = bundled_path
 
-    if config_path.exists():
+    if source_path.exists():
         try:
-            with config_path.open("r", encoding="utf-8") as f:
+            with source_path.open("r", encoding="utf-8") as f:
                 loaded = json.load(f)
                 if isinstance(loaded, dict):
                     config.update(loaded)
-        except Exception as err:
-            print(f"[Logging] Error reading {config_path}: {err}", file=sys.stderr)
+        except (OSError, json.JSONDecodeError) as err:
+            print(f"[Logging] Error reading {source_path}: {err}", file=sys.stderr)
+            if source_path == config_path:
+                try:
+                    _write_logging_config(config, config_path)
+                except OSError as write_error:
+                    print(f"[Logging] Could not repair {config_path}: {write_error}", file=sys.stderr)
     else:
         try:
-            with config_path.open("w", encoding="utf-8") as f:
-                json.dump(config, f, indent=4)
+            _write_logging_config(config, config_path)
         except Exception as err:
             print(f"[Logging] Could not create default config at {config_path}: {err}", file=sys.stderr)
 
@@ -99,6 +108,14 @@ def load_logging_config() -> Tuple[dict[str, Any], Path]:
 def save_logging_config(config: dict[str, Any]) -> Path:
     """Save configuration dictionary to logging_config.json and re-apply logging settings."""
     config_path = find_logging_config_path()
+    _validate_logging_config(config, config_path)
+    _write_logging_config(config, config_path)
+    setup_logging()
+    return config_path
+
+
+def _write_logging_config(config: dict[str, Any], config_path: Path) -> None:
+    """Atomically write a logging configuration file."""
     config_path.parent.mkdir(parents=True, exist_ok=True)
     temporary_path = None
     try:
@@ -115,8 +132,6 @@ def save_logging_config(config: dict[str, Any]) -> Path:
         if temporary_path is not None:
             temporary_path.unlink(missing_ok=True)
         raise
-    setup_logging()
-    return config_path
 
 
 def _resolve_log_file_path(config_path: Path, configured_path: Any) -> Path:
@@ -131,9 +146,33 @@ def _resolve_log_file_path(config_path: Path, configured_path: Any) -> Path:
     return resolved
 
 
+def _validate_logging_config(config: Any, config_path: Path) -> None:
+    """Validate logging settings before they are written or applied."""
+    if not isinstance(config, dict):
+        raise ValueError("Logging configuration must be a dictionary.")
+    level_name = str(config.get("level", "INFO")).upper()
+    if level_name not in logging._nameToLevel:
+        raise ValueError(f"Unknown logging level '{level_name}'.")
+    if not isinstance(config.get("format", DEFAULT_CONFIG["format"]), str):
+        raise ValueError("format must be a string.")
+    if not isinstance(config.get("log_to_file", True), bool):
+        raise ValueError("log_to_file must be a boolean.")
+    if config.get("log_to_file", True):
+        _resolve_log_file_path(config_path, config.get("log_file_path", "app.log"))
+
+
 def setup_logging() -> Tuple[dict[str, Any], Path]:
     """Configure python logging according to logging_config.json settings."""
     config, config_path = load_logging_config()
+    try:
+        _validate_logging_config(config, config_path)
+    except (TypeError, ValueError) as error:
+        print(f"[Logging] Invalid configuration at {config_path}: {error}. Using defaults.", file=sys.stderr)
+        config = dict(DEFAULT_CONFIG)
+        try:
+            _write_logging_config(config, config_path)
+        except OSError as write_error:
+            print(f"[Logging] Could not replace invalid configuration at {config_path}: {write_error}", file=sys.stderr)
 
     level_name = str(config.get("level", "INFO")).upper()
     if level_name not in logging._nameToLevel:

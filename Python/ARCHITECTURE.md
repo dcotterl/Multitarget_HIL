@@ -48,7 +48,7 @@ Configuration
 - Deserialization uses the protocol registry and overridable nested model types, preserving RDMA/UDP behavior throughout a loaded configuration.
 - Session saves use a same-directory temporary file followed by atomic replacement, protecting existing files from interrupted or failed writes.
 - Inline GUI edits are parsed before assignment and rolled back if a field or direction adaptation fails.
-- Logging configuration is intentionally environment-aware: when packaged as a frozen executable, the app prefers `logging_config.json` next to the executable, and the Debug Log window auto-refreshes to show the latest in-memory records without manual re-opening.
+- Logging configuration is intentionally environment-aware: when packaged as a frozen executable, the app prefers `logging_config.json` next to the executable, uses the bundled file as a read-only fallback, and repairs malformed or invalid persisted settings with defaults. The installer uses a per-user writable location so executable-local configuration can persist. The Debug Log window auto-refreshes to show the latest in-memory records without manual re-opening.
 
 ---
 

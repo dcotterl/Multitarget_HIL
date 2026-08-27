@@ -31,8 +31,6 @@ from __future__ import annotations
 
 import logging
 
-from typing import TypeVar
-
 try:
     from . import definitions as d
 except ImportError:  # pragma: no cover
@@ -40,8 +38,6 @@ except ImportError:  # pragma: no cover
 
 logger = logging.getLogger(__name__)
 logger.addHandler(logging.NullHandler())
-
-T = TypeVar("T")
 
 class Channel(d.Channel):
     """An RDMA channel configuration."""

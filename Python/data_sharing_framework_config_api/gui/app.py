@@ -30,7 +30,7 @@ from data_sharing_framework_config_api.gui.state import editor_state
 from data_sharing_framework_config_api.gui.tree import refresh_tree_and_select
 
 logger = logging.getLogger(__name__)
-GUI_VERSION = "v2.0"
+GUI_VERSION = "0.1.0"
 
 
 def load_action(tree, file_path_label, object_map, details_text, root, session):
