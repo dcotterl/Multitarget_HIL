@@ -47,20 +47,22 @@ DEFAULT_CONFIG: dict[str, Any] = {
 
 
 def find_logging_config_path() -> Path:
-    """Find the path to logging_config.json or determine where it should be created."""
-    candidates = []
+    """Find the preferred location for logging_config.json.
 
-    # 1. Executable dir / Current working directory
+    In a frozen executable, the config should live next to the executable so it is
+    reused across future launches without depending on the working directory.
+    """
     if getattr(sys, "frozen", False):
-        candidates.append(Path(sys.executable).parent / "logging_config.json")
+        exe_config = Path(sys.executable).resolve().parent / "logging_config.json"
+        if exe_config.exists():
+            return exe_config
+        return exe_config
 
-    candidates.append(Path.cwd() / "logging_config.json")
-
-    # 2. Package root / Repository root
-    pkg_root = Path(__file__).resolve().parent
-    repo_root = pkg_root.parent
-    candidates.append(pkg_root / "logging_config.json")
-    candidates.append(repo_root / "logging_config.json")
+    candidates = [
+        Path.cwd() / "logging_config.json",
+        Path(__file__).resolve().parent / "logging_config.json",
+        Path(__file__).resolve().parent.parent / "logging_config.json",
+    ]
 
     for candidate in candidates:
         if candidate.exists():
