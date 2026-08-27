@@ -32,6 +32,48 @@ class testIpConversion(unittest.TestCase):
 class udp_Import_Tests(unittest.TestCase):
     """Test udp definition serialization, deserialization, and fixture imports."""
 
+    def test_udp_channel_construction(self):
+        """Ensure UDP Channel initializes with empty component_settings."""
+        ch = udp.Channel(name="UDP_Chan", unit="mV")
+        self.assertEqual(ch.name, "UDP_Chan")
+        self.assertEqual(ch.unit, "mV")
+        self.assertEqual(len(ch.component_settings), 0)
+
+    def test_udp_transfer_construction(self):
+        """Ensure UDP Transfer initializes component settings with UDP element keys."""
+        transfer = udp.Transfer(name="UDP_Tx", destination_address="192.168.1.10", destination_port=6000)
+        self.assertEqual(len(transfer.component_settings), 1)
+        cs = transfer.component_settings[0]
+        self.assertEqual(cs.component, "UDP")
+        keys = [elem.key for elem in cs.elements]
+        self.assertIn("destination address", keys)
+        self.assertIn("destination port", keys)
+
+    def test_udp_transfer_group_construction(self):
+        """Ensure UDP TransferGroup initializes with empty component_settings."""
+        tg = udp.TransferGroup(name="UDP_Group", direction=d.Direction.TX)
+        self.assertEqual(tg.name, "UDP_Group")
+        self.assertEqual(len(tg.component_settings), 0)
+
+    def test_udp_thread_construction_and_from_dict(self):
+        """Ensure UDP Thread parses local address/port from ComponentSettings in from_dict."""
+        thread = udp.Thread(local_address="192.168.1.100", local_port=7000)
+        self.assertEqual(thread.local_address, "192.168.1.100")
+        self.assertEqual(thread.local_port, 7000)
+        self.assertEqual(len(thread.component_settings), 1)
+
+        # Round-trip deserialization restores local_address and local_port
+        serialized = thread.getDict()
+        rebuilt = udp.Thread.from_dict(serialized)
+        self.assertEqual(rebuilt.local_address, "192.168.1.100")
+        self.assertEqual(rebuilt.local_port, 7000)
+
+    def test_udp_plugin_construction(self):
+        """Ensure UDP Plugin initializes components list with ['UDP']."""
+        plugin = udp.Plugin(name="UDP_Plugin")
+        self.assertEqual(plugin.components, ["UDP"])
+        self.assertEqual(len(plugin.component_settings), 0)
+
     def test_transfer_str_uses_string_to_ip(self):
         """Ensure __str__ on Transfer converts the address using string_to_ip."""
         transfer = udp.Transfer(name="Transfer1", destination_address="127.0.0.1", destination_port=5000)

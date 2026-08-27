@@ -15,17 +15,75 @@ DATA_PATH = Path(r"tests/config_multidirectional_1_Callea_to_Cotterle_generated.
 class rdma_Import_Tests(unittest.TestCase):
     """Test RDMA definition serialization, deserialization, and fixture imports."""
 
+    def test_channel_initialization_and_defaults(self):
+        """Ensure RDMA channel initializes with default RDMA component settings."""
+        channel = rdma.Channel(name="RDMA_Channel", unit="V")
+        self.assertEqual(channel.name, "RDMA_Channel")
+        self.assertEqual(channel.unit, "V")
+        self.assertEqual(len(channel.component_settings), 1)
+        self.assertEqual(channel.component_settings[0].component, "RDMA")
+
     def test_channel_round_trip(self):
         """Ensure a channel remains unchanged after a dictionary round trip."""
         channel = rdma.Channel()
         rebuilt = rdma.Channel.from_dict(channel.getDict())
         self.assertEqual(channel.getDict(), rebuilt.getDict())
 
+    def test_transfer_tx_construction(self):
+        """Ensure RDMA Transfer TX initializes component settings with local and destination addresses/ports."""
+        transfer = rdma.Transfer(
+            name="RDMA_TX",
+            local_address="10.0.0.1",
+            local_port=5000,
+            destination_address="10.0.0.2",
+            destination_port=5001,
+        )
+        self.assertEqual(transfer.name, "RDMA_TX")
+        self.assertEqual(len(transfer.component_settings), 1)
+        cs = transfer.component_settings[0]
+        self.assertEqual(cs.component, "RDMA")
+        keys = [elem.key for elem in cs.elements]
+        self.assertIn("local address", keys)
+        self.assertIn("local port", keys)
+        self.assertIn("destination address", keys)
+        self.assertIn("destination port", keys)
+
+    def test_transfer_rx_construction(self):
+        """Ensure RDMA Transfer RX initializes component settings with local address/port only."""
+        transfer = rdma.Transfer(
+            name="RDMA_RX",
+            local_address="10.0.0.1",
+            local_port=5000,
+        )
+        self.assertEqual(transfer.name, "RDMA_RX")
+        cs = transfer.component_settings[0]
+        keys = [elem.key for elem in cs.elements]
+        self.assertIn("local address", keys)
+        self.assertIn("local port", keys)
+        self.assertNotIn("destination address", keys)
+
     def test_transfer_round_trip(self):
         """Ensure a transfer remains unchanged after a dictionary round trip."""
         transfer = rdma.Transfer()
         rebuilt = rdma.Transfer.from_dict(transfer.getDict())
         self.assertEqual(transfer.getDict(), rebuilt.getDict())
+
+    def test_transfer_group_construction(self):
+        """Ensure RDMA TransferGroup initializes with default RDMA component settings."""
+        tg = rdma.TransferGroup(
+            name="RDMA_TG",
+            direction=d.Direction.TX,
+            priority=100,
+            decimation=1,
+            offset=0,
+            timeout_behaviour=0,
+            enable_conversion=True,
+        )
+        self.assertEqual(tg.name, "RDMA_TG")
+        self.assertEqual(tg.direction, d.Direction.TX)
+        self.assertTrue(tg.enable_conversion)
+        self.assertEqual(len(tg.component_settings), 1)
+        self.assertEqual(tg.component_settings[0].component, "RDMA")
 
     def test_transfer_group_round_trip(self):
         """Ensure a transfer group remains unchanged after a dictionary round trip."""
@@ -34,12 +92,28 @@ class rdma_Import_Tests(unittest.TestCase):
         rebuilt = rdma.TransferGroup.from_dict(transfer_group.getDict())
         self.assertEqual(transfer_group.getDict(), rebuilt.getDict())
 
+    def test_thread_construction(self):
+        """Ensure RDMA Thread initializes with processor binding and RDMA component settings."""
+        thread = rdma.Thread(processor=2, priority_offset=5)
+        self.assertEqual(thread.processor, 2)
+        self.assertEqual(thread.priority_offset, 5)
+        self.assertEqual(len(thread.component_settings), 1)
+        self.assertEqual(thread.component_settings[0].component, "RDMA")
+
     def test_thread_round_trip(self):
-            """Ensure a thread remains unchanged after a dictionary round trip."""
-            thread = rdma.Thread()
-            rebuilt = rdma.Thread.from_dict(thread.getDict())
-            self.assertEqual(thread.getDict(), rebuilt.getDict())
-    
+        """Ensure a thread remains unchanged after a dictionary round trip."""
+        thread = rdma.Thread()
+        rebuilt = rdma.Thread.from_dict(thread.getDict())
+        self.assertEqual(thread.getDict(), rebuilt.getDict())
+
+    def test_plugin_construction(self):
+        """Ensure RDMA Plugin initializes components list with ['RDMA']."""
+        plugin = rdma.Plugin(name="RDMA_Plugin", priority=10000)
+        self.assertEqual(plugin.name, "RDMA_Plugin")
+        self.assertEqual(plugin.components, ["RDMA"])
+        self.assertEqual(len(plugin.component_settings), 1)
+        self.assertEqual(plugin.component_settings[0].component, "RDMA")
+
     def test_plugin_round_trip(self):
         """Ensure a plugin remains unchanged after a dictionary round trip."""
         plugin = rdma.Plugin()

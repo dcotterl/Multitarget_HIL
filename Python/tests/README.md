@@ -18,6 +18,9 @@ python -m unittest discover -s tests -v
 
 ## File Overview
 
+- **`test_definitions.py`**
+  - Unit tests covering the core base model objects in `definitions.py` (`Configuration`, `Plugin`, `Thread`, `TransferGroup`, `Transfer`, `Channel`, `ComponentSettings`, `Element`), guard clauses (`ensure_dict`, `ensure_list`), direction coercion, and IP string formatting.
+
 - **`test_gui.py`**
   - Unit and integration tests for the GUI: session initialization, building multi-protocol configurations from scratch (RDMA + UDP), add/remove tree mutations, field value edits, direction parameter adaptation, and save/load file round trips.
 
