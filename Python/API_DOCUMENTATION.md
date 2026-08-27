@@ -43,7 +43,7 @@ Each level in the tree can also contain **`ComponentSettings`**, which hold prot
 | **`rdma_definitions.py`** | Root Package | RDMA-specific subclasses extending base definitions with RDMA default `ComponentSettings`. |
 | **`udp_definitions.py`** | Root Package | UDP-specific subclasses, IP address conversion utilities (`ip_to_string`, `string_to_ip`), and UDP default `ComponentSettings`. |
 | **`protocol_factory.py`** | Root Package | Protocol Registry & Factory pattern (`ProtocolFactory`, `ProtocolHandler`) for decoupled creation of protocol objects. |
-| **`logger_config.py`** | Root Package | Configures system logging from `logging_config.json` (console, file output, in-memory log buffer for GUI). |
+| **`logger_config.py`** | Root Package | Configures system logging from `logging_config.json` (console, file output, in-memory log buffer for GUI). Automatically generates `logging_config.json` with default values (`INFO`, `log_to_file: true`, `app.log`) if missing at runtime. |
 | **`gui/session.py`** | `gui/` Package | Handles loading `.dsf` / `.json` files from disk, saving files, and maintaining active application state (`ConfigurationSession`). |
 | **`gui/tree.py`** | `gui/` Package | Populates, selects, and looks up nodes in the Tkinter `Treeview` control. |
 | **`gui/state.py`** | `gui/` Package | Shared inline editor state container (`EditorState`) tracking dirty/modified form fields. |
