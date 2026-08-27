@@ -99,6 +99,7 @@ class Element:
     def __init__(self, key: str, value) -> None:
         self.key = key
         self.value = value
+        logger.debug("Initialized Element key='%s', value='%s'", self.key, self.value)
 
     def getDict(self) -> dict:
         return {"key": self.key, "value": self.value}
@@ -128,6 +129,7 @@ class ComponentSettings:
     def __init__(self, component: str = "", initial_elements: list[Element] | None = None) -> None:
         self.component = component
         self.elements = initial_elements if initial_elements is not None else []
+        logger.debug("Initialized ComponentSettings component='%s' (%d elements)", self.component, len(self.elements))
 
     def __str__(self) -> str:
         result = _format_dict_for_str(self.getDict())
@@ -149,6 +151,7 @@ class ComponentSettings:
 
     def addElement(self, key: str, value) -> None:
         self.elements = [*self.elements, Element(key, value)]
+        logger.info("Added Element key='%s', value='%s' to ComponentSettings('%s')", key, value, self.component)
 
 class Channel:
     """A channel definition and its serialized settings."""
@@ -167,6 +170,7 @@ class Channel:
         self.string_data_type = string_data_type
         self.string_offset = string_offset
         self.component_settings = [ComponentSettings()]
+        logger.debug("Initialized Channel name='%s', unit='%s'", self.name, self.unit)
 
     def __str__(self) -> str:
         result = _format_dict_for_str(self.getDict())
@@ -261,6 +265,7 @@ class Transfer:
     def addChannel(self, channel: Channel) -> None:
         """Add a channel to this transfer."""
         self.channels = [*self.channels, channel]
+        logger.info("Added Channel('%s') to Transfer('%s')", channel.name, self.name)
 
 class TransferGroup:
     """A group of transfers sharing execution timing parameters and a common direction (TX/RX)."""
@@ -339,6 +344,7 @@ class TransferGroup:
     def addTransfer(self, transfer: Transfer) -> None:
         """Add a transfer to this transfer group."""
         self.transfers = [*self.transfers, transfer]
+        logger.info("Added Transfer('%s') to TransferGroup('%s')", transfer.name, self.name)
   
 class Thread:
     """An execution thread definition binding transfer groups to a target CPU core/processor."""
@@ -396,6 +402,7 @@ class Thread:
     def addTransferGroup(self, transfer_group: TransferGroup) -> None:
         """Add a transfer group to this thread."""
         self.transfer_groups = [*self.transfer_groups, transfer_group]
+        logger.info("Added TransferGroup('%s') to Thread(processor=%d)", transfer_group.name, self.processor)
 
 class Plugin:
     """A transport plugin container holding execution threads for a specific protocol."""
@@ -464,6 +471,7 @@ class Plugin:
     def addThread(self, thread: Thread) -> None:
         """Add a thread to this plugin."""
         self.threads = [*self.threads, thread]
+        logger.info("Added Thread(processor=%d) to Plugin('%s')", thread.processor, self.name)
 
 class Configuration:
     """The root configuration object representing a complete .dsf configuration file."""
@@ -501,6 +509,7 @@ class Configuration:
         self.version = data.get("version", {"major": 1, "minor": 0, "fix": 0, "build": ""})
         configuration = ensure_dict(data.get("configuration", {}), "Configuration.configuration")
         self.plugins = [Plugin.from_dict(pl) for pl in ensure_list(configuration.get("plugins", []), "Configuration.plugins")]
+        logger.info("Imported Configuration from dict containing %d plugins", len(self.plugins))
 
     @classmethod
     def from_dict(cls, data: dict) -> "Configuration":
@@ -511,6 +520,7 @@ class Configuration:
     def addPlugin(self, plugin: Plugin) -> None:
         """Add a plugin to this configuration."""
         self.plugins = [*self.plugins, plugin]
+        logger.info("Added Plugin('%s') to Configuration", plugin.name)
 
 def get_version() -> dict:
     """Return the current RDMA definition format version."""

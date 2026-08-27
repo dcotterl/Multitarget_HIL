@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import logging
 import tkinter as tk
 from tkinter import messagebox, ttk
 
@@ -10,6 +11,8 @@ from data_sharing_framework_config_api import definitions, udp_definitions
 from data_sharing_framework_config_api.gui import dialogs
 from data_sharing_framework_config_api.gui.state import editor_state
 from data_sharing_framework_config_api.gui.tree import object_label
+
+logger = logging.getLogger(__name__)
 
 
 def update_details_text(tree, details_text, object_map):
@@ -34,8 +37,6 @@ def update_details_text(tree, details_text, object_map):
 def field_definitions(selected_object):
     """Return a list of (label, attribute_name, field_type) tuples defining editable form fields for selected_object."""
     if isinstance(selected_object, definitions.Configuration):
-        return [("DSF version", "dsfversion", "json"), ("Version", "version", "json")]
-    if isinstance(selected_object, definitions.Plugin):
         return [("DSF version", "dsfversion", "json"), ("Version", "version", "json")]
     if isinstance(selected_object, definitions.Plugin):
         return [
@@ -101,6 +102,7 @@ def field_value(selected_object, attribute, field_type):
 def adapt_transfers_to_direction(transfer_group: definitions.TransferGroup):
     """Adapt child transfers when a TransferGroup direction changes."""
     is_tx = (transfer_group.direction == definitions.Direction.TX)
+    logger.info("Adapting child transfers for TransferGroup('%s') to direction=%s", transfer_group.name, transfer_group.direction.name)
 
     for transfer in getattr(transfer_group, "transfers", []):
         for cs in getattr(transfer, "component_settings", []):
@@ -182,6 +184,7 @@ def adapt_transfers_to_direction(transfer_group: definitions.TransferGroup):
 def apply_field_value(selected_object, attribute, field_type, value):
     """Parse string value from editor widget and update attribute on selected_object."""
     value = value.strip()
+    old_val = getattr(selected_object, attribute, None)
     if field_type == "json":
         value = json.loads(value)
     elif field_type == "list":
@@ -216,6 +219,7 @@ def apply_field_value(selected_object, attribute, field_type, value):
             elements.append(definitions.Element(key, item_value))
         value = elements
     setattr(selected_object, attribute, value)
+    logger.info("Updated attribute '%s' on %s (old='%s' -> new='%s')", attribute, type(selected_object).__name__, old_val, value)
 
 
 def editor_value(widget, field_type):

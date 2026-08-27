@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import logging
 import tkinter as tk
 
 from data_sharing_framework_config_api import definitions
@@ -9,6 +10,8 @@ from data_sharing_framework_config_api.protocol_factory import ProtocolFactory
 from data_sharing_framework_config_api.gui import dialogs, editor_panel
 from data_sharing_framework_config_api.gui.state import editor_state
 from data_sharing_framework_config_api.gui.tree import find_parent, refresh_tree_and_select
+
+logger = logging.getLogger(__name__)
 
 
 def find_ancestor_plugin(configuration: definitions.Configuration, target) -> definitions.Plugin | None:
@@ -63,6 +66,7 @@ def run_tree_mutation_with_unsaved_changes(tree, details_text, root, mutate_acti
 def add_channel_to_transfer(session, selected_transfer, refresh):
     """Add a new protocol-specific Channel to selected_transfer and refresh UI."""
     protocol = get_protocol_for_element(session, selected_transfer)
+    logger.info("Adding Channel to Transfer('%s') (Protocol: %s)", selected_transfer.name, protocol)
     handler = ProtocolFactory.get_handler(protocol)
     channel_number = len(selected_transfer.channels) + 1
     channel = handler.create_channel(name=f"Channel {channel_number}")
@@ -74,7 +78,9 @@ def remove_channel_from_transfer(configuration, selected_channel, refresh):
     """Remove selected_channel from its parent Transfer and refresh UI."""
     parent_transfer = find_parent(configuration, definitions.Transfer, "channels", selected_channel)
     if parent_transfer is None:
+        logger.warning("Could not find parent Transfer for selected channel '%s'", getattr(selected_channel, "name", ""))
         return
+    logger.info("Removing Channel('%s') from Transfer('%s')", getattr(selected_channel, "name", ""), parent_transfer.name)
     parent_transfer.channels = [channel for channel in parent_transfer.channels if channel is not selected_channel]
     refresh(parent_transfer)
 
@@ -82,6 +88,7 @@ def remove_channel_from_transfer(configuration, selected_channel, refresh):
 def add_transfer_to_group(session, selected_group, refresh):
     """Add a new protocol-specific Transfer to selected_group and refresh UI."""
     protocol = get_protocol_for_element(session, selected_group)
+    logger.info("Adding Transfer to TransferGroup('%s') (Direction: %s, Protocol: %s)", selected_group.name, selected_group.direction.name, protocol)
     handler = ProtocolFactory.get_handler(protocol)
     transfer_number = len(selected_group.transfers) + 1
     transfer = handler.create_transfer(name=f"Transfer {transfer_number}", direction=selected_group.direction)
@@ -93,7 +100,9 @@ def remove_transfer_from_group(configuration, selected_transfer, refresh):
     """Remove selected_transfer from its parent TransferGroup and refresh UI."""
     parent_group = find_parent(configuration, definitions.TransferGroup, "transfers", selected_transfer)
     if parent_group is None:
+        logger.warning("Could not find parent TransferGroup for selected transfer '%s'", getattr(selected_transfer, "name", ""))
         return
+    logger.info("Removing Transfer('%s') from TransferGroup('%s')", getattr(selected_transfer, "name", ""), parent_group.name)
     parent_group.transfers = [transfer for transfer in parent_group.transfers if transfer is not selected_transfer]
     refresh(parent_group)
 
@@ -101,6 +110,7 @@ def remove_transfer_from_group(configuration, selected_transfer, refresh):
 def add_group_to_thread(session, selected_thread, refresh):
     """Add a new protocol-specific TransferGroup to selected_thread and refresh UI."""
     protocol = get_protocol_for_element(session, selected_thread)
+    logger.info("Adding TransferGroup to Thread(processor=%d) (Protocol: %s)", selected_thread.processor, protocol)
     handler = ProtocolFactory.get_handler(protocol)
     group_number = len(selected_thread.transfer_groups) + 1
     group = handler.create_transfer_group(name=f"Transfer Group {group_number}", direction=definitions.Direction.TX)
@@ -112,7 +122,9 @@ def remove_group_from_thread(configuration, selected_group, refresh):
     """Remove selected_group from its parent Thread and refresh UI."""
     parent_thread = find_parent(configuration, definitions.Thread, "transfer_groups", selected_group)
     if parent_thread is None:
+        logger.warning("Could not find parent Thread for selected group '%s'", getattr(selected_group, "name", ""))
         return
+    logger.info("Removing TransferGroup('%s') from Thread(processor=%d)", getattr(selected_group, "name", ""), parent_thread.processor)
     parent_thread.transfer_groups = [group for group in parent_thread.transfer_groups if group is not selected_group]
     refresh(parent_thread)
 
@@ -120,6 +132,7 @@ def remove_group_from_thread(configuration, selected_group, refresh):
 def add_thread_to_plugin(session, selected_plugin, refresh):
     """Add a new protocol-specific Thread to selected_plugin and refresh UI."""
     protocol = get_protocol_for_element(session, selected_plugin)
+    logger.info("Adding Thread to Plugin('%s') (Protocol: %s)", selected_plugin.name, protocol)
     handler = ProtocolFactory.get_handler(protocol)
     thread = handler.create_thread(processor=-2)
     selected_plugin.addThread(thread)
@@ -130,7 +143,9 @@ def remove_thread_from_plugin(configuration, selected_thread, refresh):
     """Remove selected_thread from its parent Plugin and refresh UI."""
     parent_plugin = find_parent(configuration, definitions.Plugin, "threads", selected_thread)
     if parent_plugin is None:
+        logger.warning("Could not find parent Plugin for selected thread")
         return
+    logger.info("Removing Thread(processor=%d) from Plugin('%s')", selected_thread.processor, parent_plugin.name)
     parent_plugin.threads = [thread for thread in parent_plugin.threads if thread is not selected_thread]
     refresh(parent_plugin)
 
@@ -139,8 +154,10 @@ def add_plugin_to_configuration(session, selected_configuration, refresh, root):
     """Prompt for protocol selection, create a new Plugin using ProtocolFactory, and refresh UI."""
     protocol = dialogs.prompt_protocol_selection(root, title="Select Protocol", message="Select protocol for new plugin:")
     if protocol is None:
+        logger.info("User cancelled protocol selection for new plugin")
         return
 
+    logger.info("Adding Plugin with protocol '%s' to Configuration", protocol)
     handler = ProtocolFactory.get_handler(protocol)
     plugin_number = len(selected_configuration.plugins) + 1
     plugin = handler.create_plugin(name=f"Plugin {plugin_number}")
@@ -151,7 +168,9 @@ def add_plugin_to_configuration(session, selected_configuration, refresh, root):
 def remove_plugin_from_configuration(configuration, selected_plugin, refresh):
     """Remove selected_plugin from configuration and refresh UI."""
     if selected_plugin not in configuration.plugins:
+        logger.warning("Selected plugin '%s' not found in configuration", getattr(selected_plugin, "name", ""))
         return
+    logger.info("Removing Plugin('%s') from Configuration", getattr(selected_plugin, "name", ""))
     configuration.plugins = [plugin for plugin in configuration.plugins if plugin is not selected_plugin]
     refresh(configuration)
 

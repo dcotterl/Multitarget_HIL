@@ -6,9 +6,12 @@ This module decouples protocol-specific object creation from GUI code, allowing 
 
 from __future__ import annotations
 
+import logging
 from typing import Any, Type
 
 from data_sharing_framework_config_api import definitions, rdma_definitions, udp_definitions
+
+logger = logging.getLogger(__name__)
 
 
 class ProtocolHandler:
@@ -35,12 +38,16 @@ class ProtocolHandler:
         self.default_tx_port = default_tx_port
 
     def create_plugin(self, name: str = "", threads: list[definitions.Thread] | None = None) -> definitions.Plugin:
-        return self.plugin_cls(name=name, threads=threads if threads is not None else [])
+        plugin = self.plugin_cls(name=name, threads=threads if threads is not None else [])
+        logger.info("ProtocolHandler('%s') created Plugin(name='%s')", self.protocol_name, name)
+        return plugin
 
     def create_thread(
         self, processor: int = -2, transfer_groups: list[definitions.TransferGroup] | None = None
     ) -> definitions.Thread:
-        return self.thread_cls(processor=processor, transfer_groups=transfer_groups if transfer_groups is not None else [])
+        thread = self.thread_cls(processor=processor, transfer_groups=transfer_groups if transfer_groups is not None else [])
+        logger.info("ProtocolHandler('%s') created Thread(processor=%d)", self.protocol_name, processor)
+        return thread
 
     def create_transfer_group(
         self,
@@ -48,9 +55,11 @@ class ProtocolHandler:
         direction: definitions.Direction = definitions.Direction.TX,
         transfers: list[definitions.Transfer] | None = None,
     ) -> definitions.TransferGroup:
-        return self.transfer_group_cls(
+        group = self.transfer_group_cls(
             name=name, direction=direction, transfers=transfers if transfers is not None else []
         )
+        logger.info("ProtocolHandler('%s') created TransferGroup(name='%s', direction=%s)", self.protocol_name, name, direction.name)
+        return group
 
     def create_transfer(
         self,
@@ -62,33 +71,40 @@ class ProtocolHandler:
 
         if self.protocol_name == "UDP":
             if direction == definitions.Direction.RX:
-                return self.transfer_cls(
+                transfer = self.transfer_cls(
                     name=name, channels=channels_list, local_address="127.0.0.1", local_port=self.default_tx_port
                 )
             elif direction == definitions.Direction.TX:
-                return self.transfer_cls(
+                transfer = self.transfer_cls(
                     name=name, channels=channels_list, destination_address="127.0.0.1", destination_port=self.default_tx_port
                 )
-            return self.transfer_cls(name=name, channels=channels_list)
+            else:
+                transfer = self.transfer_cls(name=name, channels=channels_list)
+        else:
+            # Default / RDMA behavior
+            if direction == definitions.Direction.RX:
+                transfer = self.transfer_cls(
+                    name=name, channels=channels_list, local_address="127.0.0.1", local_port=self.default_rx_port
+                )
+            elif direction == definitions.Direction.TX:
+                transfer = self.transfer_cls(
+                    name=name,
+                    channels=channels_list,
+                    local_address="127.0.0.1",
+                    local_port=self.default_rx_port,
+                    destination_address="127.0.0.1",
+                    destination_port=self.default_rx_port,
+                )
+            else:
+                transfer = self.transfer_cls(name=name, channels=channels_list)
 
-        # Default / RDMA behavior
-        if direction == definitions.Direction.RX:
-            return self.transfer_cls(
-                name=name, channels=channels_list, local_address="127.0.0.1", local_port=self.default_rx_port
-            )
-        elif direction == definitions.Direction.TX:
-            return self.transfer_cls(
-                name=name,
-                channels=channels_list,
-                local_address="127.0.0.1",
-                local_port=self.default_rx_port,
-                destination_address="127.0.0.1",
-                destination_port=self.default_rx_port,
-            )
-        return self.transfer_cls(name=name, channels=channels_list)
+        logger.info("ProtocolHandler('%s') created Transfer(name='%s', direction=%s)", self.protocol_name, name, direction.name)
+        return transfer
 
     def create_channel(self, name: str = "", unit: str = "") -> definitions.Channel:
-        return self.channel_cls(name=name, unit=unit)
+        channel = self.channel_cls(name=name, unit=unit)
+        logger.info("ProtocolHandler('%s') created Channel(name='%s', unit='%s')", self.protocol_name, name, unit)
+        return channel
 
 
 class ProtocolFactory:
@@ -100,13 +116,16 @@ class ProtocolFactory:
     def register(cls, handler: ProtocolHandler) -> None:
         """Register a new protocol handler."""
         cls._registry[handler.protocol_name.upper()] = handler
+        logger.info("Registered ProtocolHandler for protocol '%s'", handler.protocol_name)
 
     @classmethod
     def get_handler(cls, protocol_name: str) -> ProtocolHandler:
         """Retrieve the handler for a protocol name, falling back to RDMA."""
         name_upper = (protocol_name or "RDMA").upper()
         if name_upper in cls._registry:
+            logger.debug("Fetched ProtocolHandler for '%s'", name_upper)
             return cls._registry[name_upper]
+        logger.warning("Protocol '%s' not registered, falling back to RDMA", name_upper)
         return cls._registry.get("RDMA", _DEFAULT_RDMA_HANDLER)
 
     @classmethod

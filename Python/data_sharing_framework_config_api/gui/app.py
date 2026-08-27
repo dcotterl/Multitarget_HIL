@@ -13,6 +13,8 @@ from tkinter import filedialog, messagebox, ttk
 if __package__ in (None, ""):
     sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 
+from data_sharing_framework_config_api import logger_config
+from data_sharing_framework_config_api.gui import dialogs
 from data_sharing_framework_config_api.gui.editor_panel import (
     close_inline_editor,
     has_unsaved_changes,
@@ -27,12 +29,12 @@ from data_sharing_framework_config_api.gui.session import ConfigurationSession
 from data_sharing_framework_config_api.gui.state import editor_state
 from data_sharing_framework_config_api.gui.tree import refresh_tree_and_select
 
-logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
 logger = logging.getLogger(__name__)
 GUI_VERSION = "v2.0"
 
 
 def load_action(tree, file_path_label, object_map, details_text, root, session):
+    logger.info("User requested file load action")
     default_path = session.default_config_path()
     file_path = filedialog.askopenfilename(
         title="Select configuration file",
@@ -40,10 +42,12 @@ def load_action(tree, file_path_label, object_map, details_text, root, session):
         initialdir=str(default_path.parent) if default_path is not None else None,
     )
     if not file_path:
+        logger.info("File load dialog cancelled by user")
         return
     try:
         session.load_file(file_path)
     except (OSError, ValueError, TypeError, json.JSONDecodeError) as error:
+        logger.error("Failed to load file '%s': %s", file_path, error)
         messagebox.showerror("Load Error", f"Could not load file:\n{error}", parent=root)
         return
     file_path_label.config(text=str(session.current_path))
@@ -58,6 +62,7 @@ def load_action(tree, file_path_label, object_map, details_text, root, session):
 
 def new_action(tree, file_path_label, object_map, details_text, root, session):
     """Create a new empty configuration."""
+    logger.info("User requested new configuration action")
     session.new_configuration()
     file_path_label.config(text=session.label_text())
     refresh_tree_and_select(
@@ -70,9 +75,11 @@ def new_action(tree, file_path_label, object_map, details_text, root, session):
 
 
 def save_action(file_path_label, root, details_text, session):
+    logger.info("User requested save configuration action")
     state = editor_state(details_text)
     if state.modify_panel is not None and has_unsaved_changes(details_text) and state.save_changes is not None:
         if not state.save_changes():
+            logger.warning("Save action aborted due to form validation error")
             return
 
     default_path = session.current_path or session.default_config_path()
@@ -84,10 +91,12 @@ def save_action(file_path_label, root, details_text, session):
         initialfile=default_path.name if default_path is not None else "configuration.dsf",
     )
     if not file_path:
+        logger.info("Save file dialog cancelled by user")
         return
     try:
         saved_path = session.save_file(file_path)
     except (OSError, TypeError, ValueError) as error:
+        logger.error("Failed to save file '%s': %s", file_path, error)
         messagebox.showerror("Save Error", f"Could not save the configuration:\n{error}", parent=root)
         return
     file_path_label.config(text=str(saved_path))
@@ -96,6 +105,7 @@ def save_action(file_path_label, root, details_text, session):
 
 def show_about(root):
     """Show the current GUI version."""
+    logger.info("User opened About dialog")
     messagebox.showinfo(
         "About Configuration Editor",
         f"Configuration Editor\nVersion {GUI_VERSION}\n\nSupports RDMA and UDP protocols",
@@ -104,6 +114,8 @@ def show_about(root):
 
 
 def main():
+    logger_config.setup_logging()
+    logger.info("Starting Configuration Editor GUI (Version %s)", GUI_VERSION)
     root = tk.Tk()
     root.title("Configuration Editor (RDMA/UDP)")
     root.state("zoomed")
@@ -156,6 +168,11 @@ def main():
     )
     file_menu.add_command(label="Save", command=lambda: save_action(file_path_label, root, details_text, session))
     menu_bar.add_cascade(label="File", menu=file_menu)
+
+    debug_menu = tk.Menu(menu_bar, tearoff=0)
+    debug_menu.add_command(label="View Logs", command=lambda: dialogs.show_debug_logs_window(root))
+    menu_bar.add_cascade(label="Debug", menu=debug_menu)
+
     help_menu = tk.Menu(menu_bar, tearoff=0)
     help_menu.add_command(label="About", command=lambda: show_about(root))
     menu_bar.add_cascade(label="Help", menu=help_menu)
