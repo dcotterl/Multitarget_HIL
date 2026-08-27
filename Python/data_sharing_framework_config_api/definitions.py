@@ -1,3 +1,19 @@
+"""Core base data model definitions for the Data Sharing Framework configuration API.
+
+This module defines the foundational object-oriented schema used across all
+supported protocols (e.g., RDMA, UDP):
+
+    Configuration
+      └── Plugin [1..n]
+           └── Thread [1..n]
+                └── TransferGroup [1..n]
+                     └── Transfer [1..n]
+                          └── Channel [1..n]
+
+Each object level supports dictionary serialization (getDict()), deserialization
+(importFromDict(), from_dict()), and protocol-specific ComponentSettings.
+"""
+
 from __future__ import annotations
 
 import json
@@ -11,13 +27,13 @@ logger.addHandler(logging.NullHandler())
 T = TypeVar("T")
 
 class Protocols(Enum):
-    """Protocols supported by the RDMA configuration."""
+    """Protocols supported by the Data Sharing Framework configuration."""
 
     RDMA = "RDMA"
     UDP = "UDP"
 
 class Direction(Enum):
-    """Direction of an RDMA transfer."""
+    """Direction of a data transfer group (TX = Transmit, RX = Receive)."""
 
     TX = 0
     RX = 1

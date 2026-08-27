@@ -17,9 +17,6 @@ This directory contains standalone Python example scripts demonstrating how to u
 - **`import_config_example.py`**
   - Demonstrates loading an existing `.dsf` file from disk (`definitions.Configuration.from_dict()`), inspecting its object hierarchy, and re-exporting it.
 
-- **`testdef.py`**
-  - Scratchpad script used for testing internal API definitions during development.
-
 ---
 
 ## Subdirectories

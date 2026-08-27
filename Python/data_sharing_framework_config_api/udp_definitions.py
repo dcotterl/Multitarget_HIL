@@ -1,3 +1,20 @@
+"""UDP configuration definitions for the data-sharing framework.
+
+This module defines the concrete objects used to represent a UDP configuration
+in the same tree hierarchy expected by the serialized framework configuration:
+
+    Configuration
+      └── Plugin [1..n]
+           └── Thread [1..n]
+                └── TransferGroup [1..n]
+                     └── Transfer [1..n]
+                          └── Channel [1..n]
+
+The classes here inherit from the base model types in ``definitions.py`` and
+provide UDP-specific component settings and IP address serialization utilities
+(converting dotted IPv4 strings to/from 32-bit integer representations).
+"""
+
 from __future__ import annotations
 
 import socket
@@ -23,7 +40,7 @@ def ip_to_string(ip_address: str) -> str:
     """Convert an IPv4 address string (e.g. '127.0.0.1') into its integer
     representation as a string (e.g. '2130706433')."""
     if ip_address == "":
-        ip_address="127.0.0.1"
+        ip_address = "127.0.0.1"
     packed = socket.inet_aton(ip_address)
     return str(struct.unpack("!L", packed)[0])
 
@@ -35,7 +52,7 @@ def string_to_ip(int_string: str) -> str:
     return socket.inet_ntoa(packed)
 
 class Channel(d.Channel):
-    """An RDMA channel definition and its serialized settings."""
+    """A UDP channel definition and its serialized settings."""
 
     def __init__(
         self,
@@ -53,14 +70,14 @@ class Channel(d.Channel):
         self.component_settings = []
 
 class Transfer(d.Transfer):
-    """An RDMA data transfer configuration."""
+    """A UDP data transfer configuration."""
 
     def __init__(
         self,
         name: str = "",
         channels: list[Channel] | None = None,
-        local_address: str = "", #source_address: str = "",
-        local_port: int = 0, #source_port: int = 0,
+        local_address: str = "",
+        local_port: int = 0,
         destination_address: str = "",
         destination_port: int = 0,
     ) -> None:
@@ -97,7 +114,7 @@ class Transfer(d.Transfer):
         return json.dumps(result, indent=4)
 
 class TransferGroup(d.TransferGroup):
-    """A group of transfers sharing a common direction."""
+    """A group of UDP transfers sharing a common direction (TX/RX)."""
 
     def __init__(
         self,
@@ -123,7 +140,7 @@ class TransferGroup(d.TransferGroup):
         self.component_settings = []
 
 class Thread(d.Thread):
-    """A thread configuration for RDMA operations."""
+    """A thread configuration for UDP operations."""
 
     def __init__(
         self,
@@ -175,7 +192,7 @@ class Thread(d.Thread):
         return instance
 
 class Plugin(d.Plugin):
-    """An UDP plugin containing one or more threads."""
+    """A UDP plugin containing one or more threads."""
 
     def __init__(
         self,
