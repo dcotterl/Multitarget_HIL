@@ -20,7 +20,7 @@ data_sharing_framework_config_api/
 └── gui/
     ├── __init__.py
     ├── app.py            # GUI Entry point, window layout, menu bar & Tkinter mainloop
-    ├── dialogs.py        # Modal dialogs (Protocol picker, unsaved changes, real-time Debug Log viewer)
+    ├── dialogs.py        # Modal dialogs (Protocol picker, unsaved changes, real-time Debug Log viewer, Configure Logger window)
     ├── editor_panel.py   # Details text view, form field generation, IP formatting, & direction adaptation
     ├── mutations.py      # Tree mutation actions (add/remove plugins, threads, groups, transfers, channels)
     ├── session.py        # Session file loading/saving state

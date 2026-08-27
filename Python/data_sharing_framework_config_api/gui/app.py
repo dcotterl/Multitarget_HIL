@@ -171,6 +171,7 @@ def main():
 
     debug_menu = tk.Menu(menu_bar, tearoff=0)
     debug_menu.add_command(label="View Logs", command=lambda: dialogs.show_debug_logs_window(root))
+    debug_menu.add_command(label="Configure Logger", command=lambda: dialogs.show_configure_logger_window(root))
     menu_bar.add_cascade(label="Debug", menu=debug_menu)
 
     help_menu = tk.Menu(menu_bar, tearoff=0)

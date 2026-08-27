@@ -92,6 +92,15 @@ def load_logging_config() -> Tuple[dict[str, Any], Path]:
     return config, config_path
 
 
+def save_logging_config(config: dict[str, Any]) -> Path:
+    """Save configuration dictionary to logging_config.json and re-apply logging settings."""
+    config_path = find_logging_config_path()
+    with config_path.open("w", encoding="utf-8") as f:
+        json.dump(config, f, indent=4)
+    setup_logging()
+    return config_path
+
+
 def setup_logging() -> Tuple[dict[str, Any], Path]:
     """Configure python logging according to logging_config.json settings."""
     config, config_path = load_logging_config()

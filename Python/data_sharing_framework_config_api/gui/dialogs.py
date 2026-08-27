@@ -144,3 +144,105 @@ def show_debug_logs_window(root: tk.Tk) -> None:
 
     refresh_logs()
 
+
+def show_configure_logger_window(root: tk.Tk) -> None:
+    """Open a dialog allowing the user to view and edit logging parameters saved in logging_config.json."""
+    logger.info("Opening Configure Logger window")
+    win = tk.Toplevel(root)
+    win.title("Configure Logger")
+    win.transient(root)
+    win.grab_set()
+
+    config, config_path = logger_config.load_logging_config()
+
+    panel = ttk.Frame(win, padding=16)
+    panel.pack(fill="both", expand=True)
+
+    ttk.Label(panel, text=f"Config File: {config_path}", font=("TkDefaultFont", 9, "italic")).grid(
+        row=0, column=0, columnspan=2, sticky="w", pady=(0, 12)
+    )
+
+    # Log Level
+    ttk.Label(panel, text="Log Level:").grid(row=1, column=0, sticky="w", pady=6)
+    level_var = tk.StringVar(value=str(config.get("level", "INFO")).upper())
+    level_cb = ttk.Combobox(
+        panel,
+        textvariable=level_var,
+        values=["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"],
+        state="readonly",
+        width=15,
+    )
+    level_cb.grid(row=1, column=1, sticky="w", pady=6)
+
+    # Log to File
+    ttk.Label(panel, text="Log to File:").grid(row=2, column=0, sticky="w", pady=6)
+    log_to_file_var = tk.BooleanVar(value=bool(config.get("log_to_file", True)))
+    file_check = ttk.Checkbutton(panel, text="Enable file logging", variable=log_to_file_var)
+    file_check.grid(row=2, column=1, sticky="w", pady=6)
+
+    # Log File Path
+    ttk.Label(panel, text="Log File Path:").grid(row=3, column=0, sticky="w", pady=6)
+    path_var = tk.StringVar(value=str(config.get("log_file_path", "app.log")))
+    path_entry = ttk.Entry(panel, textvariable=path_var, width=40)
+    path_entry.grid(row=3, column=1, sticky="ew", pady=6)
+
+    # Log Format
+    ttk.Label(panel, text="Log Format:").grid(row=4, column=0, sticky="nw", pady=6)
+    fmt_var = tk.StringVar(
+        value=str(
+            config.get(
+                "format",
+                "%(asctime)s [%(levelname)s] [%(module)s.%(funcName)s:%(lineno)d] %(message)s",
+            )
+        )
+    )
+    fmt_entry = ttk.Entry(panel, textvariable=fmt_var, width=50)
+    fmt_entry.grid(row=4, column=1, sticky="ew", pady=6)
+
+    panel.columnconfigure(1, weight=1)
+
+    def on_save():
+        new_level = level_var.get().strip()
+        new_log_to_file = log_to_file_var.get()
+        new_path = path_var.get().strip()
+        new_fmt = fmt_var.get().strip()
+
+        if not new_path and new_log_to_file:
+            messagebox.showerror("Validation Error", "Log file path cannot be empty when file logging is enabled.", parent=win)
+            return
+
+        if not new_fmt:
+            messagebox.showerror("Validation Error", "Log format string cannot be empty.", parent=win)
+            return
+
+        new_config = {
+            "level": new_level,
+            "log_to_file": new_log_to_file,
+            "log_file_path": new_path,
+            "format": new_fmt,
+        }
+
+        try:
+            saved_path = logger_config.save_logging_config(new_config)
+            messagebox.showinfo(
+                "Logger Config Saved",
+                f"Logging configuration saved to:\n{saved_path}\n\nSettings have been re-applied.",
+                parent=win,
+            )
+            win.destroy()
+        except Exception as err:
+            messagebox.showerror("Save Error", f"Failed to save logging configuration:\n{err}", parent=win)
+
+    btn_frame = ttk.Frame(win, padding=(16, 0, 16, 16))
+    btn_frame.pack(fill="x")
+
+    ttk.Button(btn_frame, text="Save", command=on_save).pack(side="left", padx=4)
+    ttk.Button(btn_frame, text="Cancel", command=win.destroy).pack(side="right", padx=4)
+
+    win.update_idletasks()
+    win.geometry(
+        f"+{(win.winfo_screenwidth() - win.winfo_reqwidth()) // 2}"
+        f"+{(win.winfo_screenheight() - win.winfo_reqheight()) // 2}"
+    )
+
+
