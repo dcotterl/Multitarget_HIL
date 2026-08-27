@@ -1,6 +1,11 @@
 # Python Tooling
 
-This directory contains the Python package, GUI, examples, tests, and build assets used to create RDMA data-sharing configurations for multitarget HIL systems.
+This directory contains the Python package, GUI, examples, tests, and build assets used to create data-sharing framework configurations for multitarget HIL systems.
+
+## Documentation
+
+- **[API & Codebase Reference Guide](API_DOCUMENTATION.md)** — Comprehensive guide covering who does what, complete class/method reference, and code examples for junior developers.
+- **[Architecture Guide](ARCHITECTURE.md)** — Design architecture, package module layout, and extensibility instructions for adding new protocols.
 
 ## Contents
 

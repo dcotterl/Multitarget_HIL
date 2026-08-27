@@ -23,11 +23,35 @@ class Direction(Enum):
     RX = 1
 
 def ensure_dict(data, context: str) -> dict:
+    """Type guard ensuring that the given data is a dictionary.
+
+    Args:
+        data: Value to check.
+        context: Description of where the check occurred (used in error messages).
+
+    Returns:
+        dict: The validated dictionary.
+
+    Raises:
+        TypeError: If data is not a dict.
+    """
     if not isinstance(data, dict):
         raise TypeError(f"{context} must be a dictionary.")
     return data
 
 def ensure_list(value, context: str) -> list:
+    """Type guard ensuring that the given value is a list (or None converted to empty list).
+
+    Args:
+        value: Value to check.
+        context: Description of where the check occurred (used in error messages).
+
+    Returns:
+        list: The validated list or empty list if None.
+
+    Raises:
+        TypeError: If value is neither list nor None.
+    """
     if value is None:
         return []
     if not isinstance(value, list):
@@ -180,6 +204,11 @@ class Channel:
         return obj
 
 class Transfer:
+    """A data transfer definition representing a packet payload.
+
+    Contains local/destination address and port settings as well as a collection of Channel objects.
+    """
+
     def __init__(
         self,
         name: str = "",
@@ -234,6 +263,7 @@ class Transfer:
         self.channels = [*self.channels, channel]
 
 class TransferGroup:
+    """A group of transfers sharing execution timing parameters and a common direction (TX/RX)."""
 
     def __init__(
         self,name: str = "",
@@ -311,6 +341,8 @@ class TransferGroup:
         self.transfers = [*self.transfers, transfer]
   
 class Thread:
+    """An execution thread definition binding transfer groups to a target CPU core/processor."""
+
     def __init__(
             self,
             processor: int = -2,
@@ -366,6 +398,8 @@ class Thread:
         self.transfer_groups = [*self.transfer_groups, transfer_group]
 
 class Plugin:
+    """A transport plugin container holding execution threads for a specific protocol."""
+
     def __init__(
         self,
             name: str = "",
@@ -432,6 +466,8 @@ class Plugin:
         self.threads = [*self.threads, thread]
 
 class Configuration:
+    """The root configuration object representing a complete .dsf configuration file."""
+
     def __init__(self,
                  plugins: list[Plugin] | None = None,
                  dsfversion: dict | None = None,

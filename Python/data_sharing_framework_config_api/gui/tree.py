@@ -23,13 +23,15 @@ CHILD_ATTRIBUTES = {
 }
 
 
-def object_label(value):
+def object_label(value) -> str:
+    """Return a display text label for a configuration model object (e.g. 'Plugin: MyPlugin')."""
     object_name = type(value).__name__
     name = getattr(value, "name", "")
     return f"{object_name}: {name}" if name else object_name
 
 
-def populate_tree(tree, value, parent="", object_map=None):
+def populate_tree(tree, value, parent="", object_map=None) -> None:
+    """Recursively insert nodes into the Treeview control for a configuration model object."""
     if not isinstance(value, CONFIGURATION_OBJECT_TYPES):
         return
 
@@ -59,7 +61,8 @@ def populate_tree(tree, value, parent="", object_map=None):
                     populate_tree(tree, item, node, object_map)
 
 
-def refresh_tree_and_select(tree, object_map, configuration, update_details, close_editor, select_object=None):
+def refresh_tree_and_select(tree, object_map, configuration, update_details, close_editor, select_object=None) -> None:
+    """Re-populate the tree control from the configuration object and restore selection if requested."""
     tree.delete(*tree.get_children())
     object_map.clear()
     populate_tree(tree, configuration, object_map=object_map)
@@ -81,6 +84,7 @@ def refresh_tree_and_select(tree, object_map, configuration, update_details, clo
 
 
 def find_parent(root, parent_type, child_list_attr, target_child):
+    """Search the configuration tree starting at root to find the parent object containing target_child."""
     if isinstance(root, parent_type):
         if any(child is target_child for child in getattr(root, child_list_attr, [])):
             return root
