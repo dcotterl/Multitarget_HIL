@@ -1,27 +1,13 @@
-"""Public package for the Multitarget HIL Python tooling."""
+"""Data Sharing Framework Configuration API."""
 
-from .rdma_definitions import (
-    Channel,
-    ComponentSettings,
-    Direction,
-    Element,
-    Plugin,
-    RDMA_Configuration,
-    Thread,
-    Transfer,
-    TransferGroup,
-    get_version,
-)
+from __future__ import annotations
+
+from data_sharing_framework_config_api import definitions, logger_config, protocol_factory, rdma_definitions, udp_definitions
 
 __all__ = [
-    "Channel",
-    "ComponentSettings",
-    "Direction",
-    "Element",
-    "Plugin",
-    "RDMA_Configuration",
-    "Thread",
-    "Transfer",
-    "TransferGroup",
-    "get_version",
+    "definitions",
+    "logger_config",
+    "protocol_factory",
+    "rdma_definitions",
+    "udp_definitions",
 ]

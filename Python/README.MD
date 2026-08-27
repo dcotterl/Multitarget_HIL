@@ -1,6 +1,11 @@
 # Python Tooling
 
-This directory contains the Python package, GUI, examples, tests, and build assets used to create RDMA data-sharing configurations for multitarget HIL systems.
+This directory contains the Python package, GUI, examples, tests, and build assets used to create data-sharing framework configurations for multitarget HIL systems.
+
+## Documentation
+
+- **[API & Codebase Reference Guide](API_DOCUMENTATION.md)** — Comprehensive guide covering who does what, complete class/method reference, and code examples for junior developers.
+- **[Architecture Guide](ARCHITECTURE.md)** — Design architecture, package module layout, and extensibility instructions for adding new protocols.
 
 ## Contents
 
@@ -17,22 +22,25 @@ This directory contains the Python package, GUI, examples, tests, and build asse
 
 ## Package structure
 
-### `data_sharing_framework_config_api.rdma_definitions`
+### `data_sharing_framework_config_api`
 
 Provides:
 
-- the RDMA configuration object model
-- import/export helpers for DSF and JSON content
-- validation for nested object types and transfer-direction invariants
+- Base model definitions (`definitions.py`) for multi-protocol HIL configurations
+- Protocol-specific extensions (`rdma_definitions.py` and `udp_definitions.py`)
+- Extensible protocol creation factory (`protocol_factory.py`)
+- Configurable logging system (`logger_config.py` and `logging_config.json`); if `logging_config.json` is missing at runtime, it is automatically generated with default settings (`INFO` level, file logging enabled to `app.log`)
+- Import/export helpers for DSF and JSON files
 
 ### `data_sharing_framework_config_api.gui`
 
 Provides:
 
-- a Tkinter editor for configuration trees
-- centralized session and file handling
-- inline editing with unsaved-change prompts
-- a default sample DSF lookup for local source and packaged builds
+- A Tkinter editor supporting multi-protocol configurations
+- Centralized session state management (`ConfigurationSession`)
+- Inline attribute editing with unsaved-change prompts and TX/RX direction adaptation
+- Dynamic protocol selection and context menus
+- A real-time Debug Log viewer window and Logger Config window
 
 ## Running the tests
 
@@ -78,12 +86,19 @@ python -m examples.rdma_configuration_example
 
 ## Building the Windows application
 
-```powershell
-py -m pip install pyinstaller
-powershell -ExecutionPolicy Bypass -File ".\\building tools\\build_release.ps1"
+Simply double-click `build_release.bat` inside the `building tools/` folder in File Explorer, or run from terminal:
+
+```cmd
+".\building tools\build_release.bat"
 ```
 
-The build script now runs the unit tests before packaging. After a successful build, the expected outputs are:
+Or via PowerShell:
 
-- `dist\\RDMA_GUI.exe`
-- `dist\\RDMA_GUI_Setup.exe`
+```powershell
+powershell -ExecutionPolicy Bypass -File ".\building tools\build_release.ps1"
+```
+
+The build script runs all 61 unit tests before packaging. After a successful build, the expected outputs are:
+
+- `dist\DSF_GUI.exe`
+- `dist\DSF_GUI_Setup.exe`

@@ -3,3 +3,4 @@ multitargetHIL/
 __pycache__/
 dist/
 build/
+app.log

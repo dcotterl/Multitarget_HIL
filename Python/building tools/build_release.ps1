@@ -8,8 +8,8 @@ Write-Host "Running unit tests..."
 py -m unittest discover -s tests -v
 if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
-Write-Host "Building RDMA GUI executable..."
-py -m PyInstaller --noconfirm --clean (Join-Path $buildTools "RDMA_GUI.spec")
+Write-Host "Building DSF GUI executable..."
+py -m PyInstaller --noconfirm --clean (Join-Path $buildTools "DSF_GUI.spec")
 
 $isccCandidates = @(
     (Join-Path ${env:LOCALAPPDATA} "Programs\Inno Setup 6\ISCC.exe"),
@@ -22,10 +22,10 @@ if (-not $iscc) {
     throw "Inno Setup was not found. Install it from https://jrsoftware.org/isinfo.php and run this script again."
 }
 
-Write-Host "Building RDMA GUI installer..."
+Write-Host "Building DSF GUI installer..."
 & $iscc (Join-Path $buildTools "installer.iss")
 
 Write-Host ""
 Write-Host "Build complete:"
-Write-Host (Join-Path $projectRoot "dist\RDMA_GUI.exe")
-Write-Host (Join-Path $projectRoot "dist\RDMA_GUI_Setup.exe")
+Write-Host (Join-Path $projectRoot "dist\DSF_GUI.exe")
+Write-Host (Join-Path $projectRoot "dist\DSF_GUI_Setup.exe")
