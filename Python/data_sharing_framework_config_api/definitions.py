@@ -10,8 +10,8 @@ supported protocols (e.g., RDMA, UDP):
                      └── Transfer [1..n]
                           └── Channel [1..n]
 
-Each object level supports dictionary serialization (getDict()), deserialization
-(importFromDict(), from_dict()), and protocol-specific ComponentSettings.
+Each object level supports dictionary serialization (to_dict()), deserialization
+(import_from_dict(), from_dict()), and protocol-specific ComponentSettings.
 """
 
 from __future__ import annotations
@@ -19,7 +19,7 @@ from __future__ import annotations
 import json
 import logging
 from enum import Enum
-from typing import Iterable, TypeVar
+from typing import TypeVar
 
 logger = logging.getLogger(__name__)
 logger.addHandler(logging.NullHandler())
@@ -74,6 +74,81 @@ def ensure_list(value, context: str) -> list:
         raise TypeError(f"{context} must be a list.")
     return value
 
+
+def validate_configuration_dict(data: dict) -> dict:
+    """Validate that a dictionary matches the expected top-level configuration schema.
+
+    This keeps malformed input from silently creating broken runtime objects and makes
+    the contract explicit for future protocol additions.
+    """
+    data = ensure_dict(data, "Configuration")
+    for version_key in ("dsfversion", "version"):
+        if version_key in data and not isinstance(data[version_key], dict):
+            raise ValueError(f"Configuration.{version_key} must be a dictionary.")
+    configuration = ensure_dict(data.get("configuration", {}), "Configuration.configuration")
+    plugin_list = configuration.get("plugins", [])
+    if not isinstance(plugin_list, list):
+        raise ValueError("Configuration.configuration.plugins must be a list.")
+    for index, plugin in enumerate(plugin_list):
+        if not isinstance(plugin, dict):
+            raise ValueError(f"Configuration.configuration.plugins[{index}] must be a dictionary.")
+        core = ensure_dict(plugin.get("core", {}), f"Plugin[{index}].core")
+        components = core.get("components", [])
+        if not isinstance(components, list) or not all(isinstance(component, str) for component in components):
+            raise ValueError(f"Plugin[{index}].core.components must be a list of strings.")
+        cycle_timing = core.get("cycle timing", {})
+        if not isinstance(cycle_timing, dict):
+            raise ValueError(f"Plugin[{index}].core.cycle timing must be a dictionary.")
+        _validate_optional_scalars(core, ("name",), str, f"Plugin[{index}].core")
+        _validate_optional_scalars(cycle_timing, ("priority", "decimation", "offset"), int, f"Plugin[{index}].core.cycle timing")
+        threads = plugin.get("threads", [])
+        if not isinstance(threads, list):
+            raise ValueError(f"Plugin[{index}].threads must be a list.")
+        for thread_index, thread in enumerate(threads):
+            _validate_thread_dict(thread, f"Plugin[{index}].threads[{thread_index}]")
+    return data
+
+
+def _validate_optional_scalars(data: dict, keys: tuple[str, ...], expected_type: type, context: str) -> None:
+    for key in keys:
+        if key in data and (type(data[key]) is not expected_type):
+            raise ValueError(f"{context}.{key} must be a {expected_type.__name__}.")
+
+
+def _validate_thread_dict(data: dict, context: str) -> None:
+    data = ensure_dict(data, context)
+    core = ensure_dict(data.get("core", {}), f"{context}.core")
+    _validate_optional_scalars(core, ("processor", "priority offset"), int, f"{context}.core")
+    groups = data.get("transfer groups", [])
+    if not isinstance(groups, list):
+        raise ValueError(f"{context}.transfer groups must be a list.")
+    for group_index, group in enumerate(groups):
+        group_context = f"{context}.transfer groups[{group_index}]"
+        group = ensure_dict(group, group_context)
+        group_core = ensure_dict(group.get("core", {}), f"{group_context}.core")
+        _validate_optional_scalars(group_core, ("name",), str, f"{group_context}.core")
+        _validate_optional_scalars(group_core, ("direction", "timeout behavior"), int, f"{group_context}.core")
+        if "direction" in group_core and group_core["direction"] not in (Direction.TX.value, Direction.RX.value):
+            raise ValueError(f"{group_context}.core.direction must be 0 or 1.")
+        timing = ensure_dict(group_core.get("cycle timing", {}), f"{group_context}.core.cycle timing")
+        _validate_optional_scalars(timing, ("priority", "decimation", "offset"), int, f"{group_context}.core.cycle timing")
+        _validate_optional_scalars(group_core, ("enable conversion",), bool, f"{group_context}.core")
+        transfers = group.get("transfers", [])
+        if not isinstance(transfers, list):
+            raise ValueError(f"{group_context}.transfers must be a list.")
+        for transfer_index, transfer in enumerate(transfers):
+            transfer_context = f"{group_context}.transfers[{transfer_index}]"
+            transfer = ensure_dict(transfer, transfer_context)
+            ensure_dict(transfer.get("core", {}), f"{transfer_context}.core")
+            channels = transfer.get("channels", [])
+            if not isinstance(channels, list):
+                raise ValueError(f"{transfer_context}.channels must be a list.")
+            for channel_index, channel in enumerate(channels):
+                channel_context = f"{transfer_context}.channels[{channel_index}]"
+                channel = ensure_dict(channel, channel_context)
+                ensure_dict(channel.get("core", {}), f"{channel_context}.core")
+
+
 def _format_udp_ip_value(key: str, val):
     if key in ("source address", "destination address", "local address"):
         try:
@@ -117,16 +192,16 @@ class Element:
         self.value = value
         logger.debug("Initialized Element key='%s', value='%s'", self.key, self.value)
 
-    def getDict(self) -> dict:
+    def to_dict(self) -> dict:
         return {"key": self.key, "value": self.value}
 
     def __str__(self) -> str:
-        d = self.getDict()
+        d = self.to_dict()
         if self.key in ("source address", "destination address", "local address"):
             d["value"] = _format_udp_ip_value(self.key, self.value)
         return json.dumps(d, indent=4)
 
-    def importFromDict(self, data: dict) -> None:
+    def import_from_dict(self, data: dict) -> None:
         data = ensure_dict(data, "Element")
         if "key" not in data:
             raise ValueError("Element is missing required field 'key'.")
@@ -136,7 +211,7 @@ class Element:
     @classmethod
     def from_dict(cls, data: dict) -> "Element":
         obj = cls.__new__(cls)
-        obj.importFromDict(data)
+        obj.import_from_dict(data)
         return obj
 
 class ComponentSettings:
@@ -144,17 +219,17 @@ class ComponentSettings:
 
     def __init__(self, component: str = "", initial_elements: list[Element] | None = None) -> None:
         self.component = component
-        self.elements = initial_elements if initial_elements is not None else []
+        self.elements = list(initial_elements) if initial_elements is not None else []
         logger.debug("Initialized ComponentSettings component='%s' (%d elements)", self.component, len(self.elements))
 
     def __str__(self) -> str:
-        result = _format_dict_for_str(self.getDict())
+        result = _format_dict_for_str(self.to_dict())
         return json.dumps(result, indent=4)
 
-    def getDict(self) -> dict:
-        return {"component": self.component, "values": [v.getDict() for v in self.elements]}
+    def to_dict(self) -> dict:
+        return {"component": self.component, "values": [v.to_dict() for v in self.elements]}
 
-    def importFromDict(self, data: dict) -> None:
+    def import_from_dict(self, data: dict) -> None:
         data = ensure_dict(data, "ComponentSettings")
         self.component = data.get("component", "")
         self.elements = [Element.from_dict(v) for v in ensure_list(data.get("values", []), "ComponentSettings.values")]
@@ -162,10 +237,10 @@ class ComponentSettings:
     @classmethod
     def from_dict(cls, data: dict) -> "ComponentSettings":
         obj = cls.__new__(cls)
-        obj.importFromDict(data)
+        obj.import_from_dict(data)
         return obj
 
-    def addElement(self, key: str, value) -> None:
+    def add_element(self, key: str, value) -> None:
         self.elements = [*self.elements, Element(key, value)]
         logger.info("Added Element key='%s', value='%s' to ComponentSettings('%s')", key, value, self.component)
 
@@ -189,10 +264,10 @@ class Channel:
         logger.debug("Initialized Channel name='%s', unit='%s'", self.name, self.unit)
 
     def __str__(self) -> str:
-        result = _format_dict_for_str(self.getDict())
+        result = _format_dict_for_str(self.to_dict())
         return json.dumps(result, indent=4)
 
-    def getDict(self) -> dict:
+    def to_dict(self) -> dict:
         return {
             "core": {
                 "name": self.name,
@@ -201,10 +276,10 @@ class Channel:
                 "string data type": self.string_data_type,
                 "string offset": self.string_offset,
             },
-            "component settings": [cs.getDict() for cs in self.component_settings],
+            "component settings": [cs.to_dict() for cs in self.component_settings],
         }
 
-    def importFromDict(self, data: dict) -> None:
+    def import_from_dict(self, data: dict) -> None:
         data = ensure_dict(data, "Channel")
         core = ensure_dict(data.get("core", {}), "Channel.core")
         self.name = core.get("name", "")
@@ -220,7 +295,7 @@ class Channel:
     @classmethod
     def from_dict(cls, data: dict) -> "Channel":
         obj = cls.__new__(cls)
-        obj.importFromDict(data)
+        obj.import_from_dict(data)
         return obj
 
 class Transfer:
@@ -239,7 +314,7 @@ class Transfer:
         destination_port: int = 0,
     ) -> None:
         self.name = name
-        self.channels = channels if channels is not None else []
+        self.channels = list(channels) if channels is not None else []
         self.local_address = local_address
         self.local_port = local_port
         self.destination_address = destination_address
@@ -247,38 +322,53 @@ class Transfer:
         self.component_settings = [ComponentSettings()]
 
     def __str__(self, collapse: bool = True) -> str:
-        result = self.getDict()
+        result = self.to_dict()
         if collapse:
             result["channels"] = "[EMPTY]" if not self.channels else f"[...{len(self.channels)} channels...]"
         else:
-            result["channels"] = [ch.getDict() for ch in self.channels]
+            result["channels"] = [ch.to_dict() for ch in self.channels]
         result = _format_dict_for_str(result)
         return json.dumps(result, indent=4)
 
-    def getDict(self) -> dict:
+    def to_dict(self) -> dict:
         return {
             "core": {"name": self.name},
-            "component settings": [cs.getDict() for cs in self.component_settings],
-            "channels": [ch.getDict() for ch in self.channels],
+            "component settings": [cs.to_dict() for cs in self.component_settings],
+            "channels": [ch.to_dict() for ch in self.channels],
         }
 
-    def importFromDict(self, data: dict) -> None:
+    def import_from_dict(self, data: dict) -> None:
         data = ensure_dict(data, "Transfer")
         core = ensure_dict(data.get("core", {}), "Transfer.core")
         self.name = core.get("name", "")
+        self.local_address = ""
+        self.local_port = 0
+        self.destination_address = ""
+        self.destination_port = 0
         self.component_settings = [
             ComponentSettings.from_dict(cs)
             for cs in ensure_list(data.get("component settings", []), "Transfer.component settings")
         ]
-        self.channels = [Channel.from_dict(ch) for ch in ensure_list(data.get("channels", []), "Transfer.channels")]
+        for settings in self.component_settings:
+            for element in settings.elements:
+                if element.key in ("local address", "source address"):
+                    self.local_address = str(element.value)
+                elif element.key == "local port" or element.key == "source port":
+                    self.local_port = int(element.value)
+                elif element.key == "destination address":
+                    self.destination_address = str(element.value)
+                elif element.key == "destination port":
+                    self.destination_port = int(element.value)
+        channel_type = getattr(self, "_channel_type", Channel)
+        self.channels = [channel_type.from_dict(ch) for ch in ensure_list(data.get("channels", []), "Transfer.channels")]
 
     @classmethod
     def from_dict(cls, data: dict) -> "Transfer":
         obj = cls.__new__(cls)
-        obj.importFromDict(data)
+        obj.import_from_dict(data)
         return obj
 
-    def addChannel(self, channel: Channel) -> None:
+    def add_channel(self, channel: Channel) -> None:
         """Add a channel to this transfer."""
         self.channels = [*self.channels, channel]
         logger.info("Added Channel('%s') to Transfer('%s')", channel.name, self.name)
@@ -303,20 +393,20 @@ class TransferGroup:
         self.offset = offset
         self.timeout_behaviour = timeout_behaviour
         self.enable_conversion = enable_conversion
-        self.transfers = transfers if transfers is not None else []
+        self.transfers = list(transfers) if transfers is not None else []
         self.component_settings = [ComponentSettings()]
 
     def __str__(self, collapse: bool = True) -> str:
-        result = self.getDict()
+        result = self.to_dict()
         result["core"]["direction"] = str(self.direction.name)
         if collapse:
             result["transfers"] = "[EMPTY]" if not self.transfers else f"[...{len(self.transfers)} transfers...]"
         else:
-            result["transfers"] = [tr.getDict() for tr in self.transfers]
+            result["transfers"] = [tr.to_dict() for tr in self.transfers]
         result = _format_dict_for_str(result)
         return json.dumps(result, indent=4)
 
-    def getDict(self) -> dict:
+    def to_dict(self) -> dict:
         return {
                 "core": {
                     "name": self.name,
@@ -329,21 +419,25 @@ class TransferGroup:
                     "timeout behavior": self.timeout_behaviour,
                     "enable conversion": self.enable_conversion,
                 },
-                "component settings": [cs.getDict() for cs in self.component_settings],
-                "transfers": [t.getDict() for t in self.transfers],
+                "component settings": [cs.to_dict() for cs in self.component_settings],
+                "transfers": [t.to_dict() for t in self.transfers],
                 }
 
     @classmethod
     def from_dict(cls, data: dict) -> "TransferGroup":
         obj = cls.__new__(cls)
-        obj.importFromDict(data)
+        obj.import_from_dict(data)
         return obj
 
-    def importFromDict(self, data: dict) -> None:
+    def import_from_dict(self, data: dict) -> None:
         data = ensure_dict(data, "TransferGroup")
         core = ensure_dict(data.get("core", {}), "TransferGroup.core")
         self.name = core.get("name", "")
-        self.direction = Direction.TX if core.get("direction", 0) == 0 else Direction.RX
+        direction_value = core.get("direction", 0)
+        try:
+            self.direction = Direction(direction_value)
+        except (TypeError, ValueError) as error:
+            raise ValueError(f"TransferGroup.core.direction must be 0 or 1, got {direction_value!r}.") from error
         
         cycle_timing = ensure_dict(core.get("cycle timing", {}), "TransferGroup.core.cycle timing")
         self.priority = cycle_timing.get("priority", 100)
@@ -355,13 +449,14 @@ class TransferGroup:
             ComponentSettings.from_dict(cs)
             for cs in ensure_list(data.get("component settings", []), "TransferGroup.component settings")
         ]
-        self.transfers = [Transfer.from_dict(t) for t in ensure_list(data.get("transfers", []), "TransferGroup.transfers")]
+        transfer_type = getattr(self, "_transfer_type", Transfer)
+        self.transfers = [transfer_type.from_dict(t) for t in ensure_list(data.get("transfers", []), "TransferGroup.transfers")]
 
-    def addTransfer(self, transfer: Transfer) -> None:
+    def add_transfer(self, transfer: Transfer) -> None:
         """Add a transfer to this transfer group."""
         self.transfers = [*self.transfers, transfer]
         logger.info("Added Transfer('%s') to TransferGroup('%s')", transfer.name, self.name)
-  
+
 class Thread:
     """An execution thread definition binding transfer groups to a target CPU core/processor."""
 
@@ -377,25 +472,25 @@ class Thread:
         self.component_settings = [ComponentSettings()]
 
     def __str__(self, collapse: bool = True) -> str:
-        result = self.getDict()
+        result = self.to_dict()
         if collapse:
             result["transfer groups"] = "[EMPTY]" if not self.transfer_groups else f"[...{len(self.transfer_groups)} transfer groups...]"
         else:
-            result["transfer groups"] = [tg.getDict() for tg in self.transfer_groups]
+            result["transfer groups"] = [tg.to_dict() for tg in self.transfer_groups]
         result = _format_dict_for_str(result)
         return json.dumps(result, indent=4)
 
-    def getDict(self) -> dict:
+    def to_dict(self) -> dict:
         return {
             "core": {
                 "processor": self.processor,
                 "priority offset": self.priority_offset,
             },
-            "component settings": [cs.getDict() for cs in self.component_settings],
-            "transfer groups": [tg.getDict() for tg in self.transfer_groups],
+            "component settings": [cs.to_dict() for cs in self.component_settings],
+            "transfer groups": [tg.to_dict() for tg in self.transfer_groups],
         }
 
-    def importFromDict(self, data: dict) -> None:
+    def import_from_dict(self, data: dict) -> None:
             data = ensure_dict(data, "Thread")
             core = ensure_dict(data.get("core", {}), "Thread.core")
             self.processor = core.get("processor", -2)
@@ -404,18 +499,19 @@ class Thread:
                 ComponentSettings.from_dict(cs)
                 for cs in ensure_list(data.get("component settings", []), "Thread.component settings")
             ]
+            transfer_group_type = getattr(self, "_transfer_group_type", TransferGroup)
             self.transfer_groups = [
-                TransferGroup.from_dict(tg)
+                transfer_group_type.from_dict(tg)
                 for tg in ensure_list(data.get("transfer groups", []), "Thread.transfer groups")
             ]
-    
+
     @classmethod
     def from_dict(cls, data: dict) -> "Thread":
         obj = cls.__new__(cls)
-        obj.importFromDict(data)
+        obj.import_from_dict(data)
         return obj
 
-    def addTransferGroup(self, transfer_group: TransferGroup) -> None:
+    def add_transfer_group(self, transfer_group: TransferGroup) -> None:
         """Add a transfer group to this thread."""
         self.transfer_groups = [*self.transfer_groups, transfer_group]
         logger.info("Added TransferGroup('%s') to Thread(processor=%d)", transfer_group.name, self.processor)
@@ -435,20 +531,20 @@ class Plugin:
         self.priority = priority
         self.decimation = decimation
         self.offset = offset
-        self.threads = threads if threads is not None else []
+        self.threads = list(threads) if threads is not None else []
         self.components = []
         self.component_settings = [ComponentSettings()]
 
     def __str__(self, collapse: bool = True) -> str:
-        result = self.getDict()
+        result = self.to_dict()
         if collapse:
             result["threads"] = "[EMPTY]" if not self.threads else f"[...{len(self.threads)} threads...]"
         else:
-            result["threads"] = [th.getDict() for th in self.threads]
+            result["threads"] = [th.to_dict() for th in self.threads]
         result = _format_dict_for_str(result)
         return json.dumps(result, indent=4)
 
-    def getDict(self) -> dict:
+    def to_dict(self) -> dict:
         return {
             "core": {
                 "name": self.name,
@@ -459,11 +555,11 @@ class Plugin:
                     "offset": self.offset,
                 },
             },
-            "component settings": [cs.getDict() for cs in self.component_settings],
-            "threads": [th.getDict() for th in self.threads],
+            "component settings": [cs.to_dict() for cs in self.component_settings],
+            "threads": [th.to_dict() for th in self.threads],
         }
-    
-    def importFromDict(self, data: dict) -> None:
+
+    def import_from_dict(self, data: dict) -> None:
         data = ensure_dict(data, "Plugin")
         core = ensure_dict(data.get("core", {}), "Plugin.core")
         self.name = core.get("name", "")
@@ -476,15 +572,16 @@ class Plugin:
             ComponentSettings.from_dict(cs)
             for cs in ensure_list(data.get("component settings", []), "Plugin.component settings")
         ]
-        self.threads = [Thread.from_dict(th) for th in ensure_list(data.get("threads", []), "Plugin.threads")]
+        thread_type = getattr(self, "_thread_type", Thread)
+        self.threads = [thread_type.from_dict(th) for th in ensure_list(data.get("threads", []), "Plugin.threads")]
 
     @classmethod
     def from_dict(cls, data: dict) -> "Plugin":
         obj = cls.__new__(cls)
-        obj.importFromDict(data)
+        obj.import_from_dict(data)
         return obj
 
-    def addThread(self, thread: Thread) -> None:
+    def add_thread(self, thread: Thread) -> None:
         """Add a thread to this plugin."""
         self.threads = [*self.threads, thread]
         logger.info("Added Thread(processor=%d) to Plugin('%s')", thread.processor, self.name)
@@ -502,38 +599,39 @@ class Configuration:
             self.plugins = plugins if plugins is not None else []
 
     def __str__(self, collapse: bool = True) -> str:
-            result = self.getDict()
+            result = self.to_dict()
             if collapse:
                 result["configuration"]["plugins"] = "[EMPTY]" if not self.plugins else f"[...{len(self.plugins)} plugins...]"
             else:
-                result["configuration"]["plugins"] = [pl.getDict() for pl in self.plugins]
+                result["configuration"]["plugins"] = [pl.to_dict() for pl in self.plugins]
             result = _format_dict_for_str(result)
             return json.dumps(result, indent=4)
 
-    def getDict(self) -> dict:
+    def to_dict(self) -> dict:
         return {
             "dsfversion": self.dsfversion,
             "version": self.version,
             "configuration": {
-                "plugins": [pl.getDict() for pl in self.plugins],
+                "plugins": [pl.to_dict() for pl in self.plugins],
             },
         }
-    
-    def importFromDict(self, data: dict) -> None:
-        data = ensure_dict(data, "Configuration")
+
+    def import_from_dict(self, data: dict) -> None:
+        data = validate_configuration_dict(data)
         self.dsfversion = data.get("dsfversion", {"major": 1, "minor": 4, "fix": 0, "build": ""})
         self.version = data.get("version", {"major": 1, "minor": 0, "fix": 0, "build": ""})
         configuration = ensure_dict(data.get("configuration", {}), "Configuration.configuration")
-        self.plugins = [Plugin.from_dict(pl) for pl in ensure_list(configuration.get("plugins", []), "Configuration.plugins")]
+        plugin_type = getattr(self, "_plugin_type", Plugin)
+        self.plugins = [plugin_type.from_dict(pl) for pl in ensure_list(configuration.get("plugins", []), "Configuration.plugins")]
         logger.info("Imported Configuration from dict containing %d plugins", len(self.plugins))
 
     @classmethod
     def from_dict(cls, data: dict) -> "Configuration":
         obj = cls.__new__(cls)
-        obj.importFromDict(data)
+        obj.import_from_dict(data)
         return obj
 
-    def addPlugin(self, plugin: Plugin) -> None:
+    def add_plugin(self, plugin: Plugin) -> None:
         """Add a plugin to this configuration."""
         self.plugins = [*self.plugins, plugin]
         logger.info("Added Plugin('%s') to Configuration", plugin.name)

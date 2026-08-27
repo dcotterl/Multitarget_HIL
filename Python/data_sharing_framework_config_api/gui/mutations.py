@@ -40,13 +40,14 @@ def get_protocol_for_element(session, selected_object) -> str:
     plugin = find_ancestor_plugin(session.configuration, selected_object)
     if plugin is not None:
         if getattr(plugin, "components", None) and plugin.components:
-            comp = plugin.components[0]
-            if comp in [p.value for p in definitions.Protocols]:
+            comp = str(plugin.components[0]).upper()
+            if comp in ProtocolFactory.get_available_protocols():
                 return comp
         if getattr(plugin, "component_settings", None):
             for cs in plugin.component_settings:
-                if cs.component in [p.value for p in definitions.Protocols]:
-                    return cs.component
+                component = str(cs.component).upper()
+                if component in ProtocolFactory.get_available_protocols():
+                    return component
     return getattr(session, "protocol", "RDMA")
 
 
@@ -70,7 +71,7 @@ def add_channel_to_transfer(session, selected_transfer, refresh):
     handler = ProtocolFactory.get_handler(protocol)
     channel_number = len(selected_transfer.channels) + 1
     channel = handler.create_channel(name=f"Channel {channel_number}")
-    selected_transfer.addChannel(channel)
+    selected_transfer.add_channel(channel)
     refresh(selected_transfer)
 
 
@@ -92,7 +93,7 @@ def add_transfer_to_group(session, selected_group, refresh):
     handler = ProtocolFactory.get_handler(protocol)
     transfer_number = len(selected_group.transfers) + 1
     transfer = handler.create_transfer(name=f"Transfer {transfer_number}", direction=selected_group.direction)
-    selected_group.addTransfer(transfer)
+    selected_group.add_transfer(transfer)
     refresh(selected_group)
 
 
@@ -114,7 +115,7 @@ def add_group_to_thread(session, selected_thread, refresh):
     handler = ProtocolFactory.get_handler(protocol)
     group_number = len(selected_thread.transfer_groups) + 1
     group = handler.create_transfer_group(name=f"Transfer Group {group_number}", direction=definitions.Direction.TX)
-    selected_thread.addTransferGroup(group)
+    selected_thread.add_transfer_group(group)
     refresh(selected_thread)
 
 
@@ -135,7 +136,7 @@ def add_thread_to_plugin(session, selected_plugin, refresh):
     logger.info("Adding Thread to Plugin('%s') (Protocol: %s)", selected_plugin.name, protocol)
     handler = ProtocolFactory.get_handler(protocol)
     thread = handler.create_thread(processor=-2)
-    selected_plugin.addThread(thread)
+    selected_plugin.add_thread(thread)
     refresh(selected_plugin)
 
 
@@ -161,7 +162,7 @@ def add_plugin_to_configuration(session, selected_configuration, refresh, root):
     handler = ProtocolFactory.get_handler(protocol)
     plugin_number = len(selected_configuration.plugins) + 1
     plugin = handler.create_plugin(name=f"Plugin {plugin_number}")
-    selected_configuration.addPlugin(plugin)
+    selected_configuration.add_plugin(plugin)
     refresh(selected_configuration)
 
 

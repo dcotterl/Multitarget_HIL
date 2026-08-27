@@ -52,7 +52,7 @@ dist\DSF_GUI_Setup.exe
 
 Send `DSF_GUI_Setup.exe` to a colleague for testing. They do not need Python, PyInstaller, or Inno Setup installed.
 
-The PyInstaller spec also bundles `data\Simple_c1.dsf` so the packaged GUI keeps a local default sample configuration.
+The PyInstaller spec also bundles `data\Simple_c1.dsf` as a local reference sample. It is not selected automatically by the file dialogs.
 
 ## Troubleshooting
 

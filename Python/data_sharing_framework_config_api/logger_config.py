@@ -8,7 +8,9 @@ from __future__ import annotations
 
 import json
 import logging
+import os
 import sys
+import tempfile
 from collections import deque
 from pathlib import Path
 from typing import Any, List, Tuple
@@ -97,10 +99,36 @@ def load_logging_config() -> Tuple[dict[str, Any], Path]:
 def save_logging_config(config: dict[str, Any]) -> Path:
     """Save configuration dictionary to logging_config.json and re-apply logging settings."""
     config_path = find_logging_config_path()
-    with config_path.open("w", encoding="utf-8") as f:
-        json.dump(config, f, indent=4)
+    config_path.parent.mkdir(parents=True, exist_ok=True)
+    temporary_path = None
+    try:
+        with tempfile.NamedTemporaryFile(
+            mode="w", encoding="utf-8", dir=config_path.parent,
+            prefix=f".{config_path.name}.", suffix=".tmp", delete=False
+        ) as handle:
+            temporary_path = Path(handle.name)
+            json.dump(config, handle, indent=4)
+            handle.flush()
+            os.fsync(handle.fileno())
+        os.replace(temporary_path, config_path)
+    except Exception:
+        if temporary_path is not None:
+            temporary_path.unlink(missing_ok=True)
+        raise
     setup_logging()
     return config_path
+
+
+def _resolve_log_file_path(config_path: Path, configured_path: Any) -> Path:
+    """Resolve a log path and prevent writes outside the application directory."""
+    if not isinstance(configured_path, str) or not configured_path.strip():
+        raise ValueError("log_file_path must be a non-empty string.")
+    base_path = config_path.parent.resolve()
+    candidate = Path(configured_path)
+    resolved = (candidate if candidate.is_absolute() else base_path / candidate).resolve()
+    if resolved != base_path and base_path not in resolved.parents:
+        raise ValueError("log_file_path must remain inside the application directory.")
+    return resolved
 
 
 def setup_logging() -> Tuple[dict[str, Any], Path]:
@@ -108,17 +136,24 @@ def setup_logging() -> Tuple[dict[str, Any], Path]:
     config, config_path = load_logging_config()
 
     level_name = str(config.get("level", "INFO")).upper()
-    level = getattr(logging, level_name, logging.INFO)
+    if level_name not in logging._nameToLevel:
+        raise ValueError(f"Unknown logging level '{level_name}'.")
+    level = logging._nameToLevel[level_name]
     fmt_str = config.get(
         "format",
         "%(asctime)s [%(levelname)s] [%(module)s.%(funcName)s:%(lineno)d] %(message)s",
     )
+    if not isinstance(fmt_str, str):
+        raise ValueError("format must be a string.")
     formatter = logging.Formatter(fmt_str)
 
     # Root logger for data_sharing_framework_config_api
     package_logger = logging.getLogger("data_sharing_framework_config_api")
     package_logger.setLevel(level)
-    package_logger.handlers.clear()
+    for handler in package_logger.handlers[:]:
+        package_logger.removeHandler(handler)
+        if handler is not in_memory_handler:
+            handler.close()
 
     # Stream Handler (console)
     console_handler = logging.StreamHandler(sys.stdout)
@@ -135,9 +170,8 @@ def setup_logging() -> Tuple[dict[str, Any], Path]:
     if config.get("log_to_file", True):
         log_file = config.get("log_file_path", "app.log")
         try:
-            file_path = Path(log_file)
-            if not file_path.is_absolute():
-                file_path = config_path.parent / log_file
+            file_path = _resolve_log_file_path(config_path, log_file)
+            file_path.parent.mkdir(parents=True, exist_ok=True)
             file_handler = logging.FileHandler(file_path, encoding="utf-8")
             file_handler.setLevel(level)
             file_handler.setFormatter(formatter)

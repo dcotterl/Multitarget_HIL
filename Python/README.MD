@@ -75,7 +75,7 @@ From `Python/`:
 python -m data_sharing_framework_config_api.gui.app
 ```
 
-The GUI can load or save `.dsf` and `.json` files. It defaults to the sample file at `data/Simple_c1.dsf` when available.
+The GUI can load or save `.dsf` and `.json` files. File dialogs open in the last directory used by the session; before a file is loaded or saved, they open beside the executable.
 
 ## Running the examples
 
@@ -98,7 +98,7 @@ Or via PowerShell:
 powershell -ExecutionPolicy Bypass -File ".\building tools\build_release.ps1"
 ```
 
-The build script runs all 61 unit tests before packaging. After a successful build, the expected outputs are:
+The build script runs the complete unit test suite before packaging. After a successful build, the expected outputs are:
 
 - `dist\DSF_GUI.exe`
 - `dist\DSF_GUI_Setup.exe`

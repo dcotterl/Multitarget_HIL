@@ -16,7 +16,7 @@ The classes here are thin extensions of the base model types in
 adding the RDMA-specific component settings needed for configuration
 serialization.
 
-The objects expose their data through the base ``getDict()`` interface and
+The objects expose their data through the base ``to_dict()`` interface and
 can be rendered as formatted JSON via ``str()``. ``Direction`` marks a
 transfer group as transmit (TX) or receive (RX), while each component stores
 its own settings via ``ComponentSettings``.
@@ -63,6 +63,8 @@ class Channel(d.Channel):
 class Transfer(d.Transfer):
     """An RDMA data transfer configuration."""
 
+    _channel_type = Channel
+
     def __init__(
         self,
         name: str = "",
@@ -94,6 +96,8 @@ class Transfer(d.Transfer):
 class TransferGroup(d.TransferGroup):
     """A group of transfers sharing a common direction."""
 
+    _transfer_type = Transfer
+
     def __init__(
         self,
         name: str = "",
@@ -121,6 +125,8 @@ class TransferGroup(d.TransferGroup):
 class Thread(d.Thread):
     """A thread configuration for RDMA operations."""
 
+    _transfer_group_type = TransferGroup
+
     def __init__(
         self,
         processor: int = -2,
@@ -136,6 +142,8 @@ class Thread(d.Thread):
 
 class Plugin(d.Plugin):
     """An RDMA plugin containing one or more threads."""
+
+    _thread_type = Thread
 
     def __init__(
         self,

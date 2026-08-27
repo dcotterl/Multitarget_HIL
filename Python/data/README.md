@@ -2,14 +2,14 @@
 
 ## High-Level Purpose
 
-This directory contains sample and reference **Data Sharing Framework (`.dsf`)** configuration files. These files serve as reference schemas, default files for the GUI editor, and input datasets for automated tests.
+This directory contains sample and reference **Data Sharing Framework (`.dsf`)** configuration files. These files serve as reference schemas and input datasets for automated tests.
 
 ---
 
 ## File Overview
 
 - **`Simple_c1.dsf`**
-  - Default RDMA single-channel sample configuration file. Used as a baseline candidate when the GUI launches without a specified file path.
+  - RDMA single-channel sample configuration file for reference and manual testing.
 
 - **`udp_simpleloopback.dsf`**
   - Reference UDP loopback configuration containing transmit (TX) and receive (RX) transfer groups with integer IP address settings.

@@ -26,14 +26,14 @@ def round_trip_objects():
     config = d.Configuration(plugins=[plugin])
 
     clones = [
-        d.Element.from_dict(element.getDict()),
-        d.ComponentSettings.from_dict(component_settings.getDict()),
-        rdma.Channel.from_dict(channel.getDict()),
-        rdma.Transfer.from_dict(transfer.getDict()),
-        rdma.TransferGroup.from_dict(transfer_group.getDict()),
-        rdma.Thread.from_dict(thread.getDict()),
-        rdma.Plugin.from_dict(plugin.getDict()),
-        d.Configuration.from_dict(config.getDict()),
+        d.Element.from_dict(element.to_dict()),
+        d.ComponentSettings.from_dict(component_settings.to_dict()),
+        rdma.Channel.from_dict(channel.to_dict()),
+        rdma.Transfer.from_dict(transfer.to_dict()),
+        rdma.TransferGroup.from_dict(transfer_group.to_dict()),
+        rdma.Thread.from_dict(thread.to_dict()),
+        rdma.Plugin.from_dict(plugin.to_dict()),
+        d.Configuration.from_dict(config.to_dict()),
     ]
     logger.info("Round-trip succeeded for %d object types", len(clones))
 
@@ -43,7 +43,7 @@ def import_config_from_dsf():
     with DATA_PATH.open("r", encoding="utf-8") as handle:
         loaded_config = json.load(handle)
     config = d.Configuration.from_dict(loaded_config)
-    logger.info("Imported config matches file: %s", loaded_config == config.getDict())
+    logger.info("Imported config matches file: %s", loaded_config == config.to_dict())
 
 
 def main():

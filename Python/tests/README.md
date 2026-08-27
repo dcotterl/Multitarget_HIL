@@ -22,10 +22,10 @@ python -m unittest discover -s tests -v
   - Unit tests covering the core base model objects in `definitions.py` (`Configuration`, `Plugin`, `Thread`, `TransferGroup`, `Transfer`, `Channel`, `ComponentSettings`, `Element`), guard clauses (`ensure_dict`, `ensure_list`), direction coercion, and IP string formatting.
 
 - **`test_gui.py`**
-  - Unit and integration tests for the GUI: session initialization, building multi-protocol configurations from scratch (RDMA + UDP), add/remove tree mutations, field value edits, direction parameter adaptation, and save/load file round trips.
+  - Unit and integration tests for the GUI: session initialization, protocol selection, multi-protocol mutations, field edits, direction adaptation, protocol-preserving loads, and atomic-save failure behavior.
 
 - **`test_rdma_definitions.py`**
-  - Unit tests covering RDMA model objects, round-trip serialization (`getDict()` / `from_dict()`), and fixture import validation against benchmark files.
+  - Unit tests covering RDMA model objects, round-trip serialization (`to_dict()` / `from_dict()`), and fixture import validation against benchmark files.
 
 - **`test_upd_definitions.py`**
   - Unit tests covering UDP model objects, IP string conversion functions (`ip_to_string`, `string_to_ip`), and UDP benchmark fixture imports.

@@ -45,6 +45,9 @@ Configuration
 
 - Base definitions reside in [definitions.py](data_sharing_framework_config_api/definitions.py).
 - Protocol extensions (`rdma_definitions.py`, `udp_definitions.py`) inherit from base classes (`d.Transfer`, `d.Plugin`, etc.) to attach protocol-specific `ComponentSettings` (such as `"local address"`, `"destination port"`, or `"source address"`).
+- Deserialization uses the protocol registry and overridable nested model types, preserving RDMA/UDP behavior throughout a loaded configuration.
+- Session saves use a same-directory temporary file followed by atomic replacement, protecting existing files from interrupted or failed writes.
+- Inline GUI edits are parsed before assignment and rolled back if a field or direction adaptation fails.
 - Logging configuration is intentionally environment-aware: when packaged as a frozen executable, the app prefers `logging_config.json` next to the executable, and the Debug Log window auto-refreshes to show the latest in-memory records without manual re-opening.
 
 ---
@@ -75,4 +78,4 @@ To add support for a new protocol (e.g. `TCP`, `CAN`, or `SharedMemory`):
    ))
    ```
 
-*(The GUI will automatically include the new protocol in selection dialogs and inherit its protocol types when adding child elements!)*
+*(The GUI selects protocols when adding plugins and inherits each plugin's protocol for child elements. New configurations remain protocol-neutral, and unknown protocols are rejected instead of silently falling back to RDMA.)*

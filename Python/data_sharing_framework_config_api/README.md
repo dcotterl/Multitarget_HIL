@@ -10,7 +10,7 @@ This directory contains the primary Python package for the **Data Sharing Framew
 
 - **`definitions.py`**
   - Defines the core object-oriented model hierarchy (`Configuration`, `Plugin`, `Thread`, `TransferGroup`, `Transfer`, `Channel`, `ComponentSettings`, `Element`).
-  - Contains base JSON/dict serialization (`getDict()`) and deserialization (`importFromDict()`, `from_dict()`) methods.
+  - Contains base JSON/dict serialization (`to_dict()`) and deserialization (`import_from_dict()`, `from_dict()`) methods.
 
 - **`rdma_definitions.py`**
   - Protocol-specific extensions for **RDMA** communication.

@@ -95,13 +95,13 @@ def export_and_compare(name: str, config: d.Configuration):
     OUTPUT_DIR.mkdir(exist_ok=True)
     output_path = OUTPUT_DIR / f"{name}.dsf"
     with output_path.open("w", encoding="utf-8") as handle:
-        json.dump(config.getDict(), handle, indent=4)
+        json.dump(config.to_dict(), handle, indent=4)
     logger.info("Configuration exported to %s", output_path)
 
     reference_path = DATA_DIR / "config_multidirectional_1_Callea_to_Cotterle_generated.dsf"
     with reference_path.open("r", encoding="utf-8") as handle:
         loaded_config = json.load(handle)
-    logger.info("Matches reference config: %s", loaded_config == config.getDict())
+    logger.info("Matches reference config: %s", loaded_config == config.to_dict())
 
 
 def main():

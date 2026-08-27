@@ -120,13 +120,12 @@ class ProtocolFactory:
 
     @classmethod
     def get_handler(cls, protocol_name: str) -> ProtocolHandler:
-        """Retrieve the handler for a protocol name, falling back to RDMA."""
+        """Retrieve a registered handler, rejecting unknown protocols."""
         name_upper = (protocol_name or "RDMA").upper()
         if name_upper in cls._registry:
             logger.debug("Fetched ProtocolHandler for '%s'", name_upper)
             return cls._registry[name_upper]
-        logger.warning("Protocol '%s' not registered, falling back to RDMA", name_upper)
-        return cls._registry.get("RDMA", _DEFAULT_RDMA_HANDLER)
+        raise ValueError(f"Protocol '{name_upper}' is not registered.")
 
     @classmethod
     def get_available_protocols(cls) -> list[str]:

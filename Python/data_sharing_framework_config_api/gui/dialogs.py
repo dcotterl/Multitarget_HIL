@@ -7,6 +7,7 @@ import tkinter as tk
 from tkinter import messagebox, ttk
 
 from data_sharing_framework_config_api import definitions, logger_config
+from data_sharing_framework_config_api.protocol_factory import ProtocolFactory
 from data_sharing_framework_config_api.gui.state import editor_state
 
 logger = logging.getLogger(__name__)
@@ -54,7 +55,7 @@ def prompt_protocol_selection(root: tk.Tk, title: str = "Select Protocol", messa
     button_frame = ttk.Frame(dialog)
     button_frame.pack(pady=12)
 
-    available_protocols = [p.value for p in definitions.Protocols]
+    available_protocols = ProtocolFactory.get_available_protocols()
     for proto_value in available_protocols:
         ttk.Button(button_frame, text=proto_value, command=lambda p=proto_value: make_choice(p)).pack(side="left", padx=4)
 
