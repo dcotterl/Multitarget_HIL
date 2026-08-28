@@ -208,6 +208,8 @@ class testNodeLink(unittest.TestCase):
                 destination_target=None,
                 destination_interface=None,
             )
+
+
     
 class testImportExportToDict(unittest.TestCase):
     """Tests for serialization and deserialization of Target and DataSharingNetworkTopology."""
@@ -339,3 +341,98 @@ class testImportExportToDict(unittest.TestCase):
             self.assertEqual(link["destination_target"].name, original_link["destination_target"].name)
             self.assertEqual(link["source_interface"], original_link["source_interface"])
             self.assertEqual(link["destination_interface"], original_link["destination_interface"])
+
+class testReverseNodeLinks(unittest.TestCase):
+    def test_reverse_node_links_single_link(self):
+        source_target = Target("Source", "1.1.1.1")
+        destination_target = Target("Destination", "2.2.2.2")
+        source_target.add_output_interface("127.0.0.1", 8080, d.Protocols.UDP)
+        destination_target.add_input_interface("127.0.0.2", 8080, d.Protocols.UDP)
+        
+        source_interface = {"ip": "127.0.0.1", "port": 8080, "protocol": d.Protocols.UDP}
+        destination_interface = {"ip": "127.0.0.2", "port": 8080, "protocol": d.Protocols.UDP}
+        
+        topology = DataSharingNetworkTopology()
+        topology.add_node_link(
+            source_target=source_target,
+            source_interface=source_interface,
+            destination_target=destination_target,
+            destination_interface=destination_interface
+        )
+        
+        reversed_topology = DataSharingNetworkTopology.reverse_node_links(topology)
+        
+        self.assertEqual(len(reversed_topology.node_links), 1)
+        reversed_link = reversed_topology.node_links[0]
+        self.assertEqual(reversed_link["source_target"].name, "Destination")
+        self.assertEqual(reversed_link["destination_target"].name, "Source")
+        self.assertEqual(reversed_link["source_interface"], destination_interface)
+        self.assertEqual(reversed_link["destination_interface"], source_interface)
+
+    def test_reverse_node_links_multiple_links(self):
+        target_a = Target("TargetA", "1.1.1.1")
+        target_b = Target("TargetB", "2.2.2.2")
+        target_c = Target("TargetC", "3.3.3.3")
+        
+        target_a.add_output_interface("127.0.0.1", 8080, d.Protocols.UDP)
+        target_b.add_input_interface("127.0.0.2", 8080, d.Protocols.UDP)
+        target_b.add_output_interface("127.0.0.3", 9090, d.Protocols.RDMA)
+        target_c.add_input_interface("127.0.0.4", 9090, d.Protocols.RDMA)
+        
+        topology = DataSharingNetworkTopology()
+        topology.add_node_link(
+            source_target=target_a,
+            source_interface={"ip": "127.0.0.1", "port": 8080, "protocol": d.Protocols.UDP},
+            destination_target=target_b,
+            destination_interface={"ip": "127.0.0.2", "port": 8080, "protocol": d.Protocols.UDP}
+        )
+        topology.add_node_link(
+            source_target=target_b,
+            source_interface={"ip": "127.0.0.3", "port": 9090, "protocol": d.Protocols.RDMA},
+            destination_target=target_c,
+            destination_interface={"ip": "127.0.0.4", "port": 9090, "protocol": d.Protocols.RDMA}
+        )
+        
+        reversed_topology = DataSharingNetworkTopology.reverse_node_links(topology)
+        
+        self.assertEqual(len(reversed_topology.node_links), 2)
+        
+        # First link should be reversed
+        self.assertEqual(reversed_topology.node_links[0]["source_target"].name, "TargetB")
+        self.assertEqual(reversed_topology.node_links[0]["destination_target"].name, "TargetA")
+        
+        # Second link should be reversed
+        self.assertEqual(reversed_topology.node_links[1]["source_target"].name, "TargetC")
+        self.assertEqual(reversed_topology.node_links[1]["destination_target"].name, "TargetB")
+
+    def test_reverse_node_links_empty_topology(self):
+        topology = DataSharingNetworkTopology()
+        reversed_topology = DataSharingNetworkTopology.reverse_node_links(topology)
+        
+        self.assertEqual(len(reversed_topology.node_links), 0)
+
+    def test_reverse_node_links_preserves_interface_details(self):
+        source_target = Target("Source", "1.1.1.1")
+        destination_target = Target("Destination", "2.2.2.2")
+        source_target.add_output_interface("192.168.1.10", 5000, d.Protocols.RDMA)
+        destination_target.add_input_interface("192.168.2.20", 6000, d.Protocols.RDMA)
+        
+        source_interface = {"ip": "192.168.1.10", "port": 5000, "protocol": d.Protocols.RDMA}
+        destination_interface = {"ip": "192.168.2.20", "port": 6000, "protocol": d.Protocols.RDMA}
+        
+        topology = DataSharingNetworkTopology()
+        topology.add_node_link(
+            source_target=source_target,
+            source_interface=source_interface,
+            destination_target=destination_target,
+            destination_interface=destination_interface
+        )
+        
+        reversed_topology = DataSharingNetworkTopology.reverse_node_links(topology)
+        reversed_link = reversed_topology.node_links[0]
+        
+        self.assertEqual(reversed_link["source_interface"]["ip"], "192.168.2.20")
+        self.assertEqual(reversed_link["source_interface"]["port"], 6000)
+        self.assertEqual(reversed_link["source_interface"]["protocol"], d.Protocols.RDMA)
+        self.assertEqual(reversed_link["destination_interface"]["ip"], "192.168.1.10")
+        self.assertEqual(reversed_link["destination_interface"]["port"], 5000)
