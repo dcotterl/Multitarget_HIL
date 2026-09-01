@@ -1,6 +1,7 @@
+from __future__ import annotations
+
 import json
 import logging
-from os import link, name
 import sys
 from pathlib import Path
 
@@ -12,37 +13,6 @@ from data_sharing_framework_config_api import rdma_definitions as rdma
 from data_sharing_framework_config_api import udp_definitions as udp
 from data_sharing_framework_config_api import definitions as d
 from target_configuration_utilities import dsf_network_definitions as dsf
-
-def setup_network() -> dsf.DataSharingNetworkTopology:
-    topology = dsf.DataSharingNetworkTopology()
-
-    target_1 = dsf.Target("Target_1", "1.1.1.1")
-    target_2 = dsf.Target("Target_2", "2.2.2.2")
-
-    target_1.add_output_interface("169.254.49.44", 5010, d.Protocols.RDMA)
-    target_1.add_input_interface("169.254.49.44", 5011, d.Protocols.RDMA)
-    target_1.add_output_interface("10.94.1.22", 5012, d.Protocols.UDP)
-    target_1.add_input_interface("10.94.1.22", 5013, d.Protocols.UDP)
-
-    target_2.add_input_interface("169.254.23.111", 5010, d.Protocols.RDMA)
-    target_2.add_output_interface("169.254.23.111", 5011, d.Protocols.RDMA)
-    target_2.add_input_interface("10.94.1.24", 5012, d.Protocols.UDP)
-    target_2.add_output_interface("10.94.1.24", 5013, d.Protocols.UDP)
-
-    # create link for RDMA  Target_1 -> Target_2 over port 5010
-    topology.add_node_link(source_target = target_1, source_interface=target_1.output_interfaces[0],
-                           destination_target=target_2, destination_interface=target_2.input_interfaces[0])
-    # create link for RDMA  Target_2 -> Target_1 over port 5011
-    topology.add_node_link(source_target=target_2, source_interface=target_2.output_interfaces[0],
-                           destination_target=target_1, destination_interface=target_1.input_interfaces[0])
-    """
-    topology.add_node_link(source_target=target_1, source_interface=target_1.output_interfaces[1],
-                           destination_target=target_2, destination_interface=target_2.input_interfaces[1])
-    
-    topology.add_node_link(source_target=target_2, source_interface=target_2.output_interfaces[1],
-                           destination_target=target_1, destination_interface=target_1.input_interfaces[1])
-    """
-    return topology
 
 logging.basicConfig(level=logging.INFO, 
                     format="%(asctime)s [%(levelname)s] [%(module)s:%(filename)s:%(lineno)d] %(message)s")
@@ -186,12 +156,12 @@ class ConfigurationMap():
             channels.append(channel)
         return channels
 
-    def export_configurations(self) -> None:
+    def export_configurations(self, base_path: str | Path) -> None:
         for element in self.cfg_map:
             logger.error(f"Exporting configuration for target {element['target']}\n{element['configuration'].__str__(collapse=False)}")
             # Write configuration to file
             config_dict = element['configuration'].to_dict()
-            filename = f"config_{element['target']}.dsf"
+            filename = Path(base_path) / f"config_{element['target']}.dsf"
             try:
                 with open(filename, 'w') as f:
                     json.dump(config_dict, f, indent=4, default=str)
@@ -201,35 +171,3 @@ class ConfigurationMap():
 
 if __name__ == "__main__":
     print(f"here is the module {__name__} for building configurations from topology")
-    topology = setup_network()
-    """
-        cfg_map = ConfigurationMap()
-        cfg_map.initialize_configuration(topology)
-        cfg_map.initialize_plugins(topology)
-
-        cfg_map.initialize_thread(topology)
-    """
-    print(topology)
-
-    #print(f"Source: {link['source_target'].name} Interface: {link['source_interface']}\nDestination: {link['destination_target'].name} Interface: {link['destination_interface']}\n#channels: {link['number_of_channels']}")
-    cfg_map = ConfigurationMap()
-
-    links_tx = topology.get_links_with_target_source("Target_1")
-    links_rx = topology.get_links_with_target_destination("Target_1")
-    links_tx = [link for link in links_tx if link["source_interface"]["protocol"] == d.Protocols.RDMA]
-    links_rx = [link for link in links_rx if link["destination_interface"]["protocol"] == d.Protocols.RDMA]
-
-    #print(links_tx)
-    #print(links_rx)
-
-    #print({ch.name for ch in cfg_map.initialize_channels(4, d.Protocols.UDP)})
-    #print(cfg_map.initialize_transfer(link = link,direction = d.Direction.RX, protocol = d.Protocols.RDMA))
-    #print(cfg_map.initialize_transfer(link = link,direction = d.Direction.RX))
-    #print(cfg_map.initialize_transfer_groups(list_of_links = links_tx, direction = d.Direction.TX))
-    #print(cfg_map.initialize_transfer_groups(list_of_links = links_rx, direction = d.Direction.RX))
-
-    #print(cfg_map.initialize_thread(target="Target_1", protocol=d.Protocols.RDMA, topology=topology))
-
-    #print(cfg_map.initialize_plugin(topology, target_name="Target_1", protocol=d.Protocols.RDMA))
-    cfg_map.initialize_configurations(topology)
-    cfg_map.export_configurations()

@@ -200,8 +200,6 @@ class Target:
             output_interfaces=data.get("output_interfaces", [])
         )
 
-
-
 class DataSharingNetworkTopology:
     """Manages the network topology of interconnected targets.
     
