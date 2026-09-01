@@ -1,5 +1,3 @@
-import json
-import logging
 import sys
 from pathlib import Path
 
@@ -7,11 +5,9 @@ PYTHON_ROOT = Path(__file__).resolve().parents[1]
 if str(PYTHON_ROOT) not in sys.path:
     sys.path.insert(0, str(PYTHON_ROOT))
 
-from data_sharing_framework_config_api import rdma_definitions as rdma
-from data_sharing_framework_config_api import udp_definitions as udp
 from data_sharing_framework_config_api import definitions as d
 from target_configuration_utilities import dsf_network_definitions as dsf
-from data_sharing_framework_config_api import configuration_builder as cb
+
 
 
 def setup_network() -> dsf.DataSharingNetworkTopology:
