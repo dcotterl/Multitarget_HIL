@@ -222,7 +222,8 @@ class DataSharingNetworkTopology:
                       source_target : Target,
                       source_interface : dict,
                       destination_target: Target,
-                      destination_interface: dict) -> None:
+                      destination_interface: dict,
+                      number_of_channels: int = 1) -> None:
         """Add a connection link between two targets.
         
         Args:
@@ -244,7 +245,8 @@ class DataSharingNetworkTopology:
                 "source_target": source_target,
                 "source_interface": source_interface,
                 "destination_target": destination_target,
-                "destination_interface": destination_interface
+                "destination_interface": destination_interface,
+                "number_of_channels": number_of_channels
             })
             logger.debug(f"Successfully added node link to topology (total links: {len(self.node_links)})")
         else:
@@ -282,7 +284,7 @@ class DataSharingNetworkTopology:
         """
         s = "Data Sharing Network Topology:"
         for link in self.node_links:
-            s += f"\n{link['source_target'].name} - {link['source_interface']['ip']}:{link['source_interface']['port']}:{link['source_interface']['protocol'].value} -> {link['destination_target'].name} - {link['destination_interface']['ip']}:{link['destination_interface']['port']}:{link['destination_interface']['protocol'].value}"
+            s += f"\n{link['source_target'].name} - {link['source_interface']['ip']}:{link['source_interface']['port']}:{link['source_interface']['protocol'].value} -> {link['destination_target'].name} - {link['destination_interface']['ip']}:{link['destination_interface']['port']}:{link['destination_interface']['protocol'].value} - #ch:{link['number_of_channels']}"
         return s
 
     def to_dict(self) -> dict:
@@ -347,7 +349,8 @@ class DataSharingNetworkTopology:
                 "source_target": link["destination_target"],
                 "source_interface": link["destination_interface"],
                 "destination_target": link["source_target"],
-                "destination_interface": link["source_interface"]
+                "destination_interface": link["source_interface"],
+                "number_of_channels": link["number_of_channels"],
             }
             for link in topology.node_links
         ]
@@ -360,8 +363,34 @@ class DataSharingNetworkTopology:
         Returns:
             set: A set of unique source target names.
         """
-        unique_source_names = [link["source_target"].name for link in self.node_links]
+        unique_source_names = []
+        for link in self.node_links:
+            source_name = link["source_target"].name
+            if source_name not in unique_source_names:
+                unique_source_names.append(source_name)
         return unique_source_names
+
+    def get_links_with_target_destination(self, target_name: str) -> list:
+        """Get all links where the specified target is the destination.
+
+        Args:
+            target_name: The name of the destination target.
+
+        Returns:
+            list: A list of links where the target is the destination.
+        """
+        return [link for link in self.node_links if link["destination_target"].name == target_name]
+
+    def get_links_with_target_source(self, target_name: str) -> list:
+        """Get all links where the specified target is the source.
+
+        Args:
+            target_name: The name of the source target.
+
+        Returns:
+            list: A list of links where the target is the source.
+        """
+        return [link for link in self.node_links if link["source_target"].name == target_name]
 
     def get_source_protocols(self, target_name: str) -> list:
         """Get all unique protocols used by the source target in the topology.
@@ -400,4 +429,8 @@ if __name__ == "__main__":
 
     reversed_topology = DataSharingNetworkTopology.reverse_node_links(topology)
     print(topology)
+
     print(reversed_topology)
+
+    print(topology.get_links_with_target_source("Target_1"))
+    print(topology.get_links_with_target_destination("Target_2"))

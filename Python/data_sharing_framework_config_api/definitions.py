@@ -71,7 +71,6 @@ def ensure_list(value, context: str) -> list:
         raise TypeError(f"{context} must be a list.")
     return value
 
-
 def validate_configuration_dict(data: dict) -> dict:
     """Validate that a dictionary matches the expected top-level configuration schema.
 
@@ -109,12 +108,10 @@ def validate_configuration_dict(data: dict) -> dict:
             _validate_thread_dict(thread, f"Plugin[{index}].threads[{thread_index}]")
     return data
 
-
 def _validate_optional_scalars(data: dict, keys: tuple[str, ...], expected_type: type, context: str) -> None:
     for key in keys:
         if key in data and (type(data[key]) is not expected_type):
             raise ValueError(f"{context}.{key} must be a {expected_type.__name__}.")
-
 
 def _validate_thread_dict(data: dict, context: str) -> None:
     data = ensure_dict(data, context)
@@ -156,7 +153,6 @@ def _validate_thread_dict(data: dict, context: str) -> None:
                 _validate_optional_scalars(channel_core, ("engine data type", "string data type", "string offset"), int, f"{channel_context}.core")
                 _validate_component_settings(channel.get("component settings", []), f"{channel_context}.component settings")
 
-
 def _validate_component_settings(value, context: str) -> None:
     settings = ensure_list(value, context)
     for index, setting in enumerate(settings):
@@ -169,7 +165,6 @@ def _validate_component_settings(value, context: str) -> None:
             element = ensure_dict(element, element_context)
             if "key" not in element or not isinstance(element["key"], str):
                 raise ValueError(f"{element_context}.key must be a string.")
-
 
 def _protocol_from_plugin_dict(plugin_data: dict) -> str:
     """Find a protocol marker in a plugin or its nested component settings."""
@@ -190,7 +185,6 @@ def _protocol_from_plugin_dict(plugin_data: dict) -> str:
 
     candidates = list(nested_settings(plugin_data))
     return candidates[0] if candidates else ""
-
 
 def _format_udp_ip_value(key: str, val):
     if key in ("source address", "destination address", "local address"):
