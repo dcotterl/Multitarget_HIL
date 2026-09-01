@@ -39,13 +39,8 @@ def setup_network() -> dsf.DataSharingNetworkTopology:
 
     return topology
 
-def build_configuration():
-    topology = setup_network()
-    configurations_map = cb.initialize_configuration(topology)
-    #configurations_map = cb.initialize_plugins(topology, configurations_map)
-    configuration = d.Configuration()
-    print(configuration)
-
 if __name__ == "__main__":
     
-    build_configuration()
+    topology = setup_network()
+
+    print(topology)
