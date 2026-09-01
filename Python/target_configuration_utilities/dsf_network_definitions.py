@@ -366,6 +366,9 @@ class DataSharingNetworkTopology:
             source_name = link["source_target"].name
             if source_name not in unique_source_names:
                 unique_source_names.append(source_name)
+            destination_name = link["destination_target"].name
+            if destination_name not in unique_source_names:
+                unique_source_names.append(destination_name)
         return unique_source_names
 
     def get_links_with_target_destination(self, target_name: str) -> list:
@@ -401,6 +404,19 @@ class DataSharingNetworkTopology:
         """
         protocols = [link["source_interface"]["protocol"] for link in self.node_links if link["source_target"].name == target_name]
         return list(set(protocols))
+
+    def get_destination_protocols(self, target_name: str) -> list:
+        """Get all unique protocols used by the destination target in the topology.
+
+        Args:
+            target_name: The name of the destination target.
+
+        Returns:
+            list: A list of unique protocols used by the destination target.
+        """
+        protocols = [link["destination_interface"]["protocol"] for link in self.node_links if link["destination_target"].name == target_name]
+        return list(set(protocols))
+
 
 if __name__ == "__main__":
 

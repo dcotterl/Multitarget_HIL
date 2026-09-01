@@ -19,6 +19,8 @@ logging.basicConfig(level=logging.INFO,
 logger = logging.getLogger(__name__)
 logger.addHandler(logging.NullHandler())
 
+#TODO: complete UPD
+
 class ConfigurationMap():
     def __init__(self):
         self.cfg_map = []
@@ -37,9 +39,14 @@ class ConfigurationMap():
         logger.info(f"Available sources in the topology: {topology.get_all_sources()}")
         for source in topology.get_all_sources():
             logger.info(f"\tInitializing configuration for source: {source}")
-            logger.info(f"\tAvailable protocols for {source}: {topology.get_source_protocols(source)}")
+            logger.info(f"\tAvailable protocols for {source}: outgoing {topology.get_source_protocols(source)}, incoming {topology.get_destination_protocols(source)}")
 
-            for protocol in topology.get_source_protocols(source):
+            protocols_source = topology.get_source_protocols(source)
+            protocols_destination = topology.get_destination_protocols(source)
+
+            protocols = protocols_source + protocols_destination #list(set(protocols_source + protocols_destination))
+            
+            for protocol in protocols:
                 
                 plugin = self.initialize_plugin(topology=topology, target_name=source, protocol=protocol)
 
@@ -64,15 +71,23 @@ class ConfigurationMap():
         if protocol == d.Protocols.RDMA:
             logger.info(f"\t\t\tGathering TX links for target: {target}")
             links_tx = topology.get_links_with_target_source(target) #get all links where the target is the source
+
             logger.info(f"\t\t\tGathering RX Links for target: {target}")
             links_rx = topology.get_links_with_target_destination(target) #get all links where the target is the destination
+
             logger.info(f"\t\t\tFiltering RDMA links")
             links_tx = [link for link in links_tx if link["source_interface"]["protocol"] == d.Protocols.RDMA] #filter only RDMA links for TX
             links_rx = [link for link in links_rx if link["destination_interface"]["protocol"] == d.Protocols.RDMA] #filter only RDMA links for RX
 
-            transfer_groups.append(self.initialize_transfer_group(direction=d.Direction.TX, list_of_links=links_tx))
+            if links_tx:  # Only initialize transfer group if there are TX links
+                transfer_groups.append(self.initialize_transfer_group(direction=d.Direction.TX, list_of_links=links_tx))
+            else:
+                logger.info(f"\t\t\tNo TX links found for target: {target}")
 
-            transfer_groups.append(self.initialize_transfer_group(direction=d.Direction.RX, list_of_links=links_rx))
+            if links_rx:  # Only initialize transfer group if there are RX links
+                transfer_groups.append(self.initialize_transfer_group(direction=d.Direction.RX, list_of_links=links_rx))
+            else:
+                logger.info(f"\t\t\tNo RX links found for target: {target}")
 
             thread = rdma.Thread(transfer_groups=transfer_groups)
         elif protocol == d.Protocols.UDP:
@@ -158,7 +173,7 @@ class ConfigurationMap():
 
     def export_configurations(self, base_path: str | Path) -> None:
         for element in self.cfg_map:
-            logger.error(f"Exporting configuration for target {element['target']}\n{element['configuration'].__str__(collapse=False)}")
+            logger.error(f"Exporting configuration for target {element['target']}")
             # Write configuration to file
             config_dict = element['configuration'].to_dict()
             filename = Path(base_path) / f"config_{element['target']}.dsf"
