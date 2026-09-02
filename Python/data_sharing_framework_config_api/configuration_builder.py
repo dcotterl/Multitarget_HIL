@@ -58,16 +58,35 @@ class ConfigurationMap():
         logger.info(f"\t\tInitializing plugin for protocol: {protocol}")
         if protocol == d.Protocols.RDMA:
             thread = self.initialize_thread(target=target_name, protocol=protocol, topology=topology)
-            plugin = rdma.Plugin(name = f"Plugin_{target_name}_{protocol.name}", threads = [thread])
+            plugin = rdma.Plugin(name = f"Plugin_{target_name}_{protocol.name}", 
+                                 threads = [thread])
         elif protocol == d.Protocols.UDP:
-            logger.warning(f"UDP protocol initialization not yet implemented for target: {target_name}")
-            pass #TODO: implement for UDP
+            plugin = udp.Plugin(name = f"Plugin_{target_name}_{protocol.name}") # empty thread
+            logger.info(f"\t\tUDP plugin initialized for target: {target_name}")
+            # create one thread of each udp port (tx and rx) with one transfer group each and one transfer per group
+            links_tx = topology.get_links_with_target_source(target_name) #get all links where the target is the source
+            logger.debug(f"\t\tTX links for target {target_name}: {links_tx}")
+            links_rx = topology.get_links_with_target_destination(target_name) #get all links where the target is the destination
+            logger.debug(f"\t\tRX links for target {target_name}: {links_rx}")
+   
+            if links_tx:  # Only initialize transfer group if there are TX links
+                for link in links_tx:
+                    logger.debug(f"\t\t\tInitializing thread for TX link: {link}")
+                    thread = self.initialize_thread(target=target_name, protocol=protocol, topology=dsf.DataSharingNetworkTopology(links=[link]))
+                    plugin.add_thread(thread)
+            if links_rx:  # Only initialize transfer group if there are RX links
+                for link in links_rx:
+                    logger.debug(f"\t\t\tInitializing thread for RX link: {link}")
+                    thread = self.initialize_thread(target=target_name, protocol=protocol, topology=dsf.DataSharingNetworkTopology(links=[link]))
+                    plugin.add_thread(thread)
 
         return plugin
 
     def initialize_thread(self, target :str, protocol : d.Protocols, topology: dsf.DataSharingNetworkTopology) -> None:
         logger.info(f"\t\t\tInitializing thread")
         transfer_groups = []
+        thread = None
+        #TODO: some of this can be abstracted as not really dependent on the protocolp
         if protocol == d.Protocols.RDMA:
             logger.info(f"\t\t\tGathering TX links for target: {target}")
             links_tx = topology.get_links_with_target_source(target) #get all links where the target is the source
@@ -91,9 +110,21 @@ class ConfigurationMap():
 
             thread = rdma.Thread(transfer_groups=transfer_groups)
         elif protocol == d.Protocols.UDP:
-            logger.warning(f"UDP protocol initialization not yet implemented for target: {target}")
-            pass #TODO: implement for UDP
-
+            logger.warning(f"\t\t\tUDP protocol thread initialization for target: {target}")
+            if topology.get_links_with_target_source(target):
+                link = topology.node_links[0]
+                transfer_group = self.initialize_transfer_group(direction=d.Direction.TX, list_of_links=[link])
+                thread = udp.Thread(transfer_groups=[transfer_group],
+                                                local_address=topology.node_links[0]['source_interface']["ip"],
+                                                local_port=topology.node_links[0]['source_interface']["port"])
+            elif topology.get_links_with_target_destination(target):
+                link = topology.node_links[0]
+                transfer_group = self.initialize_transfer_group(direction=d.Direction.RX, list_of_links=[link])
+                thread = udp.Thread(transfer_groups=[transfer_group],
+                                    local_address=topology.node_links[0]['destination_interface']["ip"],
+                                    local_port=topology.node_links[0]['destination_interface']["port"])
+            
+            
         return thread
 
     def initialize_transfer_group(self, direction : d.Direction, list_of_links: list[dict]) -> None:
@@ -104,8 +135,8 @@ class ConfigurationMap():
             if link['source_interface']["protocol"] == d.Protocols.RDMA:
                 transfers.append(self.initialize_transfer(link, direction=direction))
             elif link['source_interface']["protocol"] == d.Protocols.UDP:
-                logger.warning(f"UDP transfer initialization not yet implemented")
-                pass #TODO: initilize trnsfers for UDP consider they need to know thedistinaation
+                logger.warning(f"UDP transfer initialization not yet tested")
+                transfers.append(self.initialize_transfer(link, direction=direction))
 
         if link['source_interface']["protocol"] == d.Protocols.RDMA:
             if direction == d.Direction.TX:
@@ -117,9 +148,15 @@ class ConfigurationMap():
                                                    direction=direction,
                                                    transfers=transfers)
         elif link['source_interface']["protocol"] == d.Protocols.UDP:
-            logger.warning(f"UDP transfer group initialization not yet implemented")
-            pass #TODO: initialize transfer group for UDP
-            transfergroup = None
+            logger.warning(f"UDP transfer group initialization not yet tested")
+            if direction == d.Direction.TX:
+                transfergroup = udp.TransferGroup(name=f"TransferGroup_{link['source_target'].name}_to_{link['destination_target'].name}_TX",
+                                                  direction=direction,
+                                                  transfers=transfers)
+            elif direction == d.Direction.RX:
+                transfergroup = udp.TransferGroup(name=f"TransferGroup_{link['source_target'].name}_to_{link['destination_target'].name}_RX",
+                                                  direction=direction,
+                                                  transfers=transfers)
 
         return transfergroup
 

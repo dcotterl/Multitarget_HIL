@@ -211,10 +211,12 @@ class DataSharingNetworkTopology:
         node_links (list[dict]): List of node link dictionaries defining connections.
     """
     
-    def __init__(self):
+    def __init__(self, links :list[dict] = []):
         """Initialize an empty DataSharingNetworkTopology."""
         logger.debug("Creating new DataSharingNetworkTopology")
         self.node_links = []
+        if links:
+            self.node_links = links
 
     def add_node_link(self, 
                       source_target : Target,
